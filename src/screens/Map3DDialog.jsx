@@ -1,0 +1,99 @@
+import React from "react";
+
+import { Dialog, Button, Checkbox, EmptyState } from "../ds/shiro.js";
+import { mapTerrain, worldAspect } from "../net/mapterrain.ts";
+import Map3D from "./Map3D.jsx";
+
+/* The 3D view, in a window of its own.
+ *
+ * Big, because the whole point is to see relief that a 172px card cannot show,
+ * and a shape you cannot turn is just a second picture. */
+
+/* Zero-K has one true height for a map - terrain is not something a player
+   scales - so this is the value that matches the game rather than a starting
+   guess. Measured against the real thing; the earlier 0.35 drew every map
+   about twice as tall as it is.
+
+   The slider stays for looking at gentle relief up close, which an 8-bit
+   heightmap otherwise hides, and its range is kept close to the true value so
+   most of the travel means something. */
+const DEFAULT_LIFT = 0.165;
+const LIFT_MIN = 0.05;
+const LIFT_MAX = 0.5;
+
+function Slider({ label, value, min, max, step, onChange, hint }) {
+  return (
+    <label style={{ display: "flex", flexDirection: "column", gap: "var(--sp-2)", flex: 1, minWidth: 150 }}>
+      <span style={{ display: "flex", justifyContent: "space-between", gap: "var(--sp-3)" }}>
+        <span className="lab">{label}</span>
+        {hint && <span style={{ font: "var(--text-ui-sm)", color: "var(--text-faint)" }}>{hint}</span>}
+      </span>
+      <input type="range" min={min} max={max} step={step} value={value}
+        onChange={e => onChange(Number(e.target.value))}
+        style={{ width: "100%", accentColor: "var(--accent)" }} />
+    </label>
+  );
+}
+
+export default function Map3DDialog({ map, open, onClose }) {
+  const name = map?.name;
+  const [terrain, setTerrain] = React.useState(null);
+  const [error, setError] = React.useState(null);
+  const [lift, setLift] = React.useState(DEFAULT_LIFT);
+  const [water, setWater] = React.useState(0.28);
+  const [showWater, setShowWater] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!open || !name) return undefined;
+    let live = true;
+    setTerrain(null);
+    setError(null);
+    mapTerrain(name).then(
+      t => { if (live) setTerrain(t); },
+      e => { if (live) setError(String(e?.message ?? e)); },
+    );
+    return () => { live = false; };
+  }, [open, name]);
+
+  const aspect = worldAspect(map);
+
+  return (
+    <Dialog open={Boolean(open && map)} title={name ? `${name} in 3D` : "Map in 3D"}
+      width={860} onClose={onClose}
+      footer={<Button variant="secondary" onClick={onClose}>Close</Button>}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "var(--sp-5)" }}>
+        <div style={{ position: "relative", width: "100%", aspectRatio: "16 / 10",
+          background: "var(--surface-sunken)", border: "1px solid var(--w-12)",
+          overflow: "hidden" }}>
+          {error
+            ? <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center",
+                padding: "var(--sp-5)" }}>
+                <EmptyState icon="image" title="No 3D view for this map."
+                  body={/heightmap/.test(error)
+                    ? "Zero-K has not published a heightmap for it."
+                    : error} />
+              </div>
+            : terrain
+              ? <Map3D heightmap={terrain.heightmap} minimap={terrain.minimap}
+                  aspect={aspect} lift={lift} water={water} showWater={showWater} />
+              : <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center",
+                  font: "var(--text-ui-sm)", color: "var(--text-low)" }}>
+                  Fetching the terrain...
+                </div>}
+        </div>
+
+        <div style={{ display: "flex", gap: "var(--sp-5)", alignItems: "flex-end", flexWrap: "wrap" }}>
+          <Slider label="HEIGHT" value={lift} min={LIFT_MIN} max={LIFT_MAX} step={0.005}
+            onChange={setLift} hint={lift === DEFAULT_LIFT ? "true scale" : "exaggerated"} />
+          <div style={{ display: "flex", flexDirection: "column", gap: "var(--sp-2)", flex: 1, minWidth: 150 }}>
+            <Checkbox checked={showWater} onChange={e => setShowWater(e.target.checked)} label="Show water" />
+            {showWater && (
+              <Slider label="WATERLINE" value={water} min={0} max={1} step={0.01}
+                onChange={setWater} />
+            )}
+          </div>
+        </div>
+      </div>
+    </Dialog>
+  );
+}

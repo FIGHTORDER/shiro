@@ -4,6 +4,7 @@ import {
   KINDS, RATING_MAX, canSearchLibrary, findMaps, minimapRatio,
   normaliseMapName, ratingOf, ratingRanker, sizeOf, suitedTo,
 } from "../net/zkcatalogue.ts";
+import Map3DDialog from "./Map3DDialog.jsx";
 
 /* Zero-K's map library.
  *
@@ -294,6 +295,7 @@ function HitCard({ hit, selected, onClick }) {
 
 export default function MapsScreen({ maps = [], loading, onHost }) {
   const [sel, setSel] = React.useState(undefined);
+  const [show3d, setShow3d] = React.useState(false);
   const [q, setQ] = React.useState("");
   const [sort, setSort] = React.useState("rating");
   const [only, setOnly] = React.useState(() => Object.fromEntries(KINDS.map(k => [k, false])));
@@ -472,6 +474,13 @@ export default function MapsScreen({ maps = [], loading, onHost }) {
                 ZERO-K.INFO ↗
               </span>
             </a>
+            {/* The flat picture cannot say whether a pass is a pass. This is
+                built from the heightmap zero-k.info already publishes, so it
+                works for a map nobody has downloaded. */}
+            <div style={{ padding: "var(--sp-5) var(--sp-5) 0" }}>
+              <Button variant="secondary" size="sm" block icon="eye"
+                onClick={() => setShow3d(true)}>View in 3D</Button>
+            </div>
             <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: "var(--sp-5)",
               display: "flex", flexDirection: "column", gap: "var(--sp-5)" }}>
               <span style={{ font: "var(--text-heading)", color: "var(--text-hi)",
@@ -513,6 +522,8 @@ export default function MapsScreen({ maps = [], loading, onHost }) {
           </>
         ) : <EmptyState icon="search" title="Nothing selected." />}
       </div>
+      <Map3DDialog map={current} open={show3d && Boolean(current)}
+        onClose={() => setShow3d(false)} />
     </div>
   );
 }

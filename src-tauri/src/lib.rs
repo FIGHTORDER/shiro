@@ -10,6 +10,7 @@ mod install;
 mod launch;
 mod loadscreen;
 mod managed;
+mod mapview;
 mod relay;
 mod sidecar;
 mod apps;
@@ -91,6 +92,7 @@ pub fn run() {
             zkcontent::zks_find_maps,
             zkcontent::zks_game_modes,
             zkcontent::zks_map_catalogue,
+            mapview::zks_map_terrain,
             managed::zks_managed_root,
             managed::zks_managed_state,
             managed::zks_managed_prepare,

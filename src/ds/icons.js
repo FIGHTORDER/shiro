@@ -19,6 +19,7 @@ import Crown from "lucide/dist/esm/icons/crown.js";
 import Download from "lucide/dist/esm/icons/download.js";
 import ExternalLink from "lucide/dist/esm/icons/external-link.js";
 import Eye from "lucide/dist/esm/icons/eye.js";
+import Image from "lucide/dist/esm/icons/image.js";
 import Info from "lucide/dist/esm/icons/info.js";
 import Loader from "lucide/dist/esm/icons/loader.js";
 import Lock from "lucide/dist/esm/icons/lock.js";
@@ -56,6 +57,7 @@ export const ICONS = {
   "download": Download,
   "external-link": ExternalLink,
   "eye": Eye,
+  "image": Image,
   "info": Info,
   "loader": Loader,
   "lock": Lock,
