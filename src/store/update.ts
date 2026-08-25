@@ -40,6 +40,28 @@ function busy(s: UpdateState): boolean {
   return s.kind === "checking" || s.kind === "downloading";
 }
 
+/**
+ * What to tell somebody, out of what the updater threw.
+ *
+ * One case is worth translating. When a build's compiled-in public key does not
+ * match the key a release was signed with, minisign says "the signature was
+ * created with a different key than the one provided" - which is precise, and
+ * tells nobody what to do about it. It happens after a signing key is rotated,
+ * and the only fix is to install once by hand; no amount of retrying helps,
+ * because the plugin holds exactly one key and checks it after it has already
+ * chosen an endpoint.
+ *
+ * Everything else is passed through unchanged rather than guessed at.
+ */
+export function explain(err: unknown): string {
+  const raw = String((err as Error)?.message ?? err);
+  if (/different key|signature.*(mismatch|invalid)|invalid signature/i.test(raw)) {
+    return "This build was signed with an older key, so it can no longer update itself. "
+      + "Download the latest installer once and updates will work again from there.";
+  }
+  return raw;
+}
+
 export const useUpdate = create<UpdateStore>((set, get) => ({
   state: { kind: "idle" },
 
@@ -52,7 +74,7 @@ export const useUpdate = create<UpdateStore>((set, get) => ({
     } catch (e) {
       /* An update check is the least important thing the app does. It failing
          is worth saying in Settings and worth saying nowhere else. */
-      set({ state: { kind: "failed", why: String((e as Error)?.message ?? e) } });
+      set({ state: { kind: "failed", why: explain(e) } });
     }
   },
 
@@ -71,7 +93,7 @@ export const useUpdate = create<UpdateStore>((set, get) => ({
       });
       set({ state: { kind: "ready", update } });
     } catch (e) {
-      set({ state: { kind: "failed", why: String((e as Error)?.message ?? e) } });
+      set({ state: { kind: "failed", why: explain(e) } });
     }
   },
 

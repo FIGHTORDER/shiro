@@ -8,7 +8,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { useUpdate } from "./update.ts";
+import { explain, useUpdate } from "./update.ts";
 
 const fresh = () => useUpdate.setState({ state: { kind: "idle" } });
 
@@ -57,4 +57,27 @@ test("a failure keeps its reason, which is the only place it is shown", () => {
   useUpdate.setState({ state: { kind: "failed", why: "network unreachable" } });
   const s = useUpdate.getState().state;
   assert.equal(s.kind === "failed" && s.why, "network unreachable");
+});
+
+/* The message a rotated signing key produces is precise and useless: it names
+   the cause and not the remedy, and no amount of retrying helps, so the app has
+   to say "install once by hand" itself. This is the exact string the plugin
+   raised on the 1.0.0 builds. */
+test("a key mismatch is explained rather than quoted", () => {
+  const out = explain(new Error(
+    "The signature was created with a different key than the one provided"));
+  assert.match(out, /older key/);
+  assert.match(out, /latest installer/);
+  assert.doesNotMatch(out, /signature was created/);
+});
+
+test("anything else is passed through unchanged", () => {
+  assert.equal(explain(new Error("Network unreachable")), "Network unreachable");
+  assert.equal(
+    explain(new Error("Could not fetch a valid release JSON from the remote")),
+    "Could not fetch a valid release JSON from the remote");
+});
+
+test("a thrown non-error still reads as something", () => {
+  assert.equal(explain("plain string"), "plain string");
 });
