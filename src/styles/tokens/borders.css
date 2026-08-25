@@ -1,0 +1,24 @@
+:root{
+/* Corners are square. 2px exists only for pills that must read as pills. */
+--radius-none:0;--radius-hair:1px;--radius-sm:2px;--radius-pill:999px;
+
+/* Hairlines carry all structure in this system - there are no drop shadows in
+   the flat UI. Width is always 1px; the ramp is opacity. */
+--border-hair:1px solid var(--w-06);
+--border-line:1px solid var(--w-12);
+--border-strong:1px solid var(--w-20);
+--border-focus:1px solid var(--ink-000);
+--rule-inset:inset 0 -1px 0 var(--w-06);
+
+/* Elevation. Only floating layers (dialog, menu, tooltip, ready-check) get one. */
+--elev-flat:none;
+--elev-menu:0 1px 0 var(--w-12),0 6px 16px rgba(0,0,0,.10);
+--elev-dialog:0 1px 0 var(--w-20),0 18px 48px rgba(0,0,0,.16);
+
+/* Focus ring - 1px ink outline, 1px paper inset. Never a glow. */
+--focus-ring:0 0 0 1px var(--white),0 0 0 2px var(--ink-000);
+
+/* Protection: text over map imagery sits on a bottom-up black gradient. */
+--protect-bottom:linear-gradient(to top,rgba(0,0,0,.78) 0%,rgba(0,0,0,.28) 45%,transparent 100%);
+--protect-full:linear-gradient(to top,var(--k-88),var(--k-40));
+}

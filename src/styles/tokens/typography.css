@@ -1,0 +1,55 @@
+:root{
+/* Families. Instrument Sans is the whole UI; DM Mono carries every number. */
+--font-core:"Instrument Sans","Helvetica Neue",Helvetica,sans-serif;
+--font-mono:"DM Mono",ui-monospace,"SF Mono",Menlo,monospace;
+--font-display:var(--font-core);
+
+/* Width axis (Instrument Sans variable, 75-100) */
+--wdth-tight:88;
+--wdth-normal:100;
+
+/* Weights. The top of the range is 700 - a black weight at 11px looks shouted. */
+--w-regular:400;
+--w-medium:500;
+--w-semibold:600;
+--w-bold:700;
+
+/* Scale - 11 to 52. Dense app, so the bottom of the scale is where most UI lives. */
+--size-micro:11px;
+--size-tiny:12px;
+--size-small:13px;
+--size-base:14px;
+--size-mid:16px;
+--size-lg:19px;
+--size-xl:23px;
+--size-2xl:30px;
+--size-3xl:38px;
+--size-4xl:52px;
+
+/* Line heights */
+--lh-flat:1;
+--lh-tight:1.15;
+--lh-snug:1.35;
+--lh-body:1.55;
+
+/* Tracking. */
+--track-label:.09em;
+--track-label-tight:.05em;
+--track-flat:0;
+--track-display:-.015em;
+--track-wordmark:.2em;
+
+/* Semantic roles */
+--text-display:var(--w-bold) var(--size-4xl)/var(--lh-flat) var(--font-display);
+--text-title:var(--w-semibold) var(--size-xl)/var(--lh-tight) var(--font-core);
+--text-heading:var(--w-semibold) var(--size-mid)/var(--lh-snug) var(--font-core);
+--text-ui:var(--w-medium) var(--size-base)/var(--lh-snug) var(--font-core);
+--text-ui-sm:var(--w-medium) var(--size-small)/var(--lh-snug) var(--font-core);
+--text-prose:var(--w-regular) var(--size-base)/var(--lh-body) var(--font-core);
+--text-label:var(--w-semibold) var(--size-micro)/var(--lh-flat) var(--font-core);
+--text-num:var(--w-regular) var(--size-small)/var(--lh-flat) var(--font-mono);
+--text-num-lg:var(--w-medium) var(--size-2xl)/var(--lh-flat) var(--font-mono);
+}
+/* Utility for the label treatment - uppercase + measured tracking. */
+.shiro-label{font:var(--text-label);letter-spacing:var(--track-label);text-transform:uppercase;color:var(--text-low)}
+.shiro-num{font:var(--text-num);font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}

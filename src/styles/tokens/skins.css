@@ -1,0 +1,195 @@
+/* Skins. Each one is a scope override of the semantic colour layer only.
+ *
+ * Transcribed from the "Shiro Skins" design project; docs/design/SKINS-TOKENS.md
+ * holds the same blocks with the design's own notes attached. Paper is the
+ * canonical light system in colors.css and has no block here - it is what you
+ * get with no `data-skin` attribute at all.
+ *
+ * Two things about this file that are not obvious:
+ *
+ * It must be imported last. `[data-skin="x"]` and `:root` have identical
+ * specificity - one attribute selector against one pseudo-class - so the only
+ * thing making these win over colors.css and borders.css is source order.
+ * Moving the @import in styles.css up would silently disable every skin.
+ *
+ * Nothing here redefines the base ramp (--ink-*, --ash-*, --paper-*, --white)
+ * or the literal alpha inks (--fff-*, --k-*). Those stay at their light-system
+ * values on purpose: they are the values map imagery is composited against, and
+ * map art is dark whatever the app's ground is. The consequence is that
+ * anything reading the base ramp directly does not follow a skin - see
+ * docs/SKINS.md for the list that is still outstanding in the vendored DS.
+ */
+
+[data-skin="vellum"] {
+  --surface-void:#faf7f0;
+  --surface-base:#faf7f0;
+  --surface-raised:#faf7f0;
+  --surface-panel:#eee9dd;
+  --surface-sunken:#f5f1e8;
+  --surface-hover:rgba(50,38,16,.045);
+  --surface-active:rgba(50,38,16,.10);
+  --surface-selected:#e2dccb;
+  --surface-inverse:#14100a;
+  --scrim:rgba(250,247,240,.86);
+  --text-hi:#14100a;
+  --text-body:#2f2820;
+  --text-mid:#5c5445;
+  --text-low:#8d8471;
+  --text-faint:#a9a08c;
+  --text-inverse:#faf7f0;
+  --text-link:#14100a;
+  --w-04:rgba(50,38,16,0.04);
+  --w-06:rgba(50,38,16,0.07);
+  --w-08:rgba(50,38,16,0.1);
+  --w-12:rgba(50,38,16,0.15);
+  --w-20:rgba(50,38,16,0.24);
+  --w-32:rgba(50,38,16,0.35);
+  --w-56:rgba(50,38,16,0.56);
+  --w-72:rgba(50,38,16,0.72);
+  --border-hair:1px solid rgba(50,38,16,0.07);
+  --border-line:1px solid rgba(50,38,16,0.15);
+  --border-strong:1px solid rgba(50,38,16,0.24);
+  --border-focus:1px solid #14100a;
+  --rule-inset:inset 0 -1px 0 rgba(50,38,16,0.07);
+  --focus-ring:0 0 0 1px #faf7f0,0 0 0 2px #14100a;
+  --elev-menu:0 1px 0 rgba(50,38,16,0.15),0 6px 16px rgba(50,38,16,.18);
+  --elev-dialog:0 1px 0 rgba(50,38,16,0.24),0 18px 48px rgba(50,38,16,.18);
+  --faction-machines:#b21212;
+  --faction-hegemony:#3f5fa8;
+  --faction-rising:#5f7d10;
+  --signal-danger:#b21212;
+  --signal-warn:#8a6a00;
+  --signal-ok:#14100a;
+  --signal-info:#5c5445;
+  --presence-online:#14100a;
+  --presence-away:#8d8471;
+  --presence-room:#5c5445;
+  --presence-ingame:#b21212;
+  --presence-offline:#e2dccb;
+  --presence-bot:#5c5445;
+}
+
+[data-skin="graphite"] {
+  --surface-void:#0d0d0d;
+  --surface-base:#0d0d0d;
+  --surface-raised:#0d0d0d;
+  --surface-panel:#161616;
+  --surface-sunken:#111111;
+  --surface-hover:rgba(255,255,255,.05);
+  --surface-active:rgba(255,255,255,.10);
+  --surface-selected:#202020;
+  --surface-inverse:#ffffff;
+  --scrim:rgba(0,0,0,.82);
+  --text-hi:#ffffff;
+  --text-body:#d6d6d6;
+  --text-mid:#9e9e9e;
+  --text-low:#7e7e7e;
+  --text-faint:#5e5e5e;
+  --text-inverse:#0d0d0d;
+  --text-link:#ffffff;
+  --w-04:rgba(255,255,255,0.04);
+  --w-06:rgba(255,255,255,0.07);
+  --w-08:rgba(255,255,255,0.1);
+  --w-12:rgba(255,255,255,0.15);
+  --w-20:rgba(255,255,255,0.24);
+  --w-32:rgba(255,255,255,0.35);
+  --w-56:rgba(255,255,255,0.56);
+  --w-72:rgba(255,255,255,0.72);
+  --border-hair:1px solid rgba(255,255,255,0.07);
+  --border-line:1px solid rgba(255,255,255,0.15);
+  --border-strong:1px solid rgba(255,255,255,0.24);
+  --border-focus:1px solid #ffffff;
+  --rule-inset:inset 0 -1px 0 rgba(255,255,255,0.07);
+  --focus-ring:0 0 0 1px #0d0d0d,0 0 0 2px #ffffff;
+  --elev-menu:0 1px 0 rgba(255,255,255,0.15),0 6px 16px rgba(0,0,0,.6);
+  --elev-dialog:0 1px 0 rgba(255,255,255,0.24),0 18px 48px rgba(0,0,0,.6);
+  --faction-machines:#e51616;
+  --faction-hegemony:#7292d3;
+  --faction-rising:#a7d224;
+  --signal-danger:#e04040;
+  --signal-warn:#d0a020;
+  --signal-ok:#ffffff;
+  --signal-info:#9e9e9e;
+  --presence-online:#ffffff;
+  --presence-away:#7e7e7e;
+  --presence-room:#9e9e9e;
+  --presence-ingame:#e04040;
+  --presence-offline:#202020;
+  --presence-bot:#9e9e9e;
+}
+
+[data-skin="slate"] {
+  --surface-void:#0b0e13;
+  --surface-base:#0b0e13;
+  --surface-raised:#0b0e13;
+  --surface-panel:#151b25;
+  --surface-sunken:#0f131a;
+  --surface-hover:rgba(196,216,255,.055);
+  --surface-active:rgba(196,216,255,.11);
+  --surface-selected:#1f2733;
+  --surface-inverse:#f5f8fc;
+  --scrim:rgba(11,14,19,.84);
+  --text-hi:#f5f8fc;
+  --text-body:#d3dae4;
+  --text-mid:#9ba6b4;
+  --text-low:#77828f;
+  --text-faint:#576270;
+  --text-inverse:#0b0e13;
+  --text-link:#f5f8fc;
+  --w-04:rgba(196,216,255,0.04);
+  --w-06:rgba(196,216,255,0.07);
+  --w-08:rgba(196,216,255,0.1);
+  --w-12:rgba(196,216,255,0.15);
+  --w-20:rgba(196,216,255,0.24);
+  --w-32:rgba(196,216,255,0.35);
+  --w-56:rgba(196,216,255,0.56);
+  --w-72:rgba(196,216,255,0.72);
+  --border-hair:1px solid rgba(196,216,255,0.07);
+  --border-line:1px solid rgba(196,216,255,0.15);
+  --border-strong:1px solid rgba(196,216,255,0.24);
+  --border-focus:1px solid #f5f8fc;
+  --rule-inset:inset 0 -1px 0 rgba(196,216,255,0.07);
+  --focus-ring:0 0 0 1px #0b0e13,0 0 0 2px #f5f8fc;
+  --elev-menu:0 1px 0 rgba(196,216,255,0.15),0 6px 16px rgba(0,0,0,.6);
+  --elev-dialog:0 1px 0 rgba(196,216,255,0.24),0 18px 48px rgba(0,0,0,.6);
+  --faction-machines:#e2503e;
+  --faction-hegemony:#7292d3;
+  --faction-rising:#a7d224;
+  --signal-danger:#e2503e;
+  --signal-warn:#d8b04a;
+  --signal-ok:#f5f8fc;
+  --signal-info:#9ba6b4;
+  --presence-online:#f5f8fc;
+  --presence-away:#77828f;
+  --presence-room:#9ba6b4;
+  --presence-ingame:#e2503e;
+  --presence-offline:#1f2733;
+  --presence-bot:#9ba6b4;
+}
+
+/* The page art, which the design system knows nothing about.
+ *
+ * All three plates - the login Glaive, the friends Magpie, the loading Dirtbag -
+ * are greyscale on transparent, so a negative is the whole job: it maps every
+ * ink to its opposite and leaves the alpha, which is what carries the drawing.
+ * No second set of files, and no per-asset tuning.
+ *
+ * `brightness` trims the result rather than the source. A straight invert(1)
+ * sends the Glaive's shadowed faces to pure #fff, which lands brighter than
+ * --text-hi on both dark skins and makes the art out-shout the type it sits
+ * behind. Pulling it back keeps the plate below the headline in the reading
+ * order, which is where the light system has it.
+ *
+ * Vellum needs nothing: warm paper is still paper, and black ink reads on it.
+ *
+ * The logo mark gets its own filter rather than sharing --art-filter, because
+ * it is type rather than art: it sits in a lockup with the SHIRO wordmark and
+ * has to match --text-hi, where the plates deliberately fall short of it. It
+ * needs a filter at all only because logo-mark.svg draws in `currentColor` and
+ * is loaded through <img>, which gives it its own document to resolve that in -
+ * so it comes out black whatever the page around it is doing. */
+[data-skin="graphite"],
+[data-skin="slate"] {
+  --art-filter: invert(1) brightness(0.82);
+  --logo-filter: invert(1);
+}

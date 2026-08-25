@@ -1,0 +1,59 @@
+:root{
+/* Base ink ramp - the whole brand. Named dark to light. Shiro is a light system:
+   paper is the surface, ink is the structure. */
+--ink-000:#0a0a0a;--ink-100:#1c1c1c;--ink-200:#2a2a2a;--ink-300:#3d3d3d;
+--ash-600:#555555;--ash-500:#6f6f6f;--ash-400:#8a8a8a;--ash-300:#a8a8a8;--ash-200:#c4c4c4;
+--paper-300:#dcdcdc;--paper-200:#e8e8e8;--paper-100:#f4f4f4;--paper-050:#fafafa;--white:#ffffff;
+
+/* Alpha inks - hairlines, hovers, overlays. Alpha, never opaque greys, so rows
+   stay correct where they sit over map imagery. */
+--w-04:rgba(0,0,0,.035);--w-06:rgba(0,0,0,.07);--w-08:rgba(0,0,0,.09);
+--w-12:rgba(0,0,0,.14);--w-20:rgba(0,0,0,.22);--w-32:rgba(0,0,0,.34);
+--w-56:rgba(0,0,0,.56);--w-72:rgba(0,0,0,.72);
+--k-40:rgba(0,0,0,.40);--k-64:rgba(0,0,0,.64);--k-88:rgba(0,0,0,.88);
+/* White alphas, for the one place they are still needed: text over map art. */
+--fff-56:rgba(255,255,255,.6);--fff-72:rgba(255,255,255,.75);
+
+/* Semantic surfaces */
+--surface-void:var(--white);
+--surface-base:var(--white);
+--surface-raised:var(--white);
+--surface-panel:var(--paper-100);
+--surface-sunken:var(--paper-050);
+--surface-hover:var(--w-04);
+--surface-active:var(--w-08);
+--surface-selected:var(--paper-200);
+--surface-inverse:var(--ink-000);
+--scrim:rgba(255,255,255,.82);
+
+/* Semantic text */
+--text-hi:var(--ink-000);
+--text-body:var(--ink-200);
+--text-mid:var(--ash-600);
+--text-low:var(--ash-400);
+--text-faint:var(--ash-300);
+--text-inverse:var(--white);
+--text-link:var(--ink-000);
+
+/* Faction colours - server-supplied, the only chroma in the system. Darkened
+   from the in-game values so they hold contrast on paper. Identity marks at
+   small size, never surfaces. */
+--faction-machines:#b21212;
+--faction-hegemony:#3f5fa8;
+--faction-rising:#5f7d10;
+
+/* Signal - greyscale first; chroma only where the meaning is unrecoverable
+   without it. */
+--signal-danger:#b21212;
+--signal-warn:#8a6a00;
+--signal-ok:var(--ink-000);
+--signal-info:var(--ash-600);
+
+/* Presence - four real states from the protocol, plus flags */
+--presence-online:var(--ink-000);
+--presence-away:var(--ash-400);
+--presence-room:var(--ash-600);
+--presence-ingame:var(--signal-danger);
+--presence-offline:var(--paper-300);
+--presence-bot:var(--ash-500);
+}

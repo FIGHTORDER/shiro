@@ -1,0 +1,70 @@
+html,body{margin:0;height:100%;background:var(--surface-base)}
+body{font-family:var(--font-core);color:var(--text-body);display:flex;align-items:center;justify-content:center}
+#root{width:100%;height:100%;min-height:0}
+.lab{font:var(--text-label);letter-spacing:var(--track-label);text-transform:uppercase;color:var(--text-low);white-space:nowrap}
+::-webkit-scrollbar{width:10px;height:10px}
+/* --surface-panel, not --paper-100: identical on paper, but the base ramp does
+   not follow a skin and a white gutter down a dark screen is the tell. */
+::-webkit-scrollbar-track{background:var(--surface-panel)}
+::-webkit-scrollbar-thumb{background:var(--w-20)}
+::-webkit-scrollbar-thumb:hover{background:var(--w-32)}
+/* A scroller that gives its gutter back.
+   The 10px bar above is right for a main pane and wrong for a 200px sidebar,
+   where it is five per cent of the width spent on a control nobody drags. The
+   content still scrolls; the bar just stops reserving space for itself.
+   The fade is not decoration - it is the affordance the bar was providing,
+   which is "there is more below". */
+.scroll-quiet{scrollbar-width:none;-ms-overflow-style:none;
+  mask-image:linear-gradient(to bottom,#000 calc(100% - 18px),transparent 100%);
+  -webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 18px),transparent 100%)}
+.scroll-quiet::-webkit-scrollbar{display:none}
+
+a{color:var(--text-hi)}
+a:hover{color:var(--text-mid)}
+
+/* Stopgap for the vendored DS, which sets `background: var(--white)` inline on
+   every <option> (src/ds/shiro.js:798,804). No skin overrides --white - it is
+   the "over map art" white - so on a dark skin every dropdown list renders
+   white-on-white and cannot be read. That includes the skin picker, so it is
+   also the way back out. --white and --surface-base are the same colour in the
+   light system, which is why this changes nothing on Paper.
+   `!important` is the only thing that beats an inline declaration; remove this
+   rule when the DS is re-synced with a semantic token there. */
+option{background:var(--surface-base) !important}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:none;box-shadow:var(--focus-ring)}
+
+/* The Dirtbag that walks along the bottom of the loading dialog.
+
+   Two animations at once: `shiro-walk` advances the sprite sheet a frame at a
+   time, `shiro-cross` carries it across. The durations are tuned against each
+   other - if the travel outruns the stride it moonwalks, which is exactly the
+   bug this cycle already had once. The sheet is rendered walking LEFT, so there
+   is no scaleX flip here; adding one is what caused that moonwalk. */
+@keyframes shiro-walk  { from { background-position: 0 0; }
+                         to   { background-position: -352px 0; } }
+@keyframes shiro-cross { from { transform: translateX(340px); }
+                         to   { transform: translateX(-44px); } }
+
+/* Nobody needs a 4-second traverse to know the app is busy. Under a reduced
+   motion preference it stands still in the middle and the box says the rest. */
+@media (prefers-reduced-motion: reduce) {
+  .shiro-runner { animation: none !important; left: 50% !important;
+                  margin-left: -22px; }
+}
+
+/* The profiler's duck. Two small motions rather than one big one: the body
+   bobs on the water, the feet paddle at twice the rate underneath it. Same
+   principle as the Dirtbag - if the parts move at the same rate it reads as a
+   single sliding image rather than a bird. */
+@keyframes shiro-duck-bob    { 0%, 100% { transform: translateY(0); }
+                               50%      { transform: translateY(-1.5px); } }
+@keyframes shiro-duck-paddle { 0%, 100% { transform: translateX(0); }
+                               50%      { transform: translateX(2px); } }
+.shiro-duck-bob    { animation: shiro-duck-bob 1.6s ease-in-out infinite; }
+.shiro-duck-paddle { animation: shiro-duck-paddle 0.8s ease-in-out infinite; }
+
+/* The check takes a moment; the duck is there to make that legible, not to be
+   watched. Under a reduced motion preference it simply floats. */
+@media (prefers-reduced-motion: reduce) {
+  .shiro-duck-bob, .shiro-duck-paddle { animation: none !important; }
+}

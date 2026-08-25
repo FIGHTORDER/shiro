@@ -1,0 +1,1 @@
+<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><DownloadFileResponse xmlns="http://tempuri.org/"><DownloadFileResult i:nil="true" xmlns:a="http://schemas.datacontract.org/2004/07/PlasmaShared" xmlns:i="http://www.w3.org/2001/XMLSchema-instance"/></DownloadFileResponse></s:Body></s:Envelope>

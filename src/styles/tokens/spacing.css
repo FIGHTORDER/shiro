@@ -1,0 +1,24 @@
+:root{
+/* 4px base. Dense product: 4/8/12 carry most of the layout. */
+--sp-0:0;--sp-1:2px;--sp-2:4px;--sp-3:6px;--sp-4:8px;--sp-5:12px;--sp-6:16px;
+--sp-7:20px;--sp-8:24px;--sp-9:32px;--sp-10:40px;--sp-11:56px;--sp-12:80px;
+
+/* Fixed chrome - the app shell is a fixed grid, never fluid. */
+--shell-titlebar:32px;
+--shell-nav:56px;
+--shell-statusbar:24px;
+--shell-gutter:16px;
+
+/* Row heights. Everything in a list snaps to one of these. */
+--row-compact:26px;
+--row-default:32px;
+--row-tall:44px;
+--row-battle:56px;
+
+/* Controls */
+--control-sm:24px;--control-md:30px;--control-lg:38px;
+
+/* Content maxima */
+--measure-prose:64ch;
+--panel-min:280px;
+}

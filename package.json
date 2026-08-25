@@ -1,0 +1,50 @@
+{
+  "name": "newlobby",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "tauri": "tauri",
+    "tauri:dev": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/tauri.ps1 dev",
+    "tauri:build": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/tauri.ps1 build",
+    "test": "node tools/gen-icons.mjs --check && node tools/gen-loadscreen-art.mjs --check && node --test \"src/**/*.test.ts\"",
+    "gen:protocol": "node tools/gen-protocol.mjs",
+    "test:e2e": "node tools/e2e/live.mjs",
+    "gen:fonts": "node tools/fetch-fonts.mjs",
+    "serve:csp": "node tools/e2e/serve-csp.mjs",
+    "gen:icons": "node tools/gen-icons.mjs",
+    "check:icons": "node tools/gen-icons.mjs --check",
+    "gen:loadscreen": "node tools/gen-loadscreen-art.mjs",
+    "check:loadscreen": "node tools/gen-loadscreen-art.mjs --check",
+    "gen:settings": "node tools/gen-settings.mjs",
+    "gen:modoptions": "node tools/gen-modoptions.mjs",
+    "typecheck": "tsc --noEmit",
+    "check:names": "node tools/check-names.mjs",
+    "fetch:apps": "node tools/fetch-bundled-apps.mjs",
+    "test:demo": "node tools/e2e/demo.mjs"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.1.1",
+    "@tauri-apps/plugin-deep-link": "^2.4.9",
+    "@tauri-apps/plugin-notification": "^2.3.3",
+    "@tauri-apps/plugin-process": "^2.3.1",
+    "@tauri-apps/plugin-updater": "^2.10.1",
+    "lucide": "0.469.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "zustand": "^5.0.2"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.1.0",
+    "@types/node": "^22.20.1",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "playwright-core": "^1.62.1",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.7"
+  }
+}

@@ -1,0 +1,49 @@
+[package]
+name = "shiro"
+version = "1.0.0"
+edition = "2021"
+description = "Shiro - a lobby client for Zero-K"
+rust-version = "1.77"
+
+[lib]
+name = "shiro_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+# Opening a link in the real browser. A bare <a href> does nothing in a
+# webview, and without target it would navigate the app away.
+tauri-plugin-opener = "2"
+tauri-plugin-updater = "2"
+tauri-plugin-process = "2"
+tauri-plugin-notification = "2"
+tauri-plugin-deep-link = "2"
+tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
+tokio = { version = "1", features = ["rt-multi-thread", "net", "io-util", "sync", "time", "macros"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+md5 = "0.7"
+# The app launcher verifies a download against a hash pinned in its catalogue
+# before it will unpack it, and unpacks zips.
+sha2 = "0.10"
+zip = { version = "2", default-features = false, features = ["deflate"] }
+# Rapid's package indexes and every file in its pool are gzipped, and reading
+# the game's AI list means reading both. Already here underneath `zip`; named
+# explicitly because this is a direct use of it, not a transitive one.
+flate2 = "1"
+# TCP keepalive: tokio does not expose the socket option itself.
+socket2 = { version = "0.6", features = ["all"] }
+base64 = "0.22"
+# Zero-K's own content service, for the maps and mods pr-downloader cannot
+# reach. Blocking, because it runs on the same worker thread that already waits
+# on pr-downloader; rustls rather than native TLS so the Linux CI build does not
+# need OpenSSL. See docs/DOWNLOADS-ZK-CONTENT.md.
+reqwest = { version = "0.13", default-features = false, features = ["blocking", "rustls"] }
+
+[profile.release]
+strip = true
+lto = true
+opt-level = "s"
