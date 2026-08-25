@@ -2,6 +2,7 @@ import React from "react";
 
 import { Dialog, Button, Input, Badge, MapImage, EmptyState } from "../ds/shiro.js";
 import { mapCatalogue, minimapRatio, normaliseMapName, sizeOf } from "../net/zkcatalogue.ts";
+import { useNearViewport } from "../hooks/useNearViewport.js";
 
 /* The map list, small enough to sit over a battle room.
  *
@@ -10,15 +11,13 @@ import { mapCatalogue, minimapRatio, normaliseMapName, sizeOf } from "../net/zkc
  * request, not a setting: an autohost may refuse, and the room's map only
  * changes when the server says it has. */
 
-/* Enough to browse, few enough that opening this is not 343 image requests.
-   The search is how you reach the rest. */
-const SHOWN = 60;
-
 function Card({ map, current, onPick }) {
+  const ref = React.useRef(null);
+  const near = useNearViewport(ref);
   const [hover, setHover] = React.useState(false);
   const isCurrent = normaliseMapName(map.name) === normaliseMapName(current || "");
   return (
-    <button type="button"
+    <button ref={ref} type="button"
       onClick={() => onPick(map.name)}
       onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
       title={map.name}
@@ -28,8 +27,8 @@ function Card({ map, current, onPick }) {
         border: "1px solid " + (isCurrent ? "var(--text-hi)" : hover ? "var(--w-20)" : "var(--w-06)"),
         transition: "var(--transition-hover)", minWidth: 0,
       }}>
-      <MapImage map={map.name} kind="thumbnail" ratio={minimapRatio(map)} saturate={1}
-        style={{ width: "100%" }} />
+      {near && <MapImage map={map.name} kind="thumbnail" ratio={minimapRatio(map)} saturate={1}
+        style={{ width: "100%" }} />}
       <span style={{ font: "var(--text-ui-sm)", color: "var(--text-hi)",
         overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{map.name}</span>
       <span style={{ display: "flex", gap: "var(--sp-3)", alignItems: "center" }}>
@@ -65,9 +64,6 @@ export default function RoomMapPicker({ open, current, onPick, onClose }) {
     return list.filter(m => m.name.toLowerCase().includes(query));
   }, [all, query]);
 
-  const shown = matches.slice(0, SHOWN);
-  const hidden = matches.length - shown.length;
-
   return (
     <Dialog open={Boolean(open)} title="Maps" width={720} onClose={onClose}
       footer={<Button variant="secondary" onClick={onClose}>Close</Button>}>
@@ -79,24 +75,17 @@ export default function RoomMapPicker({ open, current, onPick, onClose }) {
           {all === undefined
             ? <div style={{ padding: "var(--sp-6)", font: "var(--text-ui-sm)",
                 color: "var(--text-low)", textAlign: "center" }}>Loading the map list...</div>
-            : shown.length === 0
+            : matches.length === 0
               ? <div style={{ padding: "var(--sp-6) var(--sp-5)" }}>
-                  <EmptyState icon="search" title="No map by that name."
-                    body="This is Zero-K's featured set, which is not every map anybody plays." />
+                  <EmptyState icon="search" title="No map by that name." />
                 </div>
               : <div style={{ display: "grid", gap: "var(--sp-4)",
                   gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))" }}>
-                  {shown.map(m => (
+                  {matches.map(m => (
                     <Card key={m.name} map={m} current={current} onPick={onPick} />
                   ))}
                 </div>}
         </div>
-
-        <span style={{ font: "var(--text-ui-sm)", color: "var(--text-faint)" }}>
-          {hidden > 0
-            ? `${hidden} more - search to narrow it down.`
-            : "Picking one asks the host to change map. An autohost may say no."}
-        </span>
       </div>
     </Dialog>
   );

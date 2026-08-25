@@ -422,9 +422,13 @@ export default function BattleRoomScreen({ room, onLeave, onStart, chat, onSay,
             than the control is worth. */}
         <div style={{ position: "relative", flex: "0 0 auto" }}>
           <MapImage map={room.map} resourceId={mapId} kind="minimap" ratio="1" caption link saturate={1} />
+          {/* An opaque chip, not the secondary variant on its own: that is a
+              transparent background, and the minimap behind it is whatever
+              colour the map happens to be. It disappeared over the dark ones. */}
           <Button variant="secondary" size="sm" icon="eye"
             onClick={() => setShow3d(true)}
             style={{ position: "absolute", right: "var(--sp-4)", bottom: "var(--sp-5)",
+              background: "var(--surface-panel)", borderColor: "var(--w-20)",
               boxShadow: "var(--elev-menu)" }}>
             3D
           </Button>
