@@ -202,7 +202,7 @@ export default function FriendsScreen({ users, profile, profileFor, onSelect, on
               <Button variant="ghost" style={{ flex: 1 }}
                 onClick={onIgnore ? () => onIgnore(u.name) : undefined}>Ignore</Button>
               {onReport && (
-                <Button variant="ghost" size="sm"
+                <Button variant="ghost" style={{ flex: 1 }}
                   onClick={() => onReport(u.name)}>Report</Button>
               )}
               {onRemove && (

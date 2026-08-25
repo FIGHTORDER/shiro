@@ -129,7 +129,11 @@ export default function ChatScreen({ channels, users, messages, active, onTab, o
         {onJoin && (
           <div style={{ display: "flex", gap: "var(--sp-3)", padding: "var(--sp-4)",
             borderTop: "1px solid var(--w-06)" }}>
-            <Input placeholder="#channel" size="sm" value={joining} wrapStyle={{ flex: 1 }}
+            {/* minWidth 0, or the field keeps its intrinsic width - a flex item
+                defaults to min-width auto - and pushes Join past the edge of
+                the panel. */}
+            <Input placeholder="#channel" size="sm" value={joining}
+              wrapStyle={{ flex: 1, minWidth: 0 }}
               onChange={e => setJoining(e.target.value)}
               onKeyDown={e => e.key === "Enter" && join()} />
             <Button variant="quiet" size="sm" onClick={join}>Join</Button>
