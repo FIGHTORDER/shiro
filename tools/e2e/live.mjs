@@ -226,7 +226,11 @@ check("a room at its cap is marked full", await waitFor("full-badge", () => badg
 await page.getByText(/^full house$/).first().click();
 check("and says what joining it actually does",
   await waitFor("full-copy", () => seeing(/Joining makes you a spectator/)));
-check("without promising a queue that does not exist", await seeing(/whoever takes it first/));
+/* The sentence explaining that a freed slot goes to whoever takes it first
+   was cut as excess. The check stays, inverted: the copy must not start
+   promising a queue the protocol does not have. */
+check("without promising a queue that does not exist",
+  !(await seeing(/wait ?list|holds you a place|takes it first|your turn/)));
 
 /* Over the cap, which only a time-queue room can be. The overflow is the
    nearest thing to a waitlist the server has, so it is shown as what it is. */
@@ -234,7 +238,7 @@ await page.getByText(/^queue for a slot$/).first().click();
 check("a room over its cap says how many are past it",
   await waitFor("queue-badge", () => badgeSaying("FULL +2")));
 check("and what the time queue will do to them",
-  await seeing(/2 past the cap/) && await seeing(/moved to the spectators/));
+  await seeing(/2 past the cap/) && await seeing(/Joining makes you a spectator/));
 
 /* The filter strip could hide running and passworded rooms but not the ones
    with no room in them, which is the same question. */
