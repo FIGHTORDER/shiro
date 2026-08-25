@@ -23,8 +23,8 @@ use serde::Serialize;
 use tauri::{Emitter, Manager};
 
 use crate::engine;
-use crate::loadscreen;
 use crate::install;
+use crate::loadscreen;
 
 /// Where the engine download reports itself.
 const ENGINE_EVENT: &str = "zks://engine";
@@ -106,8 +106,8 @@ pub fn zks_managed_prepare(app: tauri::AppHandle) -> Result<String, String> {
     let dir = root(&app)?;
     install::make_managed(&dir)?;
     /* Placed with the install rather than on first launch, so it is there
-       before anything can need it - and removable from Settings, since what the
-       game looks like is the player's call, not the launcher's. */
+    before anything can need it - and removable from Settings, since what the
+    game looks like is the player's call, not the launcher's. */
     if let Err(e) = loadscreen::ensure_default(&dir) {
         eprintln!("could not place the loading screen: {e}");
     }
@@ -125,6 +125,12 @@ pub async fn zks_managed_install_engine(
 ) -> Result<String, String> {
     let dir = root(&app)?;
     install::make_managed(&dir)?;
+    // Placed with the marker, not at the next startup. Startup seeding skips a
+    // directory that is not managed yet, so without this the screen arrives one
+    // launch late and the switch reads off until then.
+    if let Err(e) = loadscreen::ensure_default(&dir) {
+        eprintln!("could not place the loading screen: {e}");
+    }
 
     let handle = app.clone();
     let v = version.clone();
@@ -136,13 +142,21 @@ pub async fn zks_managed_install_engine(
         });
         match &out {
             Ok(path) => {
-                let _ = handle.emit(ENGINE_EVENT, EngineStatus::Done {
-                    version: v.clone(),
-                    path: path.display().to_string(),
-                });
+                let _ = handle.emit(
+                    ENGINE_EVENT,
+                    EngineStatus::Done {
+                        version: v.clone(),
+                        path: path.display().to_string(),
+                    },
+                );
             }
             Err(reason) => {
-                let _ = handle.emit(ENGINE_EVENT, EngineStatus::Failed { reason: reason.clone() });
+                let _ = handle.emit(
+                    ENGINE_EVENT,
+                    EngineStatus::Failed {
+                        reason: reason.clone(),
+                    },
+                );
             }
         }
         out

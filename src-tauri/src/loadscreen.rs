@@ -56,7 +56,10 @@ const ADDON: &str = include_str!("loadscreen/main.lua");
 /// is a directory the game also reads, and removal deletes these names without
 /// asking, so they had better be names nothing else would choose.
 const IMAGES: [(&str, &[u8]); 2] = [
-    ("shiro-mark.png", include_bytes!("loadscreen/shiro-mark.png")),
+    (
+        "shiro-mark.png",
+        include_bytes!("loadscreen/shiro-mark.png"),
+    ),
     (
         "shiro-glaive-plate.png",
         include_bytes!("loadscreen/shiro-glaive-plate.png"),
@@ -145,11 +148,16 @@ pub fn ensure_default(root: &Path) -> Result<(), String> {
 /// to remember to change, and this costs one read of a file that is already
 /// being opened.
 fn current(root: &Path) -> bool {
-    if std::fs::read_to_string(path(root)).map(|t| t != ADDON).unwrap_or(true) {
+    if std::fs::read_to_string(path(root))
+        .map(|t| t != ADDON)
+        .unwrap_or(true)
+    {
         return false;
     }
     IMAGES.iter().all(|(name, bytes)| {
-        std::fs::read(image(root, name)).map(|b| b == *bytes).unwrap_or(false)
+        std::fs::read(image(root, name))
+            .map(|b| b == *bytes)
+            .unwrap_or(false)
     })
 }
 
@@ -217,9 +225,9 @@ pub fn remove(root: &Path) -> Result<(), String> {
             .map_err(|e| format!("could not remove {}: {e}", file.display()))?;
     }
     /* The pictures go too, and go even when the addon has already been deleted
-       by hand. That case is the whole reason this is not inside the branch
-       above: nothing else in the data directory knows those two files are ours,
-       so if this does not clear them, nothing ever will. */
+    by hand. That case is the whole reason this is not inside the branch
+    above: nothing else in the data directory knows those two files are ours,
+    so if this does not clear them, nothing ever will. */
     for (name, _) in IMAGES {
         let picture = image(root, name);
         if picture.exists() {
@@ -228,25 +236,28 @@ pub fn remove(root: &Path) -> Result<(), String> {
         }
     }
     /* And an addon an older Shiro left at the lowercase spelling. On Linux that
-       is a second file, at a path this version never touches again, so nothing
-       else is ever going to notice it is there. */
+    is a second file, at a path this version never touches again, so nothing
+    else is ever going to notice it is there. */
     clear_legacy(root);
     /* And the match file, which belongs to this screen and nothing else: it is
-       written for this addon to read, so once the addon is gone it is a roster
-       in a folder with nothing left to draw it - and the one thing that would
-       stop the tidy-up below from ever emptying LuaIntro on a real install. */
+    written for this addon to read, so once the addon is gone it is a roster
+    in a folder with nothing left to draw it - and the one thing that would
+    stop the tidy-up below from ever emptying LuaIntro on a real install. */
     crate::sidecar::clear(root);
     /* And the directories, if this is all that was in them. `remove_dir`
-       refuses a directory that still has something in it, which is exactly the
-       question worth asking: anything left is somebody else's. */
+    refuses a directory that still has something in it, which is exactly the
+    question worth asking: anything left is somebody else's. */
     let luaintro = root.join("LuaIntro");
     let _ = std::fs::remove_dir(luaintro.join("Images"));
     let _ = std::fs::remove_dir(luaintro.join("Addons"));
     let _ = std::fs::remove_dir(&luaintro);
     /* And remember that it was deliberate, so startup does not helpfully put it
-       back. Best-effort: failing to write the note is not a reason to refuse
-       the removal the user asked for. */
-    let _ = std::fs::write(off_marker(root), "Shiro's loading screen was turned off here.\n");
+    back. Best-effort: failing to write the note is not a reason to refuse
+    the removal the user asked for. */
+    let _ = std::fs::write(
+        off_marker(root),
+        "Shiro's loading screen was turned off here.\n",
+    );
     Ok(())
 }
 
@@ -259,6 +270,31 @@ mod tests {
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).unwrap();
         dir
+    }
+
+    #[test]
+    fn a_fresh_root_gets_the_screen_without_waiting_for_a_restart() {
+        // The switch reads `installed`, so a root that has just been made
+        // managed has to satisfy it straight away. It used to be written only
+        // by startup seeding, which skips a directory that is not managed yet,
+        // so the screen landed one launch later and the switch said off.
+        let dir = temp("fresh-root");
+        assert!(!installed(&dir));
+        ensure_default(&dir).unwrap();
+        assert!(installed(&dir), "not in place after the root was prepared");
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn saying_no_survives_preparing_the_root_again() {
+        // Off stays off: re-running the placement must not undo a decline.
+        let dir = temp("declined-root");
+        ensure_default(&dir).unwrap();
+        remove(&dir).unwrap();
+        assert!(declined(&dir));
+        ensure_default(&dir).unwrap();
+        assert!(!installed(&dir), "a decline was overwritten");
+        let _ = std::fs::remove_dir_all(&dir);
     }
 
     fn bytes_of(name: &str) -> &'static [u8] {
@@ -292,7 +328,11 @@ mod tests {
         install(&root).unwrap();
         // The path matters: it has to be the addon Zero-K also calls main, or
         // it draws alongside the original instead of replacing it.
-        assert!(root.join("LuaIntro").join("Addons").join("main.lua").is_file());
+        assert!(root
+            .join("LuaIntro")
+            .join("Addons")
+            .join("main.lua")
+            .is_file());
         assert!(installed(&root));
         let _ = std::fs::remove_dir_all(&root);
     }
@@ -300,28 +340,33 @@ mod tests {
     #[test]
     fn the_paths_are_spelled_the_way_the_engine_spells_them() {
         /* The reported Linux failure, pinned. A raw file is found by handing
-           the engine's own string to the filesystem, so the name on disk and
-           the name in the VFS have to agree byte for byte - which a Windows
-           filesystem will forgive and a Linux one will not. This runs on both
-           and passes on neither by accident, because it compares components
-           rather than asking the filesystem anything.
+        the engine's own string to the filesystem, so the name on disk and
+        the name in the VFS have to agree byte for byte - which a Windows
+        filesystem will forgive and a Linux one will not. This runs on both
+        and passes on neither by accident, because it compares components
+        rather than asking the filesystem anything.
 
-           The addon has no Lua string to check it against: the handler in
-           springcontent.sdz scans `LUA_DIRNAME .. 'Addons/'`, and
-           `Script.GetName()` for this handle is `LuaIntro`. */
+        The addon has no Lua string to check it against: the handler in
+        springcontent.sdz scans `LUA_DIRNAME .. 'Addons/'`, and
+        `Script.GetName()` for this handle is `LuaIntro`. */
         let root = Path::new("/zk");
         assert_eq!(tail(&path(root), 3), ["LuaIntro", "Addons", "main.lua"]);
 
         /* The pictures and the match file do have one, in ADDON, and nothing
-           but this connects the two sides. Renaming one and not the other costs
-           two textures and a roster at runtime and nothing at compile time,
-           which is the kind of silence this repo has been bitten by before. */
+        but this connects the two sides. Renaming one and not the other costs
+        two textures and a roster at runtime and nothing at compile time,
+        which is the kind of silence this repo has been bitten by before. */
         for (name, _) in IMAGES {
             assert_eq!(tail(&image(root, name), 3), ["LuaIntro", "Images", name]);
-            assert!(ADDON.contains(&format!("LuaIntro/Images/{name}")),
-                "the addon asks for {name} under some other path");
+            assert!(
+                ADDON.contains(&format!("LuaIntro/Images/{name}")),
+                "the addon asks for {name} under some other path"
+            );
         }
-        assert_eq!(tail(&crate::sidecar::path(root), 2), ["LuaIntro", "shiro-match.lua"]);
+        assert_eq!(
+            tail(&crate::sidecar::path(root), 2),
+            ["LuaIntro", "shiro-match.lua"]
+        );
         assert!(ADDON.contains("LuaIntro/shiro-match.lua"));
     }
 
@@ -329,16 +374,23 @@ mod tests {
     #[test]
     fn the_lowercase_spelling_an_older_shiro_used_is_cleared() {
         /* Only on a filesystem that can hold both at once. On Windows these are
-           one file, which is why the lowercase one went unnoticed for as long
-           as it did. */
+        one file, which is why the lowercase one went unnoticed for as long
+        as it did. */
         let root = temp("legacy");
         let old = legacy(&root);
         std::fs::create_dir_all(old.parent().unwrap()).unwrap();
-        std::fs::write(&old, "-- Shiro's loading screen, from before this was fixed\n").unwrap();
+        std::fs::write(
+            &old,
+            "-- Shiro's loading screen, from before this was fixed\n",
+        )
+        .unwrap();
 
         install(&root).unwrap();
         assert!(installed(&root));
-        assert!(!old.exists(), "a screen the engine cannot see was left behind");
+        assert!(
+            !old.exists(),
+            "a screen the engine cannot see was left behind"
+        );
 
         // And a hand-written one at that path is still somebody else's file.
         std::fs::create_dir_all(old.parent().unwrap()).unwrap();
@@ -364,8 +416,8 @@ mod tests {
     #[test]
     fn an_addon_without_its_pictures_is_not_installed() {
         /* What an install made by a Shiro that predated the pictures looks
-           like. It has to read as not-installed, or the switch says yes and the
-           screen draws with nothing in it. */
+        like. It has to read as not-installed, or the switch says yes and the
+        screen draws with nothing in it. */
         let root = temp("halfway");
         install(&root).unwrap();
         std::fs::remove_file(root.join("LuaIntro").join("Images").join("shiro-mark.png")).unwrap();
@@ -386,7 +438,10 @@ mod tests {
         for (name, _) in IMAGES {
             assert!(!root.join("LuaIntro").join("Images").join(name).exists());
         }
-        assert!(!root.join("LuaIntro").exists(), "an empty LuaIntro was left behind");
+        assert!(
+            !root.join("LuaIntro").exists(),
+            "an empty LuaIntro was left behind"
+        );
         // Removing what is not there is not an error - it is the desired state.
         remove(&root).unwrap();
         let _ = std::fs::remove_dir_all(&root);
@@ -395,15 +450,25 @@ mod tests {
     #[test]
     fn the_match_file_goes_when_the_screen_does() {
         /* Written into LuaIntro/ by a launch, read by the addon and by nothing
-           else. Left behind it is a roster with nothing to draw it - and the
-           one file that would keep the test above from ever being true on an
-           install somebody had actually played from. */
+        else. Left behind it is a roster with nothing to draw it - and the
+        one file that would keep the test above from ever being true on an
+        install somebody had actually played from. */
         let root = temp("match-file");
         install(&root).unwrap();
-        std::fs::write(crate::sidecar::path(&root), "-- last week's match\nreturn {}\n").unwrap();
+        std::fs::write(
+            crate::sidecar::path(&root),
+            "-- last week's match\nreturn {}\n",
+        )
+        .unwrap();
         remove(&root).unwrap();
-        assert!(!crate::sidecar::path(&root).exists(), "the last match's roster survived");
-        assert!(!root.join("LuaIntro").exists(), "an empty LuaIntro was left behind");
+        assert!(
+            !crate::sidecar::path(&root).exists(),
+            "the last match's roster survived"
+        );
+        assert!(
+            !root.join("LuaIntro").exists(),
+            "an empty LuaIntro was left behind"
+        );
         let _ = std::fs::remove_dir_all(&root);
     }
 
@@ -414,7 +479,10 @@ mod tests {
         // to tidy away.
         let root = temp("shared");
         install(&root).unwrap();
-        let theirs = root.join("LuaIntro").join("Images").join("someone-elses.png");
+        let theirs = root
+            .join("LuaIntro")
+            .join("Images")
+            .join("someone-elses.png");
         std::fs::write(&theirs, b"not ours").unwrap();
         remove(&root).unwrap();
         assert!(theirs.is_file());
@@ -424,16 +492,19 @@ mod tests {
     #[test]
     fn a_screen_from_an_older_shiro_is_replaced() {
         /* The reported failure, from the other end: Shiro wrote the match file
-           every launch and the screen never showed it, because the addon on
-           disk predated the code that reads it. Startup only wrote the addon
-           when none was there, so the first version installed stayed forever. */
+        every launch and the screen never showed it, because the addon on
+        disk predated the code that reads it. Startup only wrote the addon
+        when none was there, so the first version installed stayed forever. */
         let root = temp("stale");
         install(&root).unwrap();
         std::fs::write(path(&root), "-- Shiro's loading screen, an older one\n").unwrap();
         assert!(installed(&root), "it is still a screen of ours");
         ensure_default(&root).unwrap();
-        assert_eq!(std::fs::read_to_string(path(&root)).unwrap(), ADDON,
-            "startup left an old screen in place");
+        assert_eq!(
+            std::fs::read_to_string(path(&root)).unwrap(),
+            ADDON,
+            "startup left an old screen in place"
+        );
         let _ = std::fs::remove_dir_all(&root);
     }
 
@@ -462,7 +533,10 @@ mod tests {
         remove(&root).unwrap();
         assert!(declined(&root));
         ensure_default(&root).unwrap();
-        assert!(!installed(&root), "startup put back a screen the user removed");
+        assert!(
+            !installed(&root),
+            "startup put back a screen the user removed"
+        );
 
         // And turning it on again clears that.
         install(&root).unwrap();
@@ -499,9 +573,9 @@ mod tests {
         assert_eq!(png_size(bytes_of("shiro-mark.png")), (256, 256));
         assert_eq!(png_size(bytes_of("shiro-glaive-plate.png")), (807, 1400));
         /* The plate's aspect is a literal in the Lua, because the addon cannot
-           ask a texture how big it is before it has drawn it. If the art is
-           ever regenerated at another size, that number has to move with it or
-           the Glaive is quietly stretched. */
+        ask a texture how big it is before it has drawn it. If the art is
+        ever regenerated at another size, that number has to move with it or
+        the Glaive is quietly stretched. */
         assert!(ADDON.contains("807 / 1400"));
     }
 }
