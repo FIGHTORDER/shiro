@@ -82,7 +82,7 @@ pub const CATALOGUE: &[CatalogueApp] = &[
         description: "Zero-K performance profiling tool",
         kind: AppKind::Executable,
         download: Some(
-            "https://github.com/QrowZK/Sprofiler/releases/download/dev/Sprofiler_1.0.0_x64.zip",
+            "https://github.com/FIGHTORDER/Sprofiler/releases/download/dev/Sprofiler_1.0.0_x64.zip",
         ),
         sha256: Some("3efb8577a181585d5f6e99502b04da7dff7e9656ee701072fb05474f5a7087d7"),
         version: Some("1.0.0"),
@@ -107,7 +107,7 @@ pub const CATALOGUE: &[CatalogueApp] = &[
         description: "Tournament control and map pool images for Zero-K",
         kind: AppKind::Executable,
         download: Some(
-            "https://github.com/QrowZK/stournament/releases/download/dev/Stournament_1.0.0_x64.zip",
+            "https://github.com/FIGHTORDER/stournament/releases/download/dev/Stournament_1.0.0_x64.zip",
         ),
         sha256: Some("9a765ccf71940bc27ac9dd98ec3101dd2dfe5865aca829ca0f3f1fae64d1c66a"),
         version: Some("1.0.0"),
@@ -129,7 +129,7 @@ pub const CATALOGUE: &[CatalogueApp] = &[
         description: "Scenario editor for the Spring and Recoil RTS engines",
         kind: AppKind::Executable,
         download: Some(
-            "https://github.com/QrowZK/Splaunch/releases/download/dev/Splaunch_1.0.0_x64.zip",
+            "https://github.com/FIGHTORDER/Splaunch/releases/download/dev/Splaunch_1.0.0_x64.zip",
         ),
         sha256: Some("5fcaacffdd8e25be49fac6ed35d8a90de438a4f4ee7e04ef4789502b07c40a1d"),
         version: Some("1.0.0"),
@@ -144,7 +144,7 @@ pub const CATALOGUE: &[CatalogueApp] = &[
         description: "Node-based map generator tool for Zero-K",
         kind: AppKind::Executable,
         download: Some(
-            "https://github.com/QrowZK/Springen/releases/download/dev/Springen_1.0.0_x64.zip",
+            "https://github.com/FIGHTORDER/Springen/releases/download/dev/Springen_1.0.0_x64.zip",
         ),
         // Verified by hand against the downloaded file, not copied from the
         // release notes: this value is what decides whether the bytes are
@@ -721,7 +721,7 @@ mod tests {
     #[test]
     fn only_github_is_fetchable() {
         assert!(host_allowed(
-            "https://github.com/QrowZK/Springen/releases/download/v1/x.zip"
+            "https://github.com/FIGHTORDER/Springen/releases/download/v1/x.zip"
         ));
         assert!(host_allowed("https://objects.githubusercontent.com/x"));
         assert!(!host_allowed("https://github.com.evil.example/x"));

@@ -49,7 +49,7 @@ function publishStep(): string {
      `${{` is a bad substitution that takes its whole command with it - and the
      command it takes is the one that reads the live version. */
   const shell = body
-    .replace(/\$\{\{\s*github\.repository\s*\}\}/g, "QrowZK/shiro")
+    .replace(/\$\{\{\s*github\.repository\s*\}\}/g, "FIGHTORDER/shiro")
     .replace(/\$\{\{\s*github\.sha\s*\}\}/g, "deadbeef");
   assert.ok(!shell.includes("${{"), "an Actions expression reached the shell");
   return shell;
@@ -113,7 +113,7 @@ function runPublish(): { assets: string[]; out: string } {
     cwd: sim,
     encoding: "utf8",
     env: { ...process.env, SHIRO_VERSION: NEW, SIM: sim, SIM_LIVE: LIVE,
-      GITHUB_REPOSITORY: "QrowZK/shiro" },
+      GITHUB_REPOSITORY: "FIGHTORDER/shiro" },
   });
   const out = `${r.stdout ?? ""}${r.stderr ?? ""}`;
   assert.equal(r.status, 0, `the publish step failed:\n${out}`);

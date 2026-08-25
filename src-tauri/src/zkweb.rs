@@ -38,7 +38,7 @@ const ALLOWED_HOST: &str = "zero-k.info";
 const USER_AGENT: &str = concat!(
     "Shiro/",
     env!("CARGO_PKG_VERSION"),
-    " (Zero-K lobby client; +https://github.com/QrowZK/shiro)"
+    " (Zero-K lobby client; +https://github.com/FIGHTORDER/shiro)"
 );
 
 /// Their answer for a name that is not an account. Exact, and only 40 bytes.
