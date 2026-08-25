@@ -12,6 +12,7 @@ import AlertTriangle from "lucide/dist/esm/icons/triangle-alert.js";
 import ArrowDown from "lucide/dist/esm/icons/arrow-down.js";
 import ArrowLeft from "lucide/dist/esm/icons/arrow-left.js";
 import Bell from "lucide/dist/esm/icons/bell.js";
+import BookOpen from "lucide/dist/esm/icons/book-open.js";
 import Check from "lucide/dist/esm/icons/check.js";
 import ChevronDown from "lucide/dist/esm/icons/chevron-down.js";
 import ChevronUp from "lucide/dist/esm/icons/chevron-up.js";
@@ -28,9 +29,12 @@ import LogOut from "lucide/dist/esm/icons/log-out.js";
 import Map from "lucide/dist/esm/icons/map.js";
 import MessageSquare from "lucide/dist/esm/icons/message-square.js";
 import Minus from "lucide/dist/esm/icons/minus.js";
+import Monitor from "lucide/dist/esm/icons/monitor.js";
 import Package from "lucide/dist/esm/icons/package.js";
+import Palette from "lucide/dist/esm/icons/palette.js";
 import Play from "lucide/dist/esm/icons/play.js";
 import Plus from "lucide/dist/esm/icons/plus.js";
+import Puzzle from "lucide/dist/esm/icons/puzzle.js";
 import RotateCcw from "lucide/dist/esm/icons/rotate-ccw.js";
 import Search from "lucide/dist/esm/icons/search.js";
 import Settings from "lucide/dist/esm/icons/settings.js";
@@ -51,6 +55,7 @@ export const ICONS = {
   "arrow-down": ArrowDown,
   "arrow-left": ArrowLeft,
   "bell": Bell,
+  "book-open": BookOpen,
   "check": Check,
   "chevron-down": ChevronDown,
   "chevron-up": ChevronUp,
@@ -67,9 +72,12 @@ export const ICONS = {
   "map": Map,
   "message-square": MessageSquare,
   "minus": Minus,
+  "monitor": Monitor,
   "package": Package,
+  "palette": Palette,
   "play": Play,
   "plus": Plus,
+  "puzzle": Puzzle,
   "rotate-ccw": RotateCcw,
   "search": Search,
   "settings": Settings,

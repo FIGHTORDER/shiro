@@ -11,7 +11,7 @@ export const NAV = [
   { id: "friends", icon: "users", label: "Friends" },
   { id: "profile", icon: "user", label: "Profile" },
   { id: "debrief", icon: "trophy", label: "Last match" },
-  { id: "apps", icon: "package", label: "Apps" }
+  { id: "apps", icon: "package", label: "Add-ons" }
 ];
 
 export function TitleBar({ version = "0.1.0", updateReady, inbox }) {

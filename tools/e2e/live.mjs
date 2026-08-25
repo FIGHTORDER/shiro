@@ -1022,7 +1022,7 @@ await clickText(/My profile/);
 check("going back returns to your own", await waitFor("back2", () => seeing(/MY PROFILE/)));
 
 console.log("apps");
-await nav("Apps");
+await nav("Add-ons");
 check("the launcher lists what Shiro can run",
   await waitFor("apps", () => seeing(/System profiler/) && seeing(/Splaunch/)));
 /* An app with a published release is offered rather than dimmed - the state

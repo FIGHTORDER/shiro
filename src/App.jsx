@@ -41,7 +41,7 @@ import { useChat, BATTLE_ROOM, selectTabs } from "./store/chat";
 import { useMatchmaker, secondsLeft } from "./store/matchmaker";
 import { useFriends } from "./store/friends";
 import { useParty, inviteSecondsLeft } from "./store/party";
-import { useSettings } from "./store/settings";
+import { SKINS, useSettings } from "./store/settings";
 import { useUpdate } from "./store/update.ts";
 import { appVersion } from "./net/update.ts";
 import { catalogue, statuses as appStatuses, launchApp, installApp, uninstallApp } from "./net/apps.ts";
@@ -778,6 +778,8 @@ export default function App() {
   else if (view === "apps") body = (
     <AppsScreen apps={appCatalogue} statuses={appStatusList} error={appError}
       installing={installing}
+      skins={SKINS} skin={settings.skin}
+      onSkin={id => useSettings.getState().set({ skin: id })}
       onInstall={id => {
         setAppError(undefined);
         setInstalling(id);

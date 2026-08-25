@@ -6,7 +6,6 @@ import {
 } from "../net/engineSettings.ts";
 import { applyPreset, resolveRef, changedSettingNames } from "../net/gameSettings.ts";
 import { SETTINGS_TABS } from "../protocol/settings.ts";
-import { SKINS } from "../store/settings.ts";
 
 /* Screen 9 was deferred in the handoff, so this is built from the same
    primitives rather than a design. It covers the three things that actually
@@ -444,7 +443,6 @@ export default function SettingsScreen({ me, install, installError, engine, sett
   const [saved, setSaved] = React.useState("");
   const [preview, setPreview] = React.useState(null);
   const [previewError, setPreviewError] = React.useState("");
-  const skin = (settings && settings.skin) || "paper";
 
   const runPreview = async () => {
     setPreview(null);
@@ -490,17 +488,6 @@ export default function SettingsScreen({ me, install, installError, engine, sett
             )}
             {onLogout && <Button variant="danger" size="sm" onClick={onLogout}>Log out</Button>}
           </div>
-        </Section>
-
-        {/* No Apply button: the skin is an attribute on <html> and the
-            stylesheet is already loaded, so switching is a repaint. Anything
-            that needed confirming would be a layout change, and skins do not
-            make those. */}
-        <Section title="Appearance">
-          <Select label="Skin" size="sm" wrapStyle={{ width: 220 }}
-            options={SKINS.map(s => ({ value: s.id, label: s.name }))}
-            value={skin}
-            onChange={e => onSettings && onSettings({ skin: e.target.value })} />
         </Section>
 
         <Section title="Zero-K installation">

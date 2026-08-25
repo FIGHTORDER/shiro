@@ -2,12 +2,32 @@ import React from "react";
 import { Button, Badge, EmptyState, Icon } from "../ds/shiro.js";
 import { ACTION, META, appState } from "./appState.ts";
 
-/* The app launcher. Four entries, shipped with Shiro, no search and no
-   accounts - see docs/APPS.md for why this is a launcher rather than a store.
+/* Add-ons: the things Shiro can add to itself or to Zero-K, by kind.
+ *
+ * Six kinds, one rail. Only two of them have anything in them today - the four
+ * apps that ship in the catalogue, and the four skins that used to live in
+ * Settings - and the rest say so plainly rather than being hidden until they
+ * are ready.
+ *
+ * The catalogue still ships with Shiro; nothing here is fetched. See
+ * docs/APPS.md for why entries arrive by pull request rather than over the
+ * wire.
+ *
+ * The design problem is the states, not the list: an add-on can be built in,
+ * installed, not installed, or unavailable because there is nothing published
+ * yet, and the last of those has to look deliberate rather than broken. */
 
-   The design problem here is the states, not the list: an app can be built in,
-   installed, not installed, or unavailable because there is nothing published
-   yet, and the last of those has to look deliberate rather than broken. */
+/* Kinds in rail order. Apps first because it is the one with a working
+   catalogue; the empty ones keep their place so the shape of the section does
+   not move as they fill up. */
+const KINDS = [
+  { id: "apps", icon: "package", label: "Apps" },
+  { id: "skins", icon: "palette", label: "Shiro skins" },
+  { id: "loadscreens", icon: "image", label: "Loading screens" },
+  { id: "widgets", icon: "puzzle", label: "Widgets" },
+  { id: "uiskins", icon: "monitor", label: "Game UI skins" },
+  { id: "campaign", icon: "book-open", label: "Campaign" },
+];
 
 const label = {
   font: "var(--text-label)", letterSpacing: "var(--track-label)",
@@ -78,8 +98,98 @@ function Row({ app, status, state, selected, onSelect, onAct, busy }) {
   );
 }
 
+
+function KindRow({ kind, active, onPick }) {
+  const [hover, setHover] = React.useState(false);
+  return (
+    <button type="button" onClick={onPick}
+      onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
+      style={{
+        position: "relative", display: "flex", alignItems: "center", gap: "var(--sp-4)",
+        width: "100%", padding: "var(--sp-4) var(--sp-5)", border: 0, cursor: "pointer",
+        textAlign: "left", font: "var(--text-ui-sm)",
+        color: active ? "var(--text-hi)" : "var(--text-mid)",
+        background: active ? "var(--surface-selected)"
+          : hover ? "var(--surface-hover)" : "transparent",
+        transition: "var(--transition-hover)",
+      }}>
+      {active && <span style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 2,
+        background: "var(--ink-000)" }} />}
+      <Icon name={kind.icon} size={15} />
+      <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis",
+        whiteSpace: "nowrap" }}>{kind.label}</span>
+    </button>
+  );
+}
+
+/* The paper and ink each skin paints with, for the preview square only.
+ *
+ * Literal rather than `data-skin` on the swatch: Paper deliberately has no
+ * block in skins.css - it is the base set in colors.css, and settings.ts
+ * clears the attribute for it - so a swatch driven by the attribute would show
+ * Paper as whatever skin is currently on. Two values each, and the preview is
+ * the only thing that reads them. */
+const SWATCH = {
+  paper: { paper: "#ffffff", ink: "#0a0a0a" },
+  vellum: { paper: "#faf7f0", ink: "#14100a" },
+  graphite: { paper: "#0d0d0d", ink: "#ffffff" },
+  slate: { paper: "#0b0e13", ink: "#f5f8fc" },
+};
+
+/* A skin is a set of colour tokens on <html>. Picking one is the whole
+   interaction - there is nothing to download and nothing to confirm, which is
+   why this row has no state machine and the app rows do. */
+function SkinRow({ skin, active, onPick }) {
+  const [hover, setHover] = React.useState(false);
+  return (
+    <div onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
+      style={{
+        position: "relative", display: "flex", alignItems: "center", gap: "var(--sp-5)",
+        padding: "var(--sp-4) var(--sp-5)", minWidth: 0,
+        background: hover ? "var(--surface-hover)" : "transparent",
+        boxShadow: "var(--rule-inset)", transition: "var(--transition-hover)",
+      }}>
+      <button type="button" onClick={onPick}
+        style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center",
+          gap: "var(--sp-5)", background: "transparent", border: 0, padding: 0,
+          cursor: "pointer", textAlign: "left", color: "inherit", font: "inherit" }}>
+        <span aria-hidden="true"
+          style={{ width: 28, height: 28, flex: "0 0 auto", display: "inline-flex",
+            border: "1px solid var(--w-12)",
+            background: (SWATCH[skin.id] || SWATCH.paper).paper }}>
+          <span style={{ width: 14,
+            background: (SWATCH[skin.id] || SWATCH.paper).ink }} />
+        </span>
+        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 3 }}>
+          <span style={{ font: "var(--w-semibold) var(--size-base)/1.2 var(--font-core)",
+            color: "var(--text-hi)" }}>{skin.name}</span>
+          <span style={{ font: "var(--w-regular) var(--size-tiny)/1.35 var(--font-core)",
+            color: "var(--text-low)", overflow: "hidden", textOverflow: "ellipsis",
+            whiteSpace: "nowrap" }}>{skin.note}</span>
+        </div>
+      </button>
+      {active
+        ? <Badge tone="solid">In use</Badge>
+        : <Button variant="secondary" size="sm" onClick={onPick}>Use</Button>}
+    </div>
+  );
+}
+
+/* Every kind that has nothing in it yet. One sentence, and no controls: a
+   disabled button here would imply something is coming that we can name. */
+function NotYet() {
+  return (
+    <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
+      padding: "var(--sp-9)" }}>
+      <EmptyState icon="package" title="Nothing here yet."
+        body="Check back soon!" />
+    </div>
+  );
+}
+
 export default function AppsScreen({ apps = [], statuses = [], onLaunch, onInstall,
-  onUninstall, installing, error }) {
+  onUninstall, installing, error, skins = [], skin, onSkin }) {
+  const [kind, setKind] = React.useState("apps");
   const [sel, setSel] = React.useState(undefined);
   const [confirming, setConfirming] = React.useState(undefined);
   const byId = React.useMemo(
@@ -91,25 +201,58 @@ export default function AppsScreen({ apps = [], statuses = [], onLaunch, onInsta
 
   const open = app => onLaunch?.(app.id);
 
-  if (!apps.length) {
-    return (
-      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <EmptyState icon="package" title="Apps need the desktop app."
-          body="The launcher installs and runs programs, which a browser tab cannot do." />
-      </div>
-    );
-  }
+  const active = KINDS.find(k => k.id === kind) || KINDS[0];
+  /* The detail column belongs to the apps list. Nothing else has a detail view
+     yet, and an empty 360px gutter beside "Nothing here yet" reads as a pane
+     that failed to load. */
+  const showDetail = kind === "apps" && apps.length > 0;
+  const count = kind === "apps" ? apps.length : kind === "skins" ? skins.length : 0;
 
   return (
-    <div style={{ flex: 1, display: "grid", gridTemplateColumns: "minmax(0,1fr) 360px",
-      minHeight: 0 }}>
+    <div style={{ flex: 1, display: "grid", minHeight: 0,
+      gridTemplateColumns: showDetail ? "200px minmax(0,1fr) 360px" : "200px minmax(0,1fr)" }}>
+      {/* The kinds. Every one is listed whether or not it has anything in it -
+          a kind that appears only once it is populated makes the section look
+          like it changed shape rather than filled up. */}
+      <div style={{ borderRight: "1px solid var(--w-12)", background: "var(--surface-sunken)",
+        display: "flex", flexDirection: "column", minHeight: 0, overflowY: "auto" }}>
+        <div style={{ height: 44, flex: "0 0 auto", display: "flex", alignItems: "center",
+          padding: "0 var(--sp-5)", borderBottom: "1px solid var(--w-12)" }}>
+          <span className="lab">ADD-ONS</span>
+        </div>
+        {KINDS.map(k => (
+          <KindRow key={k.id} kind={k} active={k.id === kind}
+            onPick={() => setKind(k.id)} />
+        ))}
+      </div>
+
       <div style={{ display: "flex", flexDirection: "column", minHeight: 0 }}>
         <div style={{ height: 44, flex: "0 0 auto", display: "flex", alignItems: "center",
           padding: "0 var(--sp-6)", borderBottom: "1px solid var(--w-12)" }}>
-          <span className="lab">APPS</span>
+          <span className="lab">{active.label}</span>
           <span style={{ flex: 1 }} />
-          <span style={label}>{apps.length} available</span>
+          {count > 0 && <span style={label}>{count} available</span>}
         </div>
+
+        {kind === "skins" && (
+          <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
+            {skins.map(sk => (
+              <SkinRow key={sk.id} skin={sk} active={sk.id === skin}
+                onPick={() => onSkin?.(sk.id)} />
+            ))}
+          </div>
+        )}
+
+        {kind !== "apps" && kind !== "skins" && <NotYet />}
+
+        {kind === "apps" && apps.length === 0 && (
+          <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <EmptyState icon="package" title="Apps need the desktop app."
+              body="The launcher installs and runs programs, which a browser tab cannot do." />
+          </div>
+        )}
+
+        {kind === "apps" && apps.length > 0 && (
         <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
           {apps.map(a => (
             <Row key={a.id} app={a} status={byId[a.id]}
@@ -121,9 +264,11 @@ export default function AppsScreen({ apps = [], statuses = [], onLaunch, onInsta
                 ? onInstall?.(x.id) : open(x))} />
           ))}
         </div>
+        )}
       </div>
 
-      {/* Detail. */}
+      {/* Detail, for the apps list only. */}
+      {showDetail && (
       <div style={{ borderLeft: "1px solid var(--w-12)", background: "var(--surface-panel)",
         padding: "var(--sp-6)", display: "flex", flexDirection: "column",
         gap: "var(--sp-5)", overflowY: "auto" }}>
@@ -203,6 +348,7 @@ export default function AppsScreen({ apps = [], statuses = [], onLaunch, onInsta
           </>
         )}
       </div>
+      )}
     </div>
   );
 }
