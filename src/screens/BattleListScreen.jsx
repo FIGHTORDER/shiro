@@ -219,11 +219,8 @@ export default function BattleListScreen({ battles, onJoin, occupants,
                 <span style={{ font: "var(--w-regular) var(--size-tiny)/1.4 var(--font-core)",
                   color: "var(--text-low)" }}>
                   {current.queued > 0
-                    ? current.queued + " past the cap. This room runs Zero-K's time queue, "
-                      + "so everyone counts as a player until the game starts - then whoever "
-                      + "claimed a slot last is moved to the spectators. Join to see who."
-                    : "Joining makes you a spectator. Nothing holds you a place: "
-                      + "a slot that frees up goes to whoever takes it first."}
+                    ? current.queued + " past the cap. Joining makes you a spectator."
+                    : "Joining makes you a spectator."}
                 </span>
               )}
               <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: "var(--sp-3) var(--sp-5)" }}>
