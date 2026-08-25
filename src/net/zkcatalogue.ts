@@ -186,6 +186,22 @@ export function sidesOf(m: CatalogueMap): string | undefined {
  * and the picture crops - which is where it already was, so the failure is the
  * old behaviour rather than a new one.
  */
+/**
+ * A map's true proportions, which is what a `thumbnail` is drawn at.
+ *
+ * The counterpart to `minimapRatio`, and easy to reach for the wrong one:
+ * `.minimap.jpg` is drawn at the *square* of this, and `.thumbnail.jpg` is
+ * drawn at this. Passing the squared one to a thumbnail turns a 4x16 map into
+ * a picture sixteen times taller than it should be, which is a card 2656px
+ * deep in a 166px column.
+ */
+export function thumbAspect(
+  m: Pick<CatalogueMap, "width" | "height"> | undefined,
+): number | undefined {
+  if (!m?.width || !m?.height) return undefined;
+  return m.width / m.height;
+}
+
 export function minimapRatio(m: CatalogueMap): number | undefined {
   if (!m.width || !m.height) return undefined;
   return (m.width / m.height) ** 2;

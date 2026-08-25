@@ -6,6 +6,7 @@ import {
 } from "../net/zkcatalogue.ts";
 import Map3DDialog from "./Map3DDialog.jsx";
 import { useNearViewport } from "../hooks/useNearViewport.js";
+import { WELL, Well, fitTo, thumbAspect } from "./mapWell.jsx";
 
 /* Zero-K's map library.
  *
@@ -40,9 +41,6 @@ const SORTS = [
    catalogue is a few scrolls rather than a few hundred. */
 const CARD_MIN = 172;
 
-/* The picture well every card shares, so rows of cards line up whatever shape
-   the maps are. Landscape, because most maps are wider than they are tall. */
-const WELL = 4 / 3;
 
 // ------------------------------------------------------------------ rating ---
 
@@ -118,20 +116,6 @@ function Stars({ map, width = 50, showNumber }) {
  * service did not say how big the map is, the picture keeps its intrinsic shape
  * instead - which the browser knows once it has the file.
  */
-function fitTo(aspect, well) {
-  if (!aspect) return { width: "100%", height: "auto" };
-  return aspect >= well ? { width: "100%", height: "auto" } : { height: "100%", width: "auto" };
-}
-
-function Well({ ratio = WELL, children }) {
-  return (
-    <div style={{ aspectRatio: String(ratio), display: "flex", alignItems: "center",
-      justifyContent: "center", overflow: "hidden", background: "var(--ink-000)" }}>
-      {children}
-    </div>
-  );
-}
-
 /* Hairlines on the cards rather than gaps in the grid. A one-pixel gap over a
    dark ground draws the separators for free, but it also paints the empty half
    of the last row - a grey block where the grid ran out of maps. */
@@ -200,7 +184,7 @@ function badgeFor(kind, map) {
 function MapCard({ map, selected, onClick }) {
   const ref = React.useRef(null);
   const near = useNearViewport(ref);
-  const aspect = map.width && map.height ? map.width / map.height : undefined;
+  const aspect = thumbAspect(map);
   return (
     <CardShell refEl={ref} selected={selected} onClick={onClick} title={map.name}>
       <Well>

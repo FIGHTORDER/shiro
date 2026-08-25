@@ -14,8 +14,7 @@ import assert from "node:assert/strict";
 
 import D from "../data.js";
 import {
-  KINDS, RATING_MAX, minimapRatio, normaliseMapName,
-  ratingOf, ratingRanker, sidesOf, sizeOf, suitedTo,
+  KINDS, minimapRatio, normaliseMapName, RATING_MAX, ratingOf, ratingRanker, sidesOf, sizeOf, suitedTo, thumbAspect,
 } from "./zkcatalogue.ts";
 import type { CatalogueMap } from "./zkcatalogue.ts";
 
@@ -154,4 +153,28 @@ test("a catalogue with no votes at all still ranks without dividing by nothing",
 test("underscores and spaces name the same map", () => {
   assert.equal(normaliseMapName("Comet_Catcher_Redux"), normaliseMapName("comet catcher redux"));
   assert.equal(normaliseMapName("  Chicken_Farm_v02 "), "chicken farm v02");
+});
+
+/* These two are the same question with two answers, and reaching for the wrong
+   one is what turned the room's map picker into a column of enormous cards. A
+   thumbnail is drawn at the map's real proportions; a minimap is drawn at the
+   square of them. */
+test("a thumbnail's ratio is the map's own, not the minimap's squared", () => {
+  const tall = { width: 4, height: 16 };
+  assert.equal(thumbAspect(tall), 0.25);
+  assert.equal(minimapRatio(tall as never), 0.0625);
+  assert.ok(thumbAspect(tall) !== minimapRatio(tall as never),
+    "if these ever agree for a non-square map, one of them is wrong");
+});
+
+test("a square map is the one case where the two agree", () => {
+  const square = { width: 16, height: 16 };
+  assert.equal(thumbAspect(square), 1);
+  assert.equal(minimapRatio(square as never), 1);
+});
+
+test("a map the catalogue has no dimensions for has no ratio either", () => {
+  assert.equal(thumbAspect(undefined), undefined);
+  assert.equal(thumbAspect({ width: 0, height: 16 }), undefined);
+  assert.equal(thumbAspect({ width: 16, height: undefined }), undefined);
 });

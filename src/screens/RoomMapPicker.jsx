@@ -1,8 +1,9 @@
 import React from "react";
 
 import { Dialog, Button, Input, Badge, MapImage, EmptyState } from "../ds/shiro.js";
-import { mapCatalogue, minimapRatio, normaliseMapName, sizeOf } from "../net/zkcatalogue.ts";
+import { mapCatalogue, normaliseMapName, sizeOf } from "../net/zkcatalogue.ts";
 import { useNearViewport } from "../hooks/useNearViewport.js";
+import { Well, fitTo, thumbAspect } from "./mapWell.jsx";
 
 /* The map list, small enough to sit over a battle room.
  *
@@ -14,6 +15,7 @@ import { useNearViewport } from "../hooks/useNearViewport.js";
 function Card({ map, current, onPick }) {
   const ref = React.useRef(null);
   const near = useNearViewport(ref);
+  const aspect = thumbAspect(map);
   const [hover, setHover] = React.useState(false);
   const isCurrent = normaliseMapName(map.name) === normaliseMapName(current || "");
   return (
@@ -22,16 +24,24 @@ function Card({ map, current, onPick }) {
       onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
       title={map.name}
       style={{
-        display: "flex", flexDirection: "column", gap: "var(--sp-3)", padding: "var(--sp-3)",
+        display: "flex", flexDirection: "column", gap: "var(--sp-3)", padding: 0,
         textAlign: "left", cursor: "pointer", background: hover ? "var(--surface-hover)" : "transparent",
         border: "1px solid " + (isCurrent ? "var(--text-hi)" : hover ? "var(--w-20)" : "var(--w-06)"),
         transition: "var(--transition-hover)", minWidth: 0,
       }}>
-      {near && <MapImage map={map.name} kind="thumbnail" ratio={minimapRatio(map)} saturate={1}
-        style={{ width: "100%" }} />}
-      <span style={{ font: "var(--text-ui-sm)", color: "var(--text-hi)",
+      {/* The map's real proportions, letterboxed into a fixed well.
+          `minimapRatio` was wrong here twice over: it is the ratio a *minimap*
+          is drawn at, which is the square of the real one, and a thumbnail is
+          already in the real one - so a map taller than it is wide came out as
+          a card hundreds of pixels deep and took the grid with it. */}
+      <Well>
+        {near && <MapImage map={map.name} kind="thumbnail" ratio={aspect} saturate={1}
+          style={fitTo(aspect)} />}
+      </Well>
+      <span style={{ font: "var(--text-ui-sm)", color: "var(--text-hi)", padding: "0 var(--sp-3)",
         overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{map.name}</span>
-      <span style={{ display: "flex", gap: "var(--sp-3)", alignItems: "center" }}>
+      <span style={{ display: "flex", gap: "var(--sp-3)", alignItems: "center",
+        padding: "0 var(--sp-3) var(--sp-3)" }}>
         <span style={{ font: "var(--text-ui-sm)", color: "var(--text-faint)" }}>
           {sizeOf(map) ?? ""}
         </span>
