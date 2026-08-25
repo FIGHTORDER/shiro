@@ -4,6 +4,7 @@ import D from "./data.js";
 
 import ErrorBoundary from "./ErrorBoundary.jsx";
 import AppShell from "./screens/AppShell.jsx";
+import Inbox from "./screens/Inbox.jsx";
 import LoginScreen from "./screens/LoginScreen.jsx";
 import BattleListScreen from "./screens/BattleListScreen.jsx";
 import BattleRoomScreen from "./screens/BattleRoomScreen.jsx";
@@ -19,6 +20,7 @@ import SettingsScreen from "./screens/SettingsScreen.jsx";
 import DownloadsScreen from "./screens/DownloadsScreen.jsx";
 import HostBattleDialog from "./screens/HostBattleDialog.jsx";
 import ReportDialog from "./screens/ReportDialog.jsx";
+import { useInbox } from "./store/notify.ts";
 import MapsScreen from "./screens/MapsScreen.jsx";
 import { mapCatalogue } from "./net/zkcatalogue.ts";
 import AddAiDialog from "./screens/AddAiDialog.jsx";
@@ -216,6 +218,8 @@ export default function App() {
   const roomPoll = useRoom(s => s.poll);
   const roomPollOutcome = useRoom(s => s.pollOutcome);
 
+  const inboxItems = useInbox(s => s.items);
+  const inboxUnread = useInbox(s => s.unread);
   const chatRooms = useChat(s => s.rooms);
   const chatOrder = useChat(s => s.order);
   const chatActive = useChat(s => s.active);
@@ -577,6 +581,23 @@ export default function App() {
 
   handleLogoutRef.current = handleLogout;
 
+  /* Where an inbox entry came from. Asked of the store when the entry is
+     clicked rather than closed over: this runs before `liveRoom` is declared,
+     and a room we have since left should fall back to the battle list anyway
+     rather than open an empty room screen. */
+  const openAlert = item => {
+    const to = item && item.to;
+    if (!to) return;
+    if (to.view === "chat") {
+      useChat.getState().setActive(to.room);
+      setView("chat");
+    } else if (to.view === "room") {
+      setView(useRoom.getState().battleID != null ? "room" : "battles");
+    } else {
+      setView(to.view);
+    }
+  };
+
   const shell = {
     version: appVer,
     // A mark beside the version, not a dialog over whatever you are doing.
@@ -587,6 +608,14 @@ export default function App() {
     game: live ? (welcome?.Game ?? "-") : D.welcome.Game,
     attempt: live ? reconnectAttempt : 0,
     onReconnect: live ? reconnectNow : undefined,
+    /* Only in the live app: the demo has no arrivals to collect, so an inbox
+       there would be a button that is permanently empty. */
+    inbox: live ? (
+      <Inbox items={inboxItems} unread={inboxUnread}
+        onRead={() => useInbox.getState().markAllRead()}
+        onClear={() => useInbox.getState().clear()}
+        onPick={openAlert} />
+    ) : undefined,
   };
 
   if (!loggedIn) {

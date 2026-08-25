@@ -14,7 +14,7 @@ export const NAV = [
   { id: "apps", icon: "package", label: "Apps" }
 ];
 
-export function TitleBar({ version = "0.1.0", updateReady }) {
+export function TitleBar({ version = "0.1.0", updateReady, inbox }) {
   return (
     <div data-tauri-drag-region style={{ height: "var(--shell-titlebar)", flex: "0 0 auto", display: "flex", alignItems: "center",
       gap: "var(--sp-5)", padding: "0 var(--sp-3) 0 var(--sp-5)", borderBottom: "1px solid var(--w-12)",
@@ -32,6 +32,9 @@ export function TitleBar({ version = "0.1.0", updateReady }) {
           color: updateReady ? "var(--text-body)" : "var(--text-faint)" }}>
         {version}{updateReady ? " ·" : ""}
       </span>
+      {/* Right of the version, left of the window controls: the one spot in the
+          bar that is neither identity nor chrome. */}
+      {inbox}
       <div style={{ display: "flex", gap: 0 }}>
         <IconButton icon="minus" label="Minimise" size="sm" onClick={minimize} />
         <IconButton icon="square" label="Maximise" size="sm" onClick={toggleMaximize} />
@@ -102,11 +105,11 @@ export function StatusBar({ connection = "online", users, engine, game, onReconn
 }
 
 export default function AppShell({ view, onView, inRoom, connection, users, engine, game, onReconnect, attempt, children, overlay,
-  version, updateReady }) {
+  version, updateReady, inbox }) {
   return (
     <div style={{ position: "relative", display: "flex", flexDirection: "column", height: "100%",
       minHeight: 0, background: "var(--surface-base)", overflow: "hidden" }}>
-      <TitleBar version={version} updateReady={updateReady} />
+      <TitleBar version={version} updateReady={updateReady} inbox={inbox} />
       <div style={{ flex: 1, display: "flex", minHeight: 0 }}>
         <NavRail view={view} onView={onView} inRoom={inRoom} />
         <main style={{ flex: 1, minWidth: 0, minHeight: 0, display: "flex" }}>{children}</main>

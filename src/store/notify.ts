@@ -25,6 +25,8 @@
  * notification permission or an OS. `subscribe` is the only part that touches
  * anything.
  */
+import { create } from "zustand";
+
 import type { Message } from "../protocol/registry.ts";
 import type * as T from "../protocol/types.ts";
 import { registerSlice } from "./slices.ts";
@@ -33,11 +35,18 @@ import { useSettings } from "./settings.ts";
 
 export type AlertKind = "readyCheck" | "partyInvite" | "mention" | "battleStart";
 
+/** Where an entry came from, when there is somewhere worth going. */
+export type AlertTarget =
+  | { view: "chat"; room: string }
+  | { view: "queue" }
+  | { view: "room" };
+
 export interface Alert {
   kind: AlertKind;
   title: string;
   /** The second line, where there is one worth reading. */
   body?: string;
+  to?: AlertTarget;
 }
 
 export interface AlertContext {
@@ -68,22 +77,31 @@ export interface AlertContext {
   highlights?: readonly string[];
 }
 
-/** What deserves an interruption, out of one batch. */
-export function alertsFor(messages: Message[], ctx: AlertContext): Alert[] {
-  /* Somebody watching the window does not need telling. This is the whole
-     reason the effect is separated from the decision: "is it focused" is a
-     fact about the world, and every rule below is not. */
-  if (ctx.focused) return [];
-
+/**
+ * Everything out of one batch worth *recording*, with no view about whether it
+ * should interrupt anybody.
+ *
+ * Split from `alertsFor` for the inbox. The two gates that decide an
+ * interruption - is the window focused, and is this category switched on - are
+ * the wrong gates for a list somebody chooses to open: an inbox that empties
+ * itself whenever you are looking at Shiro is empty exactly when the point of
+ * it is to save you a trip to the chat panel.
+ *
+ * The rules below that are *not* about interruption stay here, because they
+ * are about whether the thing happened at all: our own message is not somebody
+ * calling us, and a replayed backlog is not a new call.
+ */
+export function eventsFor(messages: Message[], ctx: AlertContext): Alert[] {
   const out: Alert[] = [];
-  const add = (kind: AlertKind, title: string, body?: string): void => {
-    if (ctx.enabled(kind)) out.push({ kind, title, body });
+  const add = (kind: AlertKind, title: string, body?: string, to?: AlertTarget): void => {
+    out.push({ kind, title, body, to });
   };
 
   for (const m of messages) {
     switch (m.cmd) {
       case "AreYouReady":
-        add("readyCheck", "Match found", "Accept before the countdown runs out.");
+        add("readyCheck", "Match found", "Accept before the countdown runs out.",
+          { view: "queue" });
         break;
 
       case "OnPartyInvite": {
@@ -92,12 +110,14 @@ export function alertsFor(messages: Message[], ctx: AlertContext): Alert[] {
            so the inviter is whoever is not us. With nobody left to name, the
            title still says what happened. */
         const from = (d.UserNames ?? []).filter(n => n !== ctx.me);
+        /* No destination: the invite is answered in its own dialog, and by the
+           time somebody opens the inbox it has usually expired. */
         add("partyInvite", "Party invite", from.length ? from.join(", ") : undefined);
         break;
       }
 
       case "ConnectSpring":
-        add("battleStart", "Your game is starting");
+        add("battleStart", "Your game is starting", undefined, { view: "room" });
         break;
 
       case "Say": {
@@ -106,7 +126,7 @@ export function alertsFor(messages: Message[], ctx: AlertContext): Alert[] {
         // MessageBox and anything unroutable are not chat; routeSay says so.
         if (!dest || !d.User || d.User === ctx.me) break;
         if (dest.kind === "dm") {
-          add("mention", d.User, d.Text);
+          add("mention", d.User, d.Text, { view: "chat", room: roomKey("dm", dest.name) });
         } else if (dest.kind === "channel"
           && mentionsMe(d.Text, ctx.me, d.User, ctx.highlights) && ctx.settled(dest.name)) {
           /* Reading the text, not `Say.Ring`. The server strips Ring for an
@@ -114,7 +134,8 @@ export function alertsFor(messages: Message[], ctx: AlertContext): Alert[] {
              fires - see mentionsMe in chat.ts for the code that does the
              stripping. This is the branch that makes the mention category
              worth having at all. */
-          add("mention", `${d.User} in #${dest.name}`, d.Text);
+          add("mention", `${d.User} in #${dest.name}`, d.Text,
+            { view: "chat", room: roomKey("channel", dest.name) });
         }
         break;
       }
@@ -124,6 +145,15 @@ export function alertsFor(messages: Message[], ctx: AlertContext): Alert[] {
     }
   }
   return out;
+}
+
+/** What deserves an interruption, out of one batch. */
+export function alertsFor(messages: Message[], ctx: AlertContext): Alert[] {
+  /* Somebody watching the window does not need telling. This is the whole
+     reason the effect is separated from the decision: "is it focused" is a
+     fact about the world, and every rule below is not. */
+  if (ctx.focused) return [];
+  return eventsFor(messages, ctx).filter(a => ctx.enabled(a.kind));
 }
 
 /** The context as it actually is, right now. */
@@ -153,6 +183,56 @@ function live(): AlertContext {
   };
 }
 
+
+// ------------------------------------------------------------------ inbox ---
+
+/** How many are kept. Long enough to catch up after a game, short enough that
+    scrolling it is never the answer. */
+const INBOX_MAX = 50;
+
+export interface InboxItem extends Alert {
+  id: number;
+  /** When it arrived, stamped here rather than in the decision, which stays
+      pure and testable without a clock. */
+  at: number;
+  read: boolean;
+}
+
+interface InboxState {
+  items: InboxItem[];
+  unread: number;
+  add: (events: Alert[]) => void;
+  markAllRead: () => void;
+  clear: () => void;
+  reset: () => void;
+}
+
+let nextId = 1;
+
+export const useInbox = create<InboxState>((set) => ({
+  items: [],
+  unread: 0,
+
+  add: events => set(state => {
+    if (!events.length) return state;
+    const now = Date.now();
+    const fresh = events.map(e => ({ ...e, id: nextId++, at: now, read: false }));
+    return {
+      // Newest first, and the tail falls off rather than growing without bound.
+      items: [...fresh.reverse(), ...state.items].slice(0, INBOX_MAX),
+      unread: state.unread + fresh.length,
+    };
+  }),
+
+  markAllRead: () => set(state => (state.unread === 0 ? state : {
+    items: state.items.map(i => (i.read ? i : { ...i, read: true })),
+    unread: 0,
+  })),
+
+  clear: () => set({ items: [], unread: 0 }),
+  reset: () => set({ items: [], unread: 0 }),
+}));
+
 /*
  * Registered at load, the same as every other slice. Both effects fire, and
  * deliberately: a flash is what somebody with the window merely behind another
@@ -163,7 +243,14 @@ function live(): AlertContext {
  * nothing with it - which is what makes it safe to register unconditionally.
  */
 registerSlice(messages => {
-  const alerts = alertsFor(messages, live());
+  const ctx = live();
+  /* Everything worth recording goes to the inbox, whether or not it was worth
+     interrupting somebody for. The two lists are deliberately different - see
+     eventsFor. */
+  const events = eventsFor(messages, ctx);
+  if (events.length) useInbox.getState().add(events);
+
+  const alerts = ctx.focused ? [] : events.filter(a => ctx.enabled(a.kind));
   if (!alerts.length) return;
   /* Imported here rather than at the top, the same way party.ts reaches
      net/session: these two are plain .js with extensionless imports, so a

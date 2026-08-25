@@ -11,6 +11,7 @@
 import AlertTriangle from "lucide/dist/esm/icons/triangle-alert.js";
 import ArrowDown from "lucide/dist/esm/icons/arrow-down.js";
 import ArrowLeft from "lucide/dist/esm/icons/arrow-left.js";
+import Bell from "lucide/dist/esm/icons/bell.js";
 import Check from "lucide/dist/esm/icons/check.js";
 import ChevronDown from "lucide/dist/esm/icons/chevron-down.js";
 import ChevronUp from "lucide/dist/esm/icons/chevron-up.js";
@@ -49,6 +50,7 @@ export const ICONS = {
   "alert-triangle": AlertTriangle,
   "arrow-down": ArrowDown,
   "arrow-left": ArrowLeft,
+  "bell": Bell,
   "check": Check,
   "chevron-down": ChevronDown,
   "chevron-up": ChevronUp,
