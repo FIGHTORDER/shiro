@@ -84,7 +84,7 @@ pub const CATALOGUE: &[CatalogueApp] = &[
         download: Some(
             "https://github.com/FIGHTORDER/Sprofiler/releases/download/dev/Sprofiler_1.0.0_x64.zip",
         ),
-        sha256: Some("3efb8577a181585d5f6e99502b04da7dff7e9656ee701072fb05474f5a7087d7"),
+        sha256: Some("ba287bfd3796b09ebc394a16e4d3d91ff0c6087c436e56a85cf44f083a3490c6"),
         version: Some("1.0.0"),
         run: Some("Sprofiler.exe"),
         unavailable: None,
@@ -109,7 +109,7 @@ pub const CATALOGUE: &[CatalogueApp] = &[
         download: Some(
             "https://github.com/FIGHTORDER/stournament/releases/download/dev/Stournament_1.0.0_x64.zip",
         ),
-        sha256: Some("9a765ccf71940bc27ac9dd98ec3101dd2dfe5865aca829ca0f3f1fae64d1c66a"),
+        sha256: Some("88194fa90b9da52d27ce6002abb6cd1c4bb910728ada6e3345c3ddcb3716b08e"),
         version: Some("1.0.0"),
         run: Some("Stournament.exe"),
         /* Tourney control needs a permission most people do not have, and the
@@ -131,7 +131,7 @@ pub const CATALOGUE: &[CatalogueApp] = &[
         download: Some(
             "https://github.com/FIGHTORDER/Splaunch/releases/download/dev/Splaunch_1.0.0_x64.zip",
         ),
-        sha256: Some("5fcaacffdd8e25be49fac6ed35d8a90de438a4f4ee7e04ef4789502b07c40a1d"),
+        sha256: Some("97e89015d6b82195202d9a332459472912c17548c966cf2efe385fd405fe11a8"),
         version: Some("1.0.0"),
         run: Some("Splaunch.exe"),
         unavailable: None,
@@ -150,7 +150,7 @@ pub const CATALOGUE: &[CatalogueApp] = &[
         // release notes: this value is what decides whether the bytes are
         // allowed to become a program, so it is worth checking rather than
         // trusting the thing it is meant to check.
-        sha256: Some("5c24e8d464e555e3aee1ac469273e8f4daf5bf5ed5fe5adc7b2ecbc43d2204dd"),
+        sha256: Some("b59308fc4e515e742444b942657d6dd19ad9fb88556dd94069da9efaf3f2f3c3"),
         version: Some("1.0.0"),
         run: Some("springen-app.exe"),
         unavailable: None,

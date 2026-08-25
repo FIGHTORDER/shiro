@@ -480,13 +480,13 @@
               description: "Tournament control and map pool images.",
               source: "github.com/FIGHTORDER/stournament", version: "1.0.0",
               download: "https://github.com/FIGHTORDER/stournament/releases/download/dev/Stournament_1.0.0_x64.zip",
-              sha256: "9a765ccf71940bc27ac9dd98ec3101dd2dfe5865aca829ca0f3f1fae64d1c66a" },
+              sha256: "88194fa90b9da52d27ce6002abb6cd1c4bb910728ada6e3345c3ddcb3716b08e" },
             { id: "springen", name: "Springen", kind: "executable",
               summary: "Node-graph map generator for Spring and Zero-K",
               description: "Authors terrain and writes a finished .sd7.",
               source: "github.com/FIGHTORDER/Springen", version: "1.0.0",
               download: "https://github.com/FIGHTORDER/Springen/releases/download/dev/Springen_1.0.0_x64.zip",
-              sha256: "5c24e8d464e555e3aee1ac469273e8f4daf5bf5ed5fe5adc7b2ecbc43d2204dd" },
+              sha256: "b59308fc4e515e742444b942657d6dd19ad9fb88556dd94069da9efaf3f2f3c3" },
           ];
         case "zka_status":
           return [
