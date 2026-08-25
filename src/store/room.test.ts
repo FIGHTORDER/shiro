@@ -412,3 +412,37 @@ test("a forced join is acted on, and only when it names us", () => {
   useRoom.getState().applyMessage(msg("ForceJoinBattle", { BattleID: 42, Name: "Qrow" }));
   assert.equal(useRoom.getState().pendingSpectate, false);
 });
+
+/* Creating a room means leaving whatever you are in - the server has no notion
+   of being in two - and unlike joining somebody else's room it does not ask,
+   because the room being made is unambiguously the one that was wanted. The
+   send itself is asserted in the e2e suite; what is visible here is that the
+   old room is gone before the new one is asked for. */
+test("making a room leaves the one we are in", () => {
+  const s = fresh();
+  s.applyMessage(JOINED);
+  assert.equal(useRoom.getState().battleID, 7);
+
+  useRoom.getState().host({ title: "mine", map: "Comet Catcher Redux", maxPlayers: 8 });
+  assert.equal(useRoom.getState().battleID, undefined,
+    "still in the old room after opening a new one");
+});
+
+test("hosting keeps the options it was given, which leaving would have cleared", () => {
+  const s = fresh();
+  s.applyMessage(JOINED);
+  useRoom.getState().host({
+    title: "mine", map: "Comet Catcher Redux", maxPlayers: 8,
+    options: { noelo: "1" },
+  });
+  // Applied on JoinBattleSuccess, so it has to survive the leave that precedes it.
+  s.applyMessage(msg("JoinBattleSuccess", { BattleID: 9, Options: {}, Players: [], Bots: [] }));
+  assert.equal(useRoom.getState().battleID, 9);
+});
+
+test("hosting from no room at all is unchanged", () => {
+  fresh();
+  assert.equal(useRoom.getState().battleID, undefined);
+  useRoom.getState().host({ title: "mine", map: "Comet Catcher Redux", maxPlayers: 8 });
+  assert.equal(useRoom.getState().battleID, undefined);
+});

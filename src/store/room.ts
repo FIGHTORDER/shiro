@@ -411,6 +411,11 @@ export const useRoom = create<RoomState>((set, get) => ({
   },
 
   host: opts => {
+    /* Making a room means leaving whatever we are in - the server has no
+       notion of being in two - and unlike joining somebody else's room this
+       needs no asking, because the room being made is the one that was wanted.
+       Before the options are stashed, because `leave` clears the store. */
+    if (get().battleID != null) get().leave();
     // Applied on JoinBattleSuccess; see the note on HostOptions.
     set({ pendingOptions: opts.options && Object.keys(opts.options).length
       ? opts.options

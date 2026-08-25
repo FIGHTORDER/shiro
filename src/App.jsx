@@ -20,6 +20,7 @@ import SettingsScreen from "./screens/SettingsScreen.jsx";
 import DownloadsScreen from "./screens/DownloadsScreen.jsx";
 import HostBattleDialog from "./screens/HostBattleDialog.jsx";
 import ReportDialog from "./screens/ReportDialog.jsx";
+import SwitchRoomDialog from "./screens/SwitchRoomDialog.jsx";
 import { useInbox } from "./store/notify.ts";
 import MapsScreen from "./screens/MapsScreen.jsx";
 import { mapCatalogue } from "./net/zkcatalogue.ts";
@@ -82,6 +83,7 @@ export default function App() {
   const [check, setCheck] = React.useState(0);
   const [launching, setLaunching] = React.useState(false);
   const [hosting, setHosting] = React.useState(false);
+  const [switching, setSwitching] = React.useState(null);
   /* The map to open the host dialog on, when it was opened from the map list
      rather than from the Host button. */
   const [hostMap, setHostMap] = React.useState("");
@@ -673,11 +675,31 @@ export default function App() {
     if (me) void send("UpdateUserBattleStatus", { Name: me, ...patch });
   };
 
-  const joinBattle = b => {
-    if (!live) { setRoom(b); setView("room"); return; }
+  /* Send the join, having decided we are allowed to. */
+  const doJoin = b => {
     // A locked room needs its password before the join, not after a refusal.
     if (b.locked) setLocked(b);
     else useRoom.getState().join(b.id);
+  };
+
+  const joinBattle = b => {
+    if (!live) { setRoom(b); setView("room"); return; }
+    const current = useRoom.getState().battleID;
+    /* Already in it. "Join" on the room you are in means show it: re-sending
+       JoinBattle is a round trip that changes nothing, and it used to leave
+       you looking at the battle list wondering what the button did. */
+    if (current != null && current === b.id) { setView("room"); return; }
+    // A different room costs the slot in this one, so it gets a question.
+    if (current != null) { setSwitching(b); return; }
+    doJoin(b);
+  };
+
+  const confirmSwitch = () => {
+    const b = switching;
+    setSwitching(null);
+    if (!b) return;
+    useRoom.getState().leave();
+    doJoin(b);
   };
 
   const openDm = name => {
@@ -1110,6 +1132,9 @@ export default function App() {
 
       <JoinPasswordDialog battle={locked} onClose={() => setLocked(null)}
         onJoin={password => useRoom.getState().join(locked.id, password)} />
+
+      <SwitchRoomDialog battle={switching} from={liveRoom ? liveRoom.title : undefined}
+        onClose={() => setSwitching(null)} onConfirm={confirmSwitch} />
 
       <Dialog open={Boolean(partyInvite)} title="Party invite" width={360}
         footer={<>
