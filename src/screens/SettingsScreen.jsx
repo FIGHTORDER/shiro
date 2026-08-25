@@ -48,6 +48,51 @@ function Note({ children, tone }) {
  * layout fault rather than as an address. Given the whole width it usually
  * fits on one line, and when it does not it breaks in fewer places.
  */
+/* Words that ring a conversation the way your own name does.
+ *
+ * Comma separated, committed when the field is left or Enter is pressed
+ * rather than on every keystroke - typing "teams, tour" would otherwise spend
+ * a moment with a rule for "t" in it, and ring on anything.
+ *
+ * The blur handler sits on the wrapper because `Input` spreads its extra props
+ * over its own, and an `onBlur` passed straight in would replace the one
+ * drawing its focus ring. */
+function HighlightWords({ settings, onSettings }) {
+  const saved = (settings && settings.highlights) || [];
+  const asText = saved.join(", ");
+  const [text, setText] = React.useState(asText);
+
+  React.useEffect(() => { setText(asText); }, [asText]);
+
+  const commit = () => {
+    const seen = new Set();
+    const words = [];
+    for (const raw of text.split(",")) {
+      const word = raw.trim();
+      if (!word || seen.has(word.toLowerCase())) continue;
+      seen.add(word.toLowerCase());
+      words.push(word);
+    }
+    setText(words.join(", "));
+    const same = words.length === saved.length
+      && words.every((w, i) => w === saved[i]);
+    if (onSettings && !same) {
+      onSettings({ highlights: words });
+    }
+  };
+
+  return (
+    <div onBlur={commit}>
+      <Input label="Other words that should light a conversation up"
+        placeholder="teams, tourney, my clan tag"
+        hint="Separated by commas. Matched like a name: case does not matter, and a rule for teams does not fire on steamroller."
+        value={text}
+        onChange={e => setText(e.target.value)}
+        onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); commit(); } }} />
+    </div>
+  );
+}
+
 function Row({ label, value, wide }) {
   const text = (
     <span style={{ font: "var(--w-regular) var(--size-tiny)/1.4 var(--font-mono)", color: "var(--text-body)",
@@ -556,6 +601,7 @@ export default function SettingsScreen({ me, install, installError, engine, sett
           <Checkbox label="My game starts"
             checked={Boolean(settings && settings.notifyBattleStart)}
             onChange={e => onSettings && onSettings({ notifyBattleStart: e.target.checked })} />
+          <HighlightWords settings={settings} onSettings={onSettings} />
         </Section>
 
         <Section title="Post game settings">

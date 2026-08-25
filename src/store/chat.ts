@@ -23,6 +23,7 @@ import type * as T from "../protocol/types.ts";
 import type { SayPlace } from "../protocol/enums.ts";
 import { mergePatch } from "../protocol/wire.ts";
 import { registerSlice } from "./slices.ts";
+import { useSettings } from "./settings.ts";
 
 /**
  * `SayPlace` restated as literals, for the strip-only reason above. The type
@@ -148,15 +149,43 @@ const NIGHTWATCH = "Nightwatch";
  * Upstream's bare `Contains` does neither, and both are wrong often enough to
  * be worth not copying.
  */
-export function mentionsMe(text?: string, me?: string, from?: string): boolean {
-  if (!text || !me || from === NIGHTWATCH) return false;
-  /* A name is whatever the server allows in one, so the boundary is "not a
-     character a name could contain" rather than \b - which would treat the
-     underscore in `[clan]_Qrow` as part of the word and miss it. */
-  const at = text.toLowerCase().indexOf(me.toLowerCase());
-  if (at < 0) return false;
-  const namey = (c?: string) => Boolean(c) && /[A-Za-z0-9_\[\]]/.test(c as string);
-  return !namey(text[at - 1]) && !namey(text[at + me.length]);
+/* A name is whatever the server allows in one, so the boundary is "not a
+   character a name could contain" rather than \b - which would treat the
+   underscore in `[clan]_Qrow` as part of the word and miss it. */
+const namey = (c?: string) => Boolean(c) && /[A-Za-z0-9_\[\]]/.test(c as string);
+
+/**
+ * Does `text` say `term` as a word of its own?
+ *
+ * Every occurrence, not just the first. Checking only the first meant one
+ * embedded near-match hid a real one behind it: "Qrowd and Qrow both played"
+ * did not ring, because the scan stopped at `Qrowd` and gave up.
+ */
+export function saysTerm(text: string, term: string): boolean {
+  if (!term) return false;
+  const hay = text.toLowerCase();
+  const needle = term.toLowerCase();
+  for (let at = hay.indexOf(needle); at >= 0; at = hay.indexOf(needle, at + 1)) {
+    if (!namey(text[at - 1]) && !namey(text[at + term.length])) return true;
+  }
+  return false;
+}
+
+/**
+ * @param extra Words the player asked to be told about as well as their name.
+ */
+export function mentionsMe(
+  text?: string, me?: string, from?: string, extra?: readonly string[],
+): boolean {
+  if (!text || from === NIGHTWATCH) return false;
+  if (me && saysTerm(text, me)) return true;
+  return (extra ?? []).some(t => saysTerm(text, t.trim()));
+}
+
+/* Read at the moment a line arrives rather than captured once, so a rule
+   added mid-session applies to the next message and not the next launch. */
+function highlights(): readonly string[] {
+  return useSettings.getState().highlights;
 }
 
 export function routeSay(d: T.Say, me?: string): { kind: RoomKind; name: string } | null {
@@ -415,7 +444,7 @@ export const useChat = create<ChatState>((set, get) => ({
               /* `Ring` as well as the text, not instead of it: the server does
                  let it through for a battle founder ringing their own room, and
                  that is a real call for attention. */
-              if (d.Ring || mentionsMe(d.Text, me, d.User)) room.mention = true;
+              if (d.Ring || mentionsMe(d.Text, me, d.User, highlights())) room.mention = true;
             }
             break;
           }

@@ -99,6 +99,15 @@ export interface Settings {
    * What each one covers, and why it is on the list at all, is in
    * store/notify.ts.
    */
+  /**
+   * Extra words that light a conversation up, besides the player's own name.
+   *
+   * A flat array for the same reason the notify keys are flat: `load` merges
+   * one level deep, and a list replaces cleanly where a nested object would
+   * not. Matched exactly as a name is - case-insensitive, and bounded so a
+   * rule for "teams" does not fire on "steamroller".
+   */
+  highlights: string[];
   notifyReadyCheck: boolean;
   notifyPartyInvite: boolean;
   notifyMention: boolean;
@@ -115,6 +124,7 @@ export interface SettingsState extends Settings {
 
 const DEFAULTS: Settings = {
   name: "", remember: false, autoOpenDebriefing: true, skin: "paper",
+  highlights: [],
   roomChatHeight: 200,
   /* All on. Every one of them is something waiting on an answer, so the
      useful default is to be told; the switches exist for people who would

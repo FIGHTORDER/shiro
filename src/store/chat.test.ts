@@ -53,3 +53,33 @@ test("punctuation around a name still leaves it a name", () => {
   assert.equal(mentionsMe("(Qrow)", "Qrow", "hexed"), true);
   assert.equal(mentionsMe("gg, Qrow.", "Qrow", "hexed"), true);
 });
+
+/* The scan used to stop at the first occurrence, so one embedded near-match
+   hid a real mention behind it and the conversation never lit up. */
+test("a real mention still rings when an embedded one comes first", () => {
+  assert.equal(mentionsMe("Qrowd and Qrow both played", "Qrow", "hexed"), true);
+  assert.equal(mentionsMe("the Qrowd went wild, nice one Qrow", "Qrow", "hexed"), true);
+  // And the guard it must not lose.
+  assert.equal(mentionsMe("the Qrowd went wild", "Qrow", "hexed"), false);
+});
+
+test("words the player asked about ring like their name does", () => {
+  assert.equal(mentionsMe("anyone up for teams?", "Qrow", "hexed", ["teams"]), true);
+  assert.equal(mentionsMe("TEAMS starting", "Qrow", "hexed", ["teams"]), true,
+    "matching is case-insensitive, the same as for a name");
+});
+
+test("a highlight is a word, not a substring", () => {
+  assert.equal(mentionsMe("steamroller inbound", "Qrow", "hexed", ["teams"]), false);
+  assert.equal(mentionsMe("bteams", "Qrow", "hexed", ["teams"]), false);
+});
+
+test("blank and absent rules ring nothing", () => {
+  assert.equal(mentionsMe("hello there", "Qrow", "hexed", ["  ", ""]), false);
+  assert.equal(mentionsMe("hello there", "Qrow", "hexed", []), false);
+  assert.equal(mentionsMe("hello there", "Qrow", "hexed"), false);
+});
+
+test("Nightwatch stays silent even for a highlight", () => {
+  assert.equal(mentionsMe("teams up", "Qrow", "Nightwatch", ["teams"]), false);
+});
