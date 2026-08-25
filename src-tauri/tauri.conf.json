@@ -55,7 +55,7 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDE5NDA1NDc1RkEyMTJGQzIKUldUQ0x5SDZkVlJBR2JERGJNNEhnVnB0VUlhOTJ2M3V5a3B5TFpiUWNWemZWdVZucUdxOU14elcK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDc1NENFNkFDRTExRkE3NkUKUldSdXB4L2hyT1pNZFFya1luYkZlZGVZUDJna2lLcDhuTVNsWS9qa2I3OCt3bTdyTFQyQjFpVk8K",
       "endpoints": [
         "https://github.com/FIGHTORDER/shiro/releases/download/dev/latest.json"
       ]
