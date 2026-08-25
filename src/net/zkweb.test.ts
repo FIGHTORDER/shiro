@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { latestRating } from "./zkweb.ts";
+import { latestRating, profileUrl } from "./zkweb.ts";
 
 /* The rating a player is on now, for somebody the lobby cannot tell us about.
    `/Users/Detail/<name>` carries no rating figure at all - only a link to the
@@ -34,4 +34,43 @@ test("no series is not a rating of zero", () => {
 test("a point that did not parse is not a rating either", () => {
   assert.equal(latestRating([{ date: "2026-08-19" }] as never), undefined);
   assert.equal(latestRating([{ date: "2026-08-19", elo: Number.NaN }]), undefined);
+});
+
+/* The "zero-k.info" button on a profile.
+   `/Users/Detail?name=sugondese` is what it used to build, and a query string
+   does not bind to that route - so it arrived with nothing to resolve and every
+   player, looked up or not, landed on `Invalid account (neither an ID nor
+   name)`. The account goes in the path segment. */
+
+test("a player page is addressed by path, not by query", () => {
+  assert.equal(profileUrl("Zythid"), "https://zero-k.info/Users/Detail/Zythid");
+  assert.equal(profileUrl("Zythid", 450611), "https://zero-k.info/Users/Detail/450611");
+});
+
+/* The id when there is one: their name lookup is case-sensitive, and a name of
+   nothing but digits resolves as somebody else's account. */
+test("the account id wins over the name", () => {
+  assert.equal(profileUrl("12345"), "https://zero-k.info/Users/Detail/12345");
+  assert.equal(profileUrl("12345", 450611), "https://zero-k.info/Users/Detail/450611");
+});
+
+/* A `User` record with no id in it reads as 0, which addresses nobody. */
+test("an id we do not have falls back to the name rather than to zero", () => {
+  assert.equal(profileUrl("Zythid", 0), "https://zero-k.info/Users/Detail/Zythid");
+  assert.equal(profileUrl("Zythid", undefined), "https://zero-k.info/Users/Detail/Zythid");
+  assert.equal(profileUrl("Zythid", Number.NaN), "https://zero-k.info/Users/Detail/Zythid");
+  assert.equal(profileUrl("Zythid", -1), "https://zero-k.info/Users/Detail/Zythid");
+});
+
+/* Nobody has no page, and the site root is not a profile. */
+test("nobody is not a link", () => {
+  assert.equal(profileUrl(""), undefined);
+  assert.equal(profileUrl("   "), undefined);
+  assert.equal(profileUrl(undefined), undefined);
+});
+
+/* A name is somebody's own text going into a path segment. */
+test("a name that needs escaping is escaped", () => {
+  assert.equal(profileUrl("a b"), "https://zero-k.info/Users/Detail/a%20b");
+  assert.equal(profileUrl("../Admin"), "https://zero-k.info/Users/Detail/..%2FAdmin");
 });

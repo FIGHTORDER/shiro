@@ -69,6 +69,34 @@ export async function webProfile(who: string): Promise<WebProfile | null> {
   return invoke<WebProfile | null>("zkw_profile", { who });
 }
 
+const SITE = "https://zero-k.info";
+
+/**
+ * The address of a player's page, for opening in a real browser.
+ *
+ * `/Users/Detail` takes the account in a path segment. A query string is not
+ * bound to that route, so `/Users/Detail?name=Zythid` arrives with nothing to
+ * resolve and the site answers `Invalid account (neither an ID nor name)` -
+ * the same forty bytes as `src-tauri/src/fixtures/user-missing.html`, for every
+ * player, whoever was asked for. This is the map link's mistake in another
+ * place: see the VENDOR PATCH on `/Maps/Detail` in `src/ds/shiro.js`.
+ *
+ * The numeric id wins when we have one. Their name lookup is case-sensitive,
+ * and a name of nothing but digits resolves as somebody else's account. A
+ * `User` record carries the id for anyone connected, and the page the reader
+ * above already fetched carries it for anyone who is not.
+ *
+ * `undefined` for nobody: the site root is not their profile, and a link that
+ * goes somewhere wrong is worse than one that is not drawn.
+ */
+export function profileUrl(name: string | undefined, accountId?: number): string | undefined {
+  if (accountId != null && Number.isInteger(accountId) && accountId > 0) {
+    return `${SITE}/Users/Detail/${accountId}`;
+  }
+  const who = (name ?? "").trim();
+  return who ? `${SITE}/Users/Detail/${encodeURIComponent(who)}` : undefined;
+}
+
 /**
  * The rating history for an account.
  *

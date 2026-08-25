@@ -43,6 +43,7 @@ import { useUpdate } from "./store/update.ts";
 import { appVersion } from "./net/update.ts";
 import { catalogue, statuses as appStatuses, launchApp, installApp, uninstallApp } from "./net/apps.ts";
 import { openExternal } from "./net/external.ts";
+import { profileUrl } from "./net/zkweb.ts";
 import { managedState, managedRoot, installEngine, removeManaged, onEngine,
   loadScreenState, setLoadScreen } from "./net/managed.ts";
 import { seedDefaultSettings } from "./net/engineSettings.ts";
@@ -836,7 +837,16 @@ export default function App() {
       onAddFriend={live ? name => useFriends.getState().add(name) : undefined}
       onIgnore={live ? name => useFriends.getState().ignore(name) : undefined}
       onReport={live ? name => setReporting(name) : undefined}
-      onExternal={name => openExternal(`https://zero-k.info/Users/Detail?name=${encodeURIComponent(name)}`)} />
+      /* Their account id when we have one, and their name when we do not - see
+         profileUrl. Online players carry the id in their `User` record; for
+         somebody offline it is on the page the profile panel already read. */
+      onExternal={name => {
+        const id = liveUsers[name]?.AccountID
+          ?? (name === viewingProfile && webProfileState?.kind === "ok"
+            ? webProfileState.profile.accountId : undefined);
+        const url = profileUrl(name, id);
+        if (url) void openExternal(url);
+      }} />
   );
   else if (view === "friends") body = (
     <FriendsScreen
