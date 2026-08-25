@@ -291,6 +291,9 @@ export default function BattleRoomScreen({ room, onLeave, onStart, chat, onSay,
     return () => window.removeEventListener("resize", onResize);
   }, []);
   const chatMax = Math.max(CHAT_MIN, viewport - TEAMS_FLOOR);
+  /* One clamped value, used by both the divider and the pane. They used to
+     clamp separately and disagree. */
+  const chatShown = Math.max(CHAT_MIN, Math.min(chatHeight, chatMax));
   const waiting = room.waitingOn || [];
   const lines = chat || room.chat || [];
   const scroll = useStickyScroll({ count: lines.length, resetKey: room.id });
@@ -342,11 +345,21 @@ export default function BattleRoomScreen({ room, onLeave, onStart, chat, onSay,
             onKick={onKick} onAddBot={onAddBot} onPlayer={onPlayer} />)}
         </div>
 
-        <PaneResizer height={chatHeight} min={CHAT_MIN} max={chatMax}
+        {/* The clamped height, not the stored one. A window that shrank leaves a
+            larger number in settings, and handing the resizer that number made
+            a drag spend the difference going nowhere before the pane moved. */}
+        <PaneResizer height={chatShown} min={CHAT_MIN} max={chatMax}
           onResize={onChatHeight || (() => {})} />
-        <div style={{ flex: "0 0 auto", borderTop: "1px solid var(--w-12)", display: "flex", minHeight: 0 }}>
+        {/* The height belongs to the row, not to the chat column. With it on the
+            column, a spectator list taller than the chat propped the row open:
+            the chat stopped at its own height and the rest of the row stayed,
+            so shrinking the pane left a gap under the composer instead of
+            shrinking. Bounding the row makes the list scroll, which is what the
+            overflow on it was always for. */}
+        <div style={{ flex: "0 0 auto", borderTop: "1px solid var(--w-12)", display: "flex",
+          minHeight: 0, height: chatShown }}>
           <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column",
-            height: Math.min(chatHeight, chatMax) }}>
+            minHeight: 0 }}>
             {/* The counts that used to sit on the right are gone: the teams
                 are above and the spectators are beside, both listed by name,
                 so it was arithmetic the reader could already do. */}
