@@ -2,8 +2,10 @@ import React from "react";
 import { Button, Badge, Tag, PlayerRow, ChatLine, MapImage, Input,
   IconButton, Icon, UserChip, Meter, Tooltip } from "../ds/shiro.js";
 import { useStickyScroll } from "../hooks/useStickyScroll.js";
-import { useMapResourceId } from "../hooks/useMapResourceId.js";
+import { useMapInfo, useMapResourceId } from "../hooks/useMapResourceId.js";
 import ChatText from "./ChatText.jsx";
+import Map3DDialog from "./Map3DDialog.jsx";
+import RoomMapPicker from "./RoomMapPicker.jsx";
 import { completeAt } from "../store/complete.ts";
 
 /* Screen 4 - the largest and densest screen. Teams, spectators, bots, map,
@@ -259,6 +261,11 @@ export default function BattleRoomScreen({ room, onLeave, onStart, chat, onSay,
   onTeam, onSpectate, sync, phase, poll, pollOutcome, onVote, onKick, onAddBot, onPlayer,
   download, onEditOptions, optionsLocked, chatHeight = 200, onChatHeight, onZk }) {
   const [msg, setMsg] = React.useState("");
+  const [show3d, setShow3d] = React.useState(false);
+  /* Width and height for the 3D footprint. Undefined for a map the catalogue
+     does not list, which Map3D handles by reading the picture's own shape. */
+  const mapInfo = useMapInfo(room.map);
+  const [picking, setPicking] = React.useState(false);
   const cycle = React.useRef(undefined);
 
   /* Tab completes a name, the same as in the chat screen. Everybody in the
@@ -410,7 +417,22 @@ export default function BattleRoomScreen({ room, onLeave, onStart, chat, onSay,
 
       <div style={{ borderLeft: "1px solid var(--w-12)", background: "var(--surface-panel)",
         display: "flex", flexDirection: "column", minHeight: 0 }}>
-        <MapImage map={room.map} resourceId={mapId} kind="minimap" ratio="1" caption link saturate={1} style={{ flex: "0 0 auto" }} />
+        {/* The 3D view sits on the picture rather than under it: this column is
+            the densest part of the screen and a row of its own would cost more
+            than the control is worth. */}
+        <div style={{ position: "relative", flex: "0 0 auto" }}>
+          <MapImage map={room.map} resourceId={mapId} kind="minimap" ratio="1" caption link saturate={1} />
+          <Button variant="secondary" size="sm" icon="eye"
+            onClick={() => setShow3d(true)}
+            style={{ position: "absolute", right: "var(--sp-4)", bottom: "var(--sp-5)",
+              boxShadow: "var(--elev-menu)" }}>
+            3D
+          </Button>
+        </div>
+        <div style={{ flex: "0 0 auto", padding: "var(--sp-4) var(--sp-5) 0" }}>
+          <Button variant="ghost" size="sm" block icon="map"
+            onClick={() => setPicking(true)}>View maps</Button>
+        </div>
         <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: "var(--sp-5)",
           display: "flex", flexDirection: "column", gap: "var(--sp-6)" }}>
           {poll && <PollPanel poll={poll} onVote={onVote} />}
@@ -566,6 +588,17 @@ export default function BattleRoomScreen({ room, onLeave, onStart, chat, onSay,
           </div>
         </div>
       </div>
+
+      <Map3DDialog map={mapInfo || { name: room.map }} open={show3d}
+        onClose={() => setShow3d(false)} />
+      <RoomMapPicker open={picking} current={room.map}
+        onClose={() => setPicking(false)}
+        onPick={name => {
+          setPicking(false);
+          /* The same request the site's own select_map link makes. Nothing is
+             changed locally: the map updates when the server says it has. */
+          if (onSay) onSay(`!map ${name}`);
+        }} />
     </div>
   );
 }
