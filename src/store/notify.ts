@@ -57,6 +57,15 @@ export interface AlertContext {
    * question is not asked about them.
    */
   settled: (channel: string) => boolean;
+  /**
+   * The player's own highlight words.
+   *
+   * A highlight is defined as ringing the way a name does, and a name reaches
+   * you when Shiro is behind another window - so a highlight has to as well,
+   * or the setting means two different things depending on where you are
+   * looking. The `mention` switch still governs both.
+   */
+  highlights?: readonly string[];
 }
 
 /** What deserves an interruption, out of one batch. */
@@ -99,7 +108,7 @@ export function alertsFor(messages: Message[], ctx: AlertContext): Alert[] {
         if (dest.kind === "dm") {
           add("mention", d.User, d.Text);
         } else if (dest.kind === "channel"
-          && mentionsMe(d.Text, ctx.me, d.User) && ctx.settled(dest.name)) {
+          && mentionsMe(d.Text, ctx.me, d.User, ctx.highlights) && ctx.settled(dest.name)) {
           /* Reading the text, not `Say.Ring`. The server strips Ring for an
              ordinary player in an ordinary channel, so a rule keyed on it never
              fires - see mentionsMe in chat.ts for the code that does the
@@ -128,6 +137,7 @@ function live(): AlertContext {
   };
   return {
     me: useChat.getState().me,
+    highlights: s.highlights,
     /* `document.hasFocus()` rather than anything from Tauri: it is true for
        exactly the case we care about - the window is in front of the person -
        and it needs no permission and no bridge, so the browser demo behaves

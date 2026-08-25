@@ -151,3 +151,30 @@ test("battle-list churn is not something to interrupt anybody for", () => {
   ], ctx());
   assert.deepEqual(out, []);
 });
+
+/* A highlight is defined as ringing the way a name does. It has to reach you
+   with Shiro behind another window too, or the setting means one thing in the
+   tab strip and another on the desktop. */
+test("a word the player chose notifies like their name does", () => {
+  const line = msg("Say",
+    { Place: 0, User: "hexed", Target: "zk", Text: "anyone up for teams?" });
+  assert.deepEqual(kinds(alertsFor([line], ctx())), [],
+    "nothing to answer without a rule");
+  const withRule = alertsFor([line], ctx({ highlights: ["teams"] }));
+  assert.deepEqual(kinds(withRule), ["mention"]);
+  assert.equal(withRule[0].title, "hexed in #zk");
+});
+
+test("a highlight is still a word, not a substring", () => {
+  const line = msg("Say",
+    { Place: 0, User: "hexed", Target: "zk", Text: "steamroller inbound" });
+  assert.deepEqual(kinds(alertsFor([line], ctx({ highlights: ["teams"] }))), []);
+});
+
+test("turning the mention category off silences highlights too", () => {
+  const line = msg("Say",
+    { Place: 0, User: "hexed", Target: "zk", Text: "anyone up for teams?" });
+  const out = alertsFor([line],
+    ctx({ highlights: ["teams"], enabled: k => k !== "mention" }));
+  assert.deepEqual(kinds(out), []);
+});

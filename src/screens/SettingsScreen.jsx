@@ -595,7 +595,7 @@ export default function SettingsScreen({ me, install, installError, engine, sett
           <Checkbox label="Somebody invites me to a party"
             checked={Boolean(settings && settings.notifyPartyInvite)}
             onChange={e => onSettings && onSettings({ notifyPartyInvite: e.target.checked })} />
-          <Checkbox label="Somebody messages me, or says my name"
+          <Checkbox label="Somebody messages me, says my name, or uses one of my words"
             checked={Boolean(settings && settings.notifyMention)}
             onChange={e => onSettings && onSettings({ notifyMention: e.target.checked })} />
           <Checkbox label="My game starts"
