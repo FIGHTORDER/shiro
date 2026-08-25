@@ -1,0 +1,483 @@
+# Builds Shiro for Windows and Linux, and publishes the `dev` release.
+#
+# One workflow rather than two because there is one update manifest. Two
+# workflows writing `latest.json` would race, and the loser's platform would
+# quietly vanish from it - so both platforms are built here and published once,
+# by a job that has both.
+#
+# Linux packaging cannot be cross-compiled: Tauri links against WebKitGTK and
+# glibc headers that only exist on the target, so the Linux job is the only
+# place those artifacts can come from.
+#
+# NOTE: nothing in this app has ever been RUN on Linux. A green build means it
+# compiles and packages, not that it works.
+name: Build and release
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "src-tauri/**"
+      # tools/ gates the build: `npm test` runs the icon check from here, so a
+      # change in tools/ can break CI without touching anything else.
+      - "tools/**"
+      - ".gitattributes"
+      - "index.html"
+      - "package.json"
+      - "package-lock.json"
+      - "vite.config.js"
+      - ".github/workflows/build-and-release.yml"
+
+# Only for the publish job below. Everything else here reads.
+permissions:
+  contents: write
+
+# The version every job stamps. `github.run_number` only ever increases for a
+# workflow, and computing it in each job rather than passing it around means the
+# two platforms cannot disagree about what they built.
+#
+# The minor is 2 rather than 1 because run_number is scoped to a *workflow*, and
+# this file replaced windows-installer.yml - so its counter restarted at 1 and
+# published 0.1.2 over 0.1.46. Every version must be greater than every version
+# before it or an update check answers "no" forever, so the series moved up
+# instead of trying to resume a counter that is gone.
+#
+# Renaming this file again would restart it again. Bump the minor if that
+# happens; do not try to make run_number continue.
+env:
+  # Bumped by hand. `github.run_number` cannot be reset, and a rebuilt
+  # repository would restart it at 1 - which is a version going backwards.
+  SHIRO_VERSION: 1.0.0
+  # Whether this run is allowed to publish. Main only: a dev build is a public
+  # download link, and publishing an unreviewed branch to it would be a way to
+  # hand somebody code nobody has looked at.
+  PUBLISHING: ${{ github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Stamped rather than committed, so main stays on the base version and
+      # there is no version-bump commit in the history. Only when publishing:
+      # renumbering a pull request build would just make the artifact confusing.
+      - name: Stamp the build version
+        if: env.PUBLISHING == 'true'
+        shell: pwsh
+        run: |
+          $conf = "src-tauri/tauri.conf.json"
+          $json = Get-Content $conf -Raw | ConvertFrom-Json
+          $json.version = $env:SHIRO_VERSION
+          $json | ConvertTo-Json -Depth 32 | Set-Content $conf -Encoding utf8
+          npm version $env:SHIRO_VERSION --no-git-tag-version --allow-same-version | Out-Null
+          "Stamped $env:SHIRO_VERSION"
+
+      # Cheap, and a broken build is worth catching before the ten-minute part.
+      - name: Unit tests
+        run: npm test
+
+      # The screens are .jsx and checkJs is off, so nothing else here looks
+      # at them. This catches the one thing in that gap that is a crash
+      # rather than an opinion: a name that was never imported.
+      - name: Undefined identifiers
+        run: npm run check:names
+
+      - name: Types
+        run: npm run typecheck
+
+      - name: Rust tests
+        working-directory: src-tauri
+        run: cargo test
+
+      # Updater artifacts are built only when there is a key to sign them with.
+      #
+      # `createUpdaterArtifacts` is not in tauri.conf.json for a reason: with it
+      # on and no private key, the bundler fails outright - "a public key has
+      # been found, but no private key" - which would break every pull request
+      # from a fork and every checkout without the secret. So it lives in an
+      # overlay applied here, on the runs that have the key.
+      # The bundled Sprofiler, fetched from the release the catalogue pins and
+      # checked against the hash it pins. A mismatch fails the build rather
+      # than shipping a binary we cannot vouch for.
+      - name: Fetch the bundled apps
+        run: npm run fetch:apps
+
+      - name: Build
+        shell: pwsh
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          if ($env:TAURI_SIGNING_PRIVATE_KEY) {
+            "Signing key present - building updater artifacts."
+            npm run tauri -- build --config src-tauri/updater.json
+          } else {
+            "No signing key - building the installer only."
+            npm run tauri -- build
+          }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: |
+            src-tauri/target/release/bundle/nsis/*.exe
+            src-tauri/target/release/bundle/nsis/*.sig
+          if-no-files-found: error
+          retention-days: 30
+
+  linux:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-unknown-linux-gnu
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      # Tauri v2 on Linux needs the webview and tray libraries at build time.
+      # 22.04 carries webkit2gtk-4.1, which is what Tauri v2 wants; 20.04 only
+      # has 4.0 and will not link.
+      - name: System dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            build-essential \
+            file
+
+      - name: Install dependencies
+        run: npm ci
+
+      # The same version the Windows job stamps. Without this every Linux
+      # package ever built claimed 0.1.0, so apt considered a newer one already
+      # installed and the updater had nothing to compare.
+      - name: Stamp the build version
+        if: env.PUBLISHING == 'true'
+        run: |
+          node -e '
+            const fs = require("fs");
+            const p = "src-tauri/tauri.conf.json";
+            const c = JSON.parse(fs.readFileSync(p, "utf8"));
+            c.version = process.env.SHIRO_VERSION;
+            fs.writeFileSync(p, JSON.stringify(c, null, 2) + "\n");
+          '
+          npm version "$SHIRO_VERSION" --no-git-tag-version --allow-same-version >/dev/null
+          echo "Stamped $SHIRO_VERSION"
+
+      - name: Unit tests
+        run: npm test
+
+      # The screens are .jsx and checkJs is off, so nothing else here looks
+      # at them. This catches the one thing in that gap that is a crash
+      # rather than an opinion: a name that was never imported.
+      - name: Undefined identifiers
+        run: npm run check:names
+
+      - name: Types
+        run: npm run typecheck
+
+      - name: Rust tests
+        working-directory: src-tauri
+        run: cargo test
+
+      # No "fetch the bundled apps" step here, unlike the Windows job. The only
+      # bundled app is Sprofiler.exe, and src-tauri/tauri.linux.conf.json clears
+      # bundle.resources on Linux so the .deb/.rpm/.AppImage do not carry a
+      # Windows binary they cannot run. Fetching it would be nine megabytes
+      # downloaded, hashed and then packaged into nothing.
+
+      - name: Build
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          if [ -n "$TAURI_SIGNING_PRIVATE_KEY" ]; then
+            echo "Signing key present - building updater artifacts."
+            npm run tauri -- build --config src-tauri/updater.json
+          else
+            echo "No signing key - building the packages only."
+            npm run tauri -- build
+          fi
+
+      - name: Collect the packages
+        run: |
+          cd src-tauri/target/release/bundle
+          find . -type f \( -name '*.deb' -o -name '*.rpm' -o -name '*.AppImage' -o -name '*.sig' \) \
+            -printf '%f  %s bytes\n'
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux
+          path: |
+            src-tauri/target/release/bundle/deb/*.deb
+            src-tauri/target/release/bundle/rpm/*.rpm
+            src-tauri/target/release/bundle/appimage/*.AppImage
+            src-tauri/target/release/bundle/appimage/*.sig
+          if-no-files-found: error
+          retention-days: 30
+
+  publish:
+    needs: [windows, linux]
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-22.04
+    # One release, so one publisher at a time. Merging several pull requests in
+    # a row starts a build for each, and two publish jobs overlapping would
+    # both be uploading and sweeping the same `dev` release: the older one's
+    # sweep does not know about the newer one's packages, so it removes them as
+    # stale and leaves a manifest naming files that are gone. Exactly the 404
+    # this workflow was just fixed to stop producing, arrived at from the other
+    # direction.
+    #
+    # On the job rather than the workflow, so pull request builds still run in
+    # parallel - it is only the publishing that has to be serial. Not
+    # cancel-in-progress: a publish killed midway is a half-swept release,
+    # which is worse than waiting.
+    concurrency:
+      group: publish-dev
+      cancel-in-progress: false
+    steps:
+      # `gh release` resolves the repository from the checkout. Without this the
+      # publish step fails with "not a git repository" after both platforms have
+      # already built, which is a twenty-minute way to find out.
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Build the update manifest
+        run: |
+          set -euo pipefail
+          ls -R dist
+
+          # Every signature found, rather than filenames spelled out here.
+          # Tauri decides what it signs and has changed its mind before - v1
+          # signed a .nsis.zip, v2 signs the installer - and a publish step that
+          # guesses wrong silently ships no update at all.
+          platforms='{}'
+          while IFS= read -r sig; do
+            artifact="${sig%.sig}"
+            if [ ! -f "$artifact" ]; then
+              echo "::warning::$sig has no artifact beside it; skipping"
+              continue
+            fi
+            name="$(basename "$artifact")"
+            case "$name" in
+              *.exe)      platform=windows-x86_64 ;;
+              *.AppImage) platform=linux-x86_64 ;;
+              *)          echo "::warning::no platform known for $name; skipping"; continue ;;
+            esac
+            echo "signed: $name -> $platform"
+            entry=$(jq -n --arg s "$(cat "$sig")" \
+              --arg u "https://github.com/${{ github.repository }}/releases/download/dev/$name" \
+              --arg p "$platform" '{($p): {signature: $s, url: $u}}')
+            platforms=$(printf '%s\n%s\n' "$platforms" "$entry" | jq -s 'add')
+          done < <(find dist -type f -name '*.sig' | sort)
+
+          if [ "$(echo "$platforms" | jq 'length')" -eq 0 ]; then
+            echo "::warning::No signatures - TAURI_SIGNING_PRIVATE_KEY is probably unset."
+            echo "::warning::Publishing the packages without an update manifest."
+          else
+            jq -n --arg v "$SHIRO_VERSION" \
+              --arg n "Development build from commit ${{ github.sha }}." \
+              --arg d "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+              --argjson p "$platforms" \
+              '{version: $v, notes: $n, pub_date: $d, platforms: $p}' > latest.json
+            echo "--- latest.json ---"
+            cat latest.json
+          fi
+
+      - name: Publish the dev release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test -n "$SHIRO_VERSION"
+
+          # What the app is being offered right now, if anything.
+          #
+          # Two ways to make the published manifest name files that are not
+          # there, both of which this answers.
+          #
+          # A re-run keeps `run_number`, so it rebuilds the same version and
+          # would clobber the very assets the live manifest names - deleting and
+          # re-uploading each one, which is a 404 while it happens and a
+          # signature mismatch for anything caught mid-replacement. Nothing is
+          # gained by it: the release already carries this build.
+          #
+          # And `concurrency` serialises publishes without ordering them, so a
+          # slow older run can reach this step after a newer one and walk the
+          # release backwards - the manifest regresses to the older version, and
+          # the sweep takes the newer packages with it as stale.
+          #
+          # Both are the same question: is what is live already this version or
+          # past it? Safe to trust, because the manifest is uploaded after the
+          # packages it names (below) - so a version being live means that
+          # build's upload got all the way through.
+          # Read out of the manifest rather than off the packages beside it.
+          # Those two can disagree: an upload that died after the packages and
+          # before the manifest leaves new packages under an old manifest, and
+          # that is exactly the run a re-run should be allowed to finish.
+          #
+          # sed rather than jq only because the manifest is written a few lines
+          # below by this same file, so its shape is not something to guess at.
+          live=$(curl -sfL \
+            "https://github.com/${{ github.repository }}/releases/download/dev/latest.json" \
+            | sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -1 || true)
+          if [ -n "$live" ]; then
+            newest=$(printf '%s\n%s\n' "$live" "$SHIRO_VERSION" | sort -V | tail -1)
+            if [ "$live" = "$SHIRO_VERSION" ]; then
+              echo "::notice::$SHIRO_VERSION is already published; nothing to do."
+              exit 0
+            fi
+            if [ "$newest" = "$live" ]; then
+              echo "::warning::$live is already published and is newer than $SHIRO_VERSION."
+              echo "::warning::Not walking the release backwards."
+              exit 0
+            fi
+          fi
+
+          # Everything a person downloads, plus the manifest the app reads.
+          # The .sig files are not uploaded: their contents are already in the
+          # manifest, and a stray signature beside a release is just confusing.
+          assets=$(find dist -type f \
+            \( -name '*.exe' -o -name '*.deb' -o -name '*.rpm' -o -name '*.AppImage' \) | sort)
+          test -n "$assets"
+
+          # An array, so a path is one argument whatever it contains. The
+          # manifest is deliberately not in here: it goes up on its own, after
+          # the packages it names, for the reason spelled out below.
+          mapfile -t packages <<< "$assets"
+
+          # What this build is publishing, by filename. Anything else on the
+          # release is left over from an older one.
+          #
+          # Not a bare `&&`: under `set -e` a false test would end the step, and
+          # "there is no manifest" is a normal outcome when the key is absent.
+          keep=$(printf '%s\n' "${packages[@]}" | xargs -n1 basename | sort -u)
+          if [ -f latest.json ]; then
+            keep=$(printf '%s\nlatest.json\n' "$keep")
+          fi
+
+          # One generation back stays up.
+          #
+          # Ordering the uploads fixed the window this run can see. It does not
+          # fix the one the *client* sees. `latest.json` keeps its filename
+          # forever, so it is served from a CDN cache that a `--clobber` does
+          # not reach into: for some minutes after the new manifest is up, a
+          # client can still be handed the old one. It then asks for the
+          # packages that manifest names - and this sweep has just deleted
+          # them, because their filenames carry the old version and so they are
+          # stale by name.
+          #
+          # That is an update offered and then 404'd, which is the same failure
+          # the ordering was meant to end, arriving by a different route. So the
+          # packages the live manifest named are kept for one more release.
+          # They go on the next run, by which time no cache is still handing out
+          # the manifest that names them.
+          #
+          # `live` is the version read from the published manifest above. Empty
+          # means no manifest is live, and then there is nothing to protect.
+          if [ -n "$live" ] && [ "$live" != "$SHIRO_VERSION" ]; then
+            for old in $(gh release view dev --json assets --jq '.assets[].name'); do
+              case "$old" in
+                *"$live"*) keep=$(printf '%s\n%s\n' "$keep" "$old") ;;
+              esac
+            done
+            echo "Keeping $live's packages for one more release."
+          fi
+
+          notes=$(cat <<'EOF'
+          Unsigned development build of Shiro, from commit ${{ github.sha }}.
+
+          Per-user install, no admin prompt. Windows SmartScreen will warn about an
+          unknown publisher - that is the missing code signature, not a problem with
+          the download.
+
+          Needs an existing Zero-K installation for the engine. Shiro downloads
+          games and maps itself, including the community content pr-downloader
+          cannot reach.
+
+          Linux packages are built but have never been run by anybody. Reports welcome.
+          EOF
+          )
+
+          # Updated in place rather than deleted and recreated: a delete that
+          # fails leaves a create that cannot succeed, and there is never a
+          # moment when the download link people have does not exist.
+          if gh release view dev >/dev/null 2>&1; then
+            gh release edit dev --title "Shiro - development build" --notes "$notes" --prerelease
+
+            # Packages, then the manifest, then the sweep. The order is the
+            # whole point of this block.
+            #
+            # It used to sweep first. Package filenames carry the version, so
+            # last build's are stale by name and get removed - but latest.json
+            # is not stale by name, so it survived the sweep still naming
+            # packages that had just been deleted. For however long eighty
+            # megabytes takes to upload, the published manifest offered an
+            # update whose download 404'd. That is what a Linux tester hit. A
+            # failed upload left the release that way until the next green
+            # build.
+            #
+            # This way the old manifest and the packages it names stay up while
+            # the new ones arrive, and the manifest is replaced only once
+            # everything it points at exists. The cost is a few minutes of both
+            # versions being on the release, which nobody can see.
+            gh release upload dev "${packages[@]}" --clobber
+            if [ -f latest.json ]; then
+              gh release upload dev latest.json --clobber
+            fi
+
+            # A build with no manifest takes the old one down with it, on
+            # purpose: the packages it named have just been swept, so leaving it
+            # would offer an update that 404s halfway through. No manifest at
+            # least fails before downloading anything.
+            for old in $(gh release view dev --json assets --jq '.assets[].name'); do
+              if ! echo "$keep" | grep -qx "$old"; then
+                echo "Removing stale asset $old"
+                gh release delete-asset dev "$old" --yes
+              fi
+            done
+          else
+            gh release create dev "${packages[@]}" \
+              --title "Shiro - development build" \
+              --notes "$notes" \
+              --prerelease \
+              --target "${{ github.sha }}"
+            if [ -f latest.json ]; then
+              gh release upload dev latest.json
+            fi
+          fi
+
+          echo "Published as $SHIRO_VERSION"

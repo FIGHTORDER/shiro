@@ -1,0 +1,8 @@
+node_modules
+dist
+src-tauri/target
+*.local
+
+# Fetched at build time from the release the catalogue pins - see
+# src-tauri/resources/sprofiler/README.md.
+src-tauri/resources/sprofiler/*.exe

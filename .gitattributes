@@ -1,0 +1,26 @@
+# Keep text files LF in the working tree on every platform.
+#
+# Without this, Git's core.autocrlf converts text files to CRLF on Windows
+# checkout. Generated files are then byte-different from what their generator
+# writes, so any `--check` guard that compares content fails - which is what
+# broke `npm test` on the windows-latest CI runner while passing on Linux.
+* text=auto eol=lf
+
+# Binaries must never be line-ending converted.
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.ico    binary
+*.icns   binary
+*.woff   binary
+*.woff2  binary
+*.ttf    binary
+*.otf    binary
+*.exe    binary
+*.dll    binary
+*.sdz    binary
+*.sd7    binary
+
+# Saved responses, kept byte-for-byte as the server sent them. Normalising line
+# endings would edit the evidence the parsers are pinned against.
+src-tauri/src/fixtures/** -text
