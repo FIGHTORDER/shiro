@@ -83,9 +83,9 @@ function HighlightWords({ settings, onSettings }) {
 
   return (
     <div onBlur={commit}>
-      <Input label="Other words that should light a conversation up"
+      <Input label="Other words I want notifications for"
         placeholder="teams, tourney, my clan tag"
-        hint="Separated by commas. Matched like a name: case does not matter, and a rule for teams does not fire on steamroller."
+        hint="Separated by commas."
         value={text}
         onChange={e => setText(e.target.value)}
         onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); commit(); } }} />
