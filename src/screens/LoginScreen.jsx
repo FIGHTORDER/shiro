@@ -92,7 +92,8 @@ export default function LoginScreen({ onLogin, onRegister, live, defaultName, de
           <Icon name="info" size={14} style={{ color: "var(--text-low)", marginTop: 2 }} />
           <span style={{ font: "var(--w-regular) var(--size-tiny)/1.5 var(--font-core)", color: "var(--text-low)" }}>
             Steam accounts need a lobby password. Set one on zero-k.info, then log in here.
-            Account names are case-sensitive. Shiro stores no login data, and does not keep any data locally or on a third party server.
+            Account names are case-sensitive. Shiro talks only to zero-k.info.
+            Staying logged in saves your password on this computer.
           </span>
         </div>
       </div>
