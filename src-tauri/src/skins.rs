@@ -49,7 +49,6 @@ pub struct CatalogueSkin {
     pub name: &'static str,
     /// The one line the picker shows under the name.
     pub note: &'static str,
-    pub description: &'static str,
     /// None when there is nothing published yet - see `unavailable`.
     pub download: Option<&'static str>,
     /// SHA-256 of the archive, lowercase hex. Absent only when `download` is.
@@ -64,8 +63,6 @@ pub const CATALOGUE: &[CatalogueSkin] = &[CatalogueSkin {
     id: "sakura",
     name: "Sakura",
     note: "White and pink, with petals.",
-    description: "A white ground with light grey structure and pink where the eye \
-should land. Brings its own login art and a drift of falling petals.",
     // Its own tag rather than `dev`: the release workflow sweeps every asset on
     // `dev` that is not in the set it just built, which would delete this and
     // leave the compiled-in URL pointing at a 404.

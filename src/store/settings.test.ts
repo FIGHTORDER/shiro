@@ -8,7 +8,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { useSettings, applySkin, SKINS } from "./settings.ts";
+import { useSettings, applySkin, usableSkin, SKINS } from "./settings.ts";
 
 test("settings survive having nowhere to persist to", () => {
   assert.equal(globalThis.localStorage, undefined, "precondition for this test");
@@ -120,4 +120,36 @@ test("the password is the one thing not written unless it was asked for", () => 
     useSettings.getState().set({ remember: true, password: "secret" });
     assert.equal(read().password, "secret", "remembered means written");
   });
+});
+
+/* A downloaded skin is not in SKINS, and the stored value used to be checked
+   for membership - so choosing Sakura, closing the app and opening it again
+   put you back on paper every time. */
+test("a downloaded skin survives being stored and read back", () => {
+  assert.equal(usableSkin("sakura"), "sakura");
+  assert.equal(usableSkin("new-hel-k"), "new-hel-k");
+  for (const bundled of SKINS) assert.equal(usableSkin(bundled.id), bundled.id);
+});
+
+/* The id reaches a data attribute and a directory name in Rust, so its shape
+   is still checked even though membership is not. */
+test("a stored skin id that is not a usable name falls back to paper", () => {
+  for (const bad of ["", "../evil", "a/b", "a b", "a.b", 42, null, undefined, {},
+                     "x".repeat(65)]) {
+    assert.equal(usableSkin(bad), "paper", String(bad));
+  }
+});
+
+test("a downloaded skin that will not load falls back rather than sticking", async () => {
+  const root = { dataset: {} as Record<string, string | undefined> };
+  (globalThis as { document?: unknown }).document = { documentElement: root };
+  try {
+    // No Tauri here, so applyDownloadedSkin reports failure.
+    applySkin("sakura");
+    assert.equal(root.dataset.skin, "sakura", "set straight away, before the load");
+    await new Promise(r => setTimeout(r, 20));
+    assert.equal(root.dataset.skin, undefined, "cleared once the load failed");
+  } finally {
+    delete (globalThis as { document?: unknown }).document;
+  }
 });

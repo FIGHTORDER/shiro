@@ -865,7 +865,7 @@ impl AddonPreview {
     }
 }
 
-/// A directory name for a repository. `alexpyattaev/Hel-K` becomes `hel-k`.
+/// A directory name for a repository. `Helwor/New-Hel-K` becomes `new-hel-k`.
 pub fn id_for(repo: &Repo) -> String {
     let mut out = String::new();
     for c in repo.name.chars() {
@@ -1313,7 +1313,7 @@ local defaults = { name = "not a widget" }
 
     /// Four layouts occur in the wild. New-Hel-K puts Widgets at the
     /// repository root because its README says to copy the repository into
-    /// LuaUI; alexpyattaev's copy carries the LuaUI directory itself; several
+    /// LuaUI; other packs carry the LuaUI directory itself; several
     /// single-widget repositories publish one bare .lua file.
     #[test]
     fn every_layout_in_the_wild_resolves_to_the_same_place() {

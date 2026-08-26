@@ -1,9 +1,9 @@
 //! Fetching an add-on from a GitHub repository.
 //!
 //! Widget packs in this community live in repositories, not on a release page
-//! with a published checksum. Hel-K has no releases and no tags at all - its
-//! "latest build" is whatever is on `main`. So the resolve order is releases,
-//! then tags, then the default branch's head commit.
+//! with a published checksum. New-Hel-K has no releases and no tags at all -
+//! its "latest build" is whatever is on `main`. So the resolve order is
+//! releases, then tags, then the default branch's head commit.
 //!
 //! **What "verified" means here, precisely.** There is no publisher signature
 //! to check, because nobody publishes one. What we do instead is resolve a
@@ -291,14 +291,14 @@ mod tests {
     #[test]
     fn the_forms_people_actually_paste_are_understood() {
         for input in [
-            "alexpyattaev/Hel-K",
-            "https://github.com/alexpyattaev/Hel-K",
-            "https://github.com/alexpyattaev/Hel-K/",
-            "github.com/alexpyattaev/Hel-K.git",
-            "  alexpyattaev/Hel-K  ",
+            "Helwor/New-Hel-K",
+            "https://github.com/Helwor/New-Hel-K",
+            "https://github.com/Helwor/New-Hel-K/",
+            "github.com/Helwor/New-Hel-K.git",
+            "  Helwor/New-Hel-K  ",
         ] {
             let r = parse_repo(input).unwrap_or_else(|e| panic!("{input}: {e}"));
-            assert_eq!(r.slug(), "alexpyattaev/Hel-K");
+            assert_eq!(r.slug(), "Helwor/New-Hel-K");
         }
     }
 
@@ -308,12 +308,12 @@ mod tests {
     fn anything_else_is_refused() {
         for input in [
             "",
-            "Hel-K",
-            "https://evil.test/alexpyattaev/Hel-K",
-            "alexpyattaev/Hel-K/extra",
+            "New-Hel-K",
+            "https://evil.test/Helwor/New-Hel-K",
+            "Helwor/New-Hel-K/extra",
             "../../etc",
-            "alexpyattaev/../evil",
-            "https://github.com/alexpyattaev",
+            "Helwor/../evil",
+            "https://github.com/Helwor",
         ] {
             assert!(parse_repo(input).is_err(), "{input} was accepted");
         }
@@ -322,10 +322,10 @@ mod tests {
     #[test]
     fn a_zipballs_wrapper_directory_comes_off() {
         assert_eq!(
-            strip_top_level("alexpyattaev-Hel-K-30cd8ce/LuaUI/Widgets/x.lua"),
-            Some("LuaUI/Widgets/x.lua")
+            strip_top_level("Helwor-New-Hel-K-8a5e270/Widgets/x.lua"),
+            Some("Widgets/x.lua")
         );
-        assert_eq!(strip_top_level("alexpyattaev-Hel-K-30cd8ce/"), None);
+        assert_eq!(strip_top_level("Helwor-New-Hel-K-8a5e270/"), None);
         assert_eq!(strip_top_level("no-slash"), None);
     }
 

@@ -17,7 +17,6 @@ export interface CatalogueSkin {
   id: string;
   name: string;
   note: string;
-  description: string;
   download?: string;
   sha256?: string;
   version?: string;

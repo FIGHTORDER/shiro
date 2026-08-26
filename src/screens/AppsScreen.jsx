@@ -263,7 +263,7 @@ function AddFromSource({ onInstalled }) {
       <div style={{ display: "flex", gap: "var(--sp-4)", alignItems: "flex-end" }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <Input label="Add from GitHub" value={repo} icon="github"
-            placeholder="alexpyattaev/Hel-K"
+            placeholder="Helwor/New-Hel-K"
             onChange={e => setRepo(e.target.value)}
             onKeyDown={e => e.key === "Enter" && repo.trim() && look()} />
         </div>

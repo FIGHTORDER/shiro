@@ -52,9 +52,32 @@ export function applySkin(skin: SkinId): void {
      tokens are not in the app's stylesheet - Rust has to hand them over. The
      attribute above is set either way, so the CSS matches once it arrives. */
   const bundled = SKINS.some(s => s.id === skin);
+  if (bundled) {
+    void import("../net/skins.ts").then(m => m.applyDownloadedSkin(undefined)).catch(() => {});
+    return;
+  }
+  /* A download that will not load - uninstalled since it was chosen, or a
+     hand-edited profile - would otherwise leave the attribute set with no
+     stylesheet matching it. Falling back here rather than at load time is the
+     only place the answer is actually known: whether a skin is installed
+     cannot be told from its id. */
+  const fallback = () => {
+    if (root.dataset.skin === skin) delete root.dataset.skin;
+  };
   void import("../net/skins.ts")
-    .then(m => m.applyDownloadedSkin(bundled ? undefined : skin))
-    .catch(() => {});
+    .then(m => m.applyDownloadedSkin(skin))
+    .then(ok => {
+      if (!ok) fallback();
+    })
+    .catch(fallback);
+}
+
+/* Ids reach `data-skin` and a directory name in Rust, so the stored value is
+   checked for shape. Being installed is deliberately not checked - that is
+   asynchronous, and `applySkin` already falls back when the load fails. */
+export function usableSkin(id: unknown): SkinId {
+  if (typeof id !== "string" || id.length === 0 || id.length > 64) return "paper";
+  return /^[A-Za-z0-9-]+$/.test(id) ? id : "paper";
 }
 
 export interface Settings {
@@ -152,10 +175,9 @@ function load(): Settings {
     if (!raw) return { ...DEFAULTS };
     // Merged over the defaults so an older stored shape cannot leave a hole.
     const s = { ...DEFAULTS, ...(JSON.parse(raw) as Partial<Settings>) };
-    // A skin removed since it was chosen - or a hand-edited profile - would
-    // otherwise leave the app on an attribute no stylesheet matches, which
-    // looks like the default but is not reachable from the picker.
-    if (!SKINS.some(x => x.id === s.skin)) s.skin = "paper";
+    // Downloaded skins are not in SKINS, so requiring membership here reset
+    // every one of them to paper on restart.
+    s.skin = usableSkin(s.skin);
     return s;
   } catch {
     return { ...DEFAULTS };
