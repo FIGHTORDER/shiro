@@ -1,4 +1,5 @@
 import React from "react";
+import { usePlayerMenu, playerMenuItems } from "./PlayerMenu.jsx";
 import { Button, Badge, Tag, PlayerRow, ChatLine, MapImage, Input,
   IconButton, Icon, UserChip, Meter, Tooltip } from "../ds/shiro.js";
 import { useStickyScroll } from "../hooks/useStickyScroll.js";
@@ -24,7 +25,8 @@ const TEAM_MIN_WIDTH = 220;
    out to its capacity - a 16-a-side game would otherwise draw sixteen. */
 const MAX_EMPTY_ROWS = 3;
 
-export function TeamColumn({ ally, players, max = 8, onJoin, onKick, onAddBot, onPlayer }) {
+export function TeamColumn({ ally, players, max = 8, onJoin, onKick, onAddBot, onPlayer,
+  picksTeams = true, joinsHere = false, onMenu }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", minWidth: 0,
       borderRight: "1px solid var(--w-06)" }}>
@@ -35,7 +37,10 @@ export function TeamColumn({ ally, players, max = 8, onJoin, onKick, onAddBot, o
           fontVariantNumeric: "tabular-nums" }}>{players.length}/{max}</span>
       </div>
       {players.map((p, i) => (
-        <PlayerRow key={i} {...p} user={p.user}
+        /* Wrapped rather than patched into the row: contextmenu bubbles, and
+           src/ds/shiro.js is generated. */
+        <div key={i} onContextMenu={onMenu ? e => onMenu(e, p.user) : undefined}>
+        <PlayerRow {...p} user={p.user}
           onClick={onPlayer ? () => onPlayer(p.user) : undefined}
           /* Host controls are offered to everyone; the server ignores them from
              anyone else, which is the only authority that counts. The rating
@@ -45,6 +50,7 @@ export function TeamColumn({ ally, players, max = 8, onJoin, onKick, onAddBot, o
             ? <IconButton icon="x" size="sm" label={"Remove " + p.user.name}
                 onClick={() => onKick(p.user)} />
             : null} />
+        </div>
       ))}
       {Array.from({ length: Math.max(0, Math.min(MAX_EMPTY_ROWS, max - players.length)) }).map((_, i) => (
         <div key={"e" + i} style={{ height: "var(--row-default)", display: "flex", alignItems: "center",
@@ -53,7 +59,15 @@ export function TeamColumn({ ally, players, max = 8, onJoin, onKick, onAddBot, o
         </div>
       ))}
       <div style={{ padding: "var(--sp-4)", display: "flex", flexDirection: "column", gap: "var(--sp-3)" }}>
-        <Button variant="quiet" size="sm" block onClick={onJoin}>Join team {ally + 1}</Button>
+        {/* Only a Custom room lets a player choose a side. Everywhere else the
+            server overwrites the choice and the host balances, so the button
+            says what will actually happen and appears only on the column the
+            player would land in. */}
+        {picksTeams
+          ? <Button variant="quiet" size="sm" block onClick={onJoin}>Join team {ally + 1}</Button>
+          : joinsHere
+            ? <Button variant="quiet" size="sm" block onClick={onJoin}>Join as player</Button>
+            : null}
         {onAddBot && <Button variant="ghost" size="sm" block icon="plus"
           onClick={() => onAddBot(ally)}>Add AI</Button>}
       </div>
@@ -261,9 +275,17 @@ export function PaneResizer({ height, min, max, onResize }) {
 
 export default function BattleRoomScreen({ room, onLeave, onStart, chat, onSay,
   onTeam, onSpectate, sync, phase, poll, pollOutcome, onVote, onKick, onAddBot, onPlayer,
+  players,
   download, onEditOptions, optionsLocked, chatHeight = 200, onChatHeight, onZk }) {
   const [msg, setMsg] = React.useState("");
   const [show3d, setShow3d] = React.useState(false);
+  /* One menu for the whole screen. A sixteen-team room lists dozens of names
+     and only one menu can be open, so mounting one per row would be dozens of
+     key listeners for nothing. */
+  const playerMenu = usePlayerMenu(user => playerMenuItems({
+    user, me: players?.me, friends: players?.friends, ignores: players?.ignores,
+    actions: players?.actions ?? {},
+  }));
   /* Width and height for the 3D footprint. Undefined for a map the catalogue
      does not list, which Map3D handles by reading the picture's own shape. */
   const mapInfo = useMapInfo(room.map);
@@ -349,6 +371,7 @@ export default function BattleRoomScreen({ room, onLeave, onStart, chat, onSay,
         <div style={{ flex: 1, minHeight: 0, display: "grid", overflowY: "auto",
           gridTemplateColumns: "repeat(auto-fit, minmax(min(" + TEAM_MIN_WIDTH + "px, 100%), 1fr))" }}>
           {room.teams.map(t => <TeamColumn key={t.ally} ally={t.ally} players={t.players}
+            picksTeams={room.picksTeams} joinsHere={t.ally === 0} onMenu={playerMenu.open}
             max={room.teamSize}
             onJoin={onTeam ? () => onTeam(t.ally) : undefined}
             onKick={onKick} onAddBot={onAddBot} onPlayer={onPlayer} />)}
@@ -409,8 +432,10 @@ export default function BattleRoomScreen({ room, onLeave, onStart, chat, onSay,
             </div>
             <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
               {room.spectators.map((s, i) => (
-                <PlayerRow key={i} spectator {...s}
-                  onClick={onPlayer ? () => onPlayer(s.user) : undefined} />
+                <div key={i} onContextMenu={e => playerMenu.open(e, s.user)}>
+                  <PlayerRow spectator {...s}
+                    onClick={onPlayer ? () => onPlayer(s.user) : undefined} />
+                </div>
               ))}
             </div>
           </div>
@@ -605,6 +630,7 @@ export default function BattleRoomScreen({ room, onLeave, onStart, chat, onSay,
              changed locally: the map updates when the server says it has. */
           if (onSay) onSay(`!map ${name}`);
         }} />
+      {playerMenu.menu}
     </div>
   );
 }

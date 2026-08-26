@@ -113,10 +113,15 @@ export default function App() {
   const [appError, setAppError] = React.useState(undefined);
   const [installing, setInstalling] = React.useState(undefined);
 
+  /* Keyed on the folder, so pointing Shiro at a different one re-reads it.
+     Reading the store inside a callback with no dependencies looked equivalent
+     and was not: the effect below never ran again, so a changed folder showed
+     the old folder's apps until the next restart. */
+  const appsRoot = useSettings(s => s.appsRoot);
   const refreshApps = React.useCallback(() => {
     catalogue().then(setAppCatalogue, () => setAppCatalogue([]));
-    appStatuses().then(setAppStatusList, () => setAppStatusList([]));
-  }, []);
+    appStatuses(appsRoot).then(setAppStatusList, () => setAppStatusList([]));
+  }, [appsRoot]);
   React.useEffect(() => { refreshApps(); }, [refreshApps]);
 
   /* The version the binary reports, not one written into the UI - CI stamps it
@@ -793,6 +798,23 @@ export default function App() {
          brings. */
       onAddBot={ally => setAddingAiTo(ally)}
       onPlayer={u => { if (u.name !== me && !u.bot) openDm(u.name); }}
+      /* Issue #1: every one of these already existed on another screen. The
+         menu is a way in, not a new capability, so they are the same calls the
+         friends screen makes. */
+      players={live ? {
+        me,
+        friends: friendNames,
+        ignores: ignoreNames,
+        actions: {
+          message: openDm,
+          profile: name => { setProfileOf(name); setView("profile"); },
+          friend: name => useFriends.getState().add(name),
+          unfriend: name => useFriends.getState().remove(name),
+          ignore: name => useFriends.getState().ignore(name),
+          unignore: name => useFriends.getState().unignore(name),
+          report: name => setReporting(name),
+        },
+      } : undefined}
       onEditOptions={() => setEditingOptions(true)}
       /* The server's rule, read backwards: only the founder may set options,
          and an autohost's founder is never a person. */
@@ -817,7 +839,7 @@ export default function App() {
       onInstall={id => {
         setAppError(undefined);
         setInstalling(id);
-        installApp(id)
+        installApp(id, settings.appsRoot)
           .then(refreshApps, e => setAppError(String(e?.message ?? e)))
           .finally(() => setInstalling(undefined));
       }}
@@ -826,12 +848,13 @@ export default function App() {
         /* With the Zero-K directory, so an app that wants to read the install
            is told about it rather than searching the usual places - which stop
            being the usual places the moment Shiro installs the game itself. */
-        launchApp(id, settings.installRoot)
+        launchApp(id, settings.installRoot, settings.appsRoot)
           .then(refreshApps, e => setAppError(String(e?.message ?? e)));
       }}
       onUninstall={id => {
         setAppError(undefined);
-        uninstallApp(id).then(refreshApps, e => setAppError(String(e?.message ?? e)));
+        uninstallApp(id, settings.appsRoot)
+          .then(refreshApps, e => setAppError(String(e?.message ?? e)));
       }} />
   );
   else if (view === "battles") body = <BattleListScreen battles={battles}

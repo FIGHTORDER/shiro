@@ -16,7 +16,7 @@ function Section({ title, children, hint }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--sp-5)",
       padding: "var(--sp-7) var(--sp-8)", borderBottom: "1px solid var(--w-06)" }}>
-      <span className="lab">{title}</span>
+      {title && <span className="lab">{title}</span>}
       {hint && (
         <span style={{ font: "var(--w-regular) var(--size-tiny)/1.5 var(--font-core)", color: "var(--text-low)" }}>
           {hint}
@@ -34,6 +34,29 @@ function Note({ children, tone }) {
       color: tone === "danger" ? "var(--signal-danger)" : "var(--text-low)" }}>
       {children}
     </span>
+  );
+}
+
+/* Where add-on apps live.
+
+   Empty means Shiro's own data directory, the same convention the Zero-K path
+   above uses: a cleared box is "wherever you would have put it", not a path of
+   its own. Changing it re-reads the folder, so apps already sitting there are
+   found rather than being downloaded again. */
+function AppsRootRow({ appsRoot, onSettings }) {
+  const [path, setPath] = React.useState(appsRoot ?? "");
+  React.useEffect(() => { setPath(appsRoot ?? ""); }, [appsRoot]);
+  const dirty = (path.trim() || undefined) !== appsRoot;
+  return (
+    <div style={{ display: "flex", gap: "var(--sp-4)", alignItems: "flex-end" }}>
+      <Input label="Add-on folder" placeholder="Leave empty to keep them with Shiro"
+        value={path} onChange={e => setPath(e.target.value)}
+        wrapStyle={{ flex: 1 }} size="sm" />
+      <Button variant="quiet" size="sm" disabled={!dirty}
+        onClick={() => onSettings && onSettings({ appsRoot: path.trim() || undefined })}>
+        Apply
+      </Button>
+    </div>
   );
 }
 
@@ -555,8 +578,8 @@ export default function SettingsScreen({ me, install, installError, engine, sett
             {settings && settings.remember && <Badge tone="outline">Password saved</Badge>}
           </div>
           {onAway && (
-            <Checkbox label="Away" checked={Boolean(away)} onChange={e => onAway(e.target.checked)}
-              hint="Shows you as away to everyone; the server stops offering you matches." />
+            <Checkbox label="Away" checked={Boolean(away)}
+              onChange={e => onAway(e.target.checked)} />
           )}
           <div style={{ display: "flex", gap: "var(--sp-4)" }}>
             {settings && settings.remember && onSettings && (
@@ -598,9 +621,6 @@ export default function SettingsScreen({ me, install, installError, engine, sett
             <>
               <div style={{ display: "flex", gap: "var(--sp-4)", alignItems: "center" }}>
                 <Button variant="secondary" size="sm" onClick={runPreview}>Check launch setup</Button>
-                <span style={{ font: "var(--w-regular) var(--size-tiny)/1.4 var(--font-core)", color: "var(--text-low)" }}>
-                  Resolves the engine and the script without starting a game.
-                </span>
               </div>
               {previewError && (
                 <span style={{ font: "var(--w-regular) var(--size-tiny)/1.5 var(--font-mono)",
@@ -680,8 +700,14 @@ export default function SettingsScreen({ me, install, installError, engine, sett
 
         <EngineSection installRoot={settings && settings.installRoot} disabled={!install} />
 
-        <Section title="In-game widgets"
-          hint="If a widget pack has broken Zero-K's interface, this puts it back to how the game ships.">
+        {/* Beside the Zero-K path rather than in Add-ons: it is the same kind
+            of answer - where something lives on this machine - and somebody
+            looking for one will look for the other in the same place. */}
+        <Section>
+          <AppsRootRow appsRoot={settings.appsRoot} onSettings={onSettings} />
+        </Section>
+
+        <Section title="In-game widgets">
           <WidgetReset />
         </Section>
 

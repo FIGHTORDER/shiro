@@ -91,6 +91,8 @@ export interface Settings {
   port?: number;
   /** Overrides install detection when someone keeps Zero-K somewhere odd. */
   installRoot?: string;
+  /** Where add-on apps are kept. Empty means Shiro's own data directory. */
+  appsRoot?: string;
   /**
    * This installation's id, as `Login.InstallID`.
    *

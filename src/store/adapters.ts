@@ -327,6 +327,23 @@ export interface RoomModel {
   options: ModOptionDisplay[];
   teams: Array<{ ally: number; players: RoomPlayerModel[] }>;
   /**
+   * Whether a player may choose their own allyteam here.
+   *
+   * Only in a Custom room. `ServerBattle.ValidateBattleStatus` runs on every
+   * battle status the server accepts and begins:
+   *
+   *     if (Mode != AutohostMode.None) ubs.AllyNumber = 0;
+   *
+   * so in every other mode the choice is overwritten before anyone sees it and
+   * the autohost's balance decides sides. Offering a "join team 2" that the
+   * server silently undoes is how issue #13 was reported.
+   *
+   * Bots are not affected - `ValidateBattleStatus` takes a `UserBattleStatus`
+   * and bots go through their own path - so the columns are still real and
+   * still worth drawing.
+   */
+  picksTeams: boolean;
+  /**
    * How many players fit on one team.
    *
    * The room's own cap divided by the teams it is showing, rather than the
@@ -786,6 +803,7 @@ export function roomModel(
     game: battle.Game ?? "",
     founder: battle.Founder ?? "",
     mode: modeLabel(battle.Mode),
+    picksTeams: (battle.Mode ?? MODE_NONE) === MODE_NONE,
     running: Boolean(battle.IsRunning),
     players: slotsTaken,
     maxPlayers: battle.MaxPlayers ?? 0,

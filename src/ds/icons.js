@@ -21,6 +21,7 @@ import Crown from "lucide/dist/esm/icons/crown.js";
 import Download from "lucide/dist/esm/icons/download.js";
 import ExternalLink from "lucide/dist/esm/icons/external-link.js";
 import Eye from "lucide/dist/esm/icons/eye.js";
+import Flag from "lucide/dist/esm/icons/flag.js";
 import Github from "lucide/dist/esm/icons/github.js";
 import Image from "lucide/dist/esm/icons/image.js";
 import Info from "lucide/dist/esm/icons/info.js";
@@ -45,8 +46,11 @@ import Swords from "lucide/dist/esm/icons/swords.js";
 import Target from "lucide/dist/esm/icons/target.js";
 import Trophy from "lucide/dist/esm/icons/trophy.js";
 import User from "lucide/dist/esm/icons/user.js";
+import UserMinus from "lucide/dist/esm/icons/user-minus.js";
 import UserPlus from "lucide/dist/esm/icons/user-plus.js";
 import Users from "lucide/dist/esm/icons/users.js";
+import Volume2 from "lucide/dist/esm/icons/volume-2.js";
+import VolumeX from "lucide/dist/esm/icons/volume-x.js";
 import Wifi from "lucide/dist/esm/icons/wifi.js";
 import WifiOff from "lucide/dist/esm/icons/wifi-off.js";
 import X from "lucide/dist/esm/icons/x.js";
@@ -65,6 +69,7 @@ export const ICONS = {
   "download": Download,
   "external-link": ExternalLink,
   "eye": Eye,
+  "flag": Flag,
   "github": Github,
   "image": Image,
   "info": Info,
@@ -89,8 +94,11 @@ export const ICONS = {
   "target": Target,
   "trophy": Trophy,
   "user": User,
+  "user-minus": UserMinus,
   "user-plus": UserPlus,
   "users": Users,
+  "volume-2": Volume2,
+  "volume-x": VolumeX,
   "wifi": Wifi,
   "wifi-off": WifiOff,
   "x": X,

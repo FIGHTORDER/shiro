@@ -272,6 +272,30 @@ test("a room never shows fewer than two teams, or a 1v1 cannot be set up", () =>
   assert.deepEqual(r.teams.map(t => t.ally), [0, 1]);
 });
 
+/* Issue #13: a player clicked "Join team 2" in an FFA room and nothing
+   happened. `ServerBattle.ValidateBattleStatus` is the reason, and it runs on
+   every battle status the server accepts:
+
+       if (Mode != AutohostMode.None) ubs.AllyNumber = 0;
+
+   So only a Custom room lets anyone choose a side. The room has to know that,
+   or the screen keeps offering a button the server undoes. */
+test("only a custom room lets a player choose their own side", () => {
+  const custom = room({ a: { Name: "a", AllyNumber: 0 } }, {}, { Mode: 0 });
+  assert.equal(custom.picksTeams, true, "Custom is AutohostMode.None");
+
+  // Every mode the server overwrites: 1v1, FFA, Chickens, Teams, Planetwars.
+  for (const mode of [3, 4, 5, 6, 2]) {
+    const r = room({ a: { Name: "a", AllyNumber: 0 } }, {}, { Mode: mode });
+    assert.equal(r.picksTeams, false, `mode ${mode} is decided by the host`);
+  }
+});
+
+test("a room with no mode at all is treated as custom", () => {
+  // MODE_NONE is the fallback modeLabel already uses for an absent Mode.
+  assert.equal(room({ a: { Name: "a", AllyNumber: 0 } }).picksTeams, true);
+});
+
 test("teams stop at the sixteen the script generator declares", () => {
   /* `!balance N` is bounded only by the player count, so a room really can
      report ally 19. Ally 16 is Gaia in a running game and joins nothing. */

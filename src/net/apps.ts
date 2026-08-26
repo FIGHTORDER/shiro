@@ -38,9 +38,9 @@ export async function catalogue(): Promise<CatalogueApp[]> {
   return invoke<CatalogueApp[]>("zka_catalogue");
 }
 
-export async function statuses(): Promise<AppStatus[]> {
+export async function statuses(appsRoot?: string): Promise<AppStatus[]> {
   if (!inTauri()) return [];
-  return invoke<AppStatus[]>("zka_status");
+  return invoke<AppStatus[]>("zka_status", { appsRoot });
 }
 
 /**
@@ -50,9 +50,9 @@ export async function statuses(): Promise<AppStatus[]> {
  * against the hash pinned in the catalogue before anything is unpacked, and a
  * mismatch discards the download rather than installing it.
  */
-export async function installApp(id: string): Promise<void> {
+export async function installApp(id: string, appsRoot?: string): Promise<void> {
   if (!inTauri()) return;
-  await invoke("zka_install", { id });
+  await invoke("zka_install", { id, appsRoot });
 }
 
 /**
@@ -63,12 +63,16 @@ export async function installApp(id: string): Promise<void> {
  * no way of guessing - and Shiro is the one that knows, including when the
  * answer is somebody's Steam copy. See `ROOT_ENV` in `src-tauri/src/apps.rs`.
  */
-export async function launchApp(id: string, installRoot?: string): Promise<void> {
+export async function launchApp(
+  id: string,
+  installRoot?: string,
+  appsRoot?: string,
+): Promise<void> {
   if (!inTauri()) return;
-  await invoke("zka_launch", { id, installRoot });
+  await invoke("zka_launch", { id, installRoot, appsRoot });
 }
 
-export async function uninstallApp(id: string): Promise<void> {
+export async function uninstallApp(id: string, appsRoot?: string): Promise<void> {
   if (!inTauri()) return;
-  await invoke("zka_uninstall", { id });
+  await invoke("zka_uninstall", { id, appsRoot });
 }

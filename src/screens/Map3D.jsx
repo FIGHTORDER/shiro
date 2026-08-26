@@ -71,6 +71,22 @@ function loadImage(src) {
 /* Read the heightmap back as numbers. A data URL counts as same-origin, so the
    canvas is not tainted and getImageData is allowed. Fetching these straight
    from zero-k.info would taint it, which is why the bytes come through Rust. */
+/**
+ * How the terrain is distributed, as 101 buckets of normalised height.
+ *
+ * Enough to answer "how much of this map is under a given waterline" to the
+ * nearest percent without holding on to the whole grid or re-reading pixels
+ * every time the slider moves.
+ */
+function profileOf(heights) {
+  const buckets = new Array(101).fill(0);
+  for (let i = 0; i < heights.length; i++) {
+    const b = Math.min(100, Math.max(0, Math.round(heights[i] * 100)));
+    buckets[b]++;
+  }
+  return { buckets, total: heights.length };
+}
+
 function heightsFrom(img, cols, rows) {
   const c = document.createElement("canvas");
   c.width = cols;
@@ -97,6 +113,7 @@ function compile(gl, type, src) {
 
 export default function Map3D({
   heightmap, minimap, aspect, lift = 0.165, water = 0, showWater = false,
+  onProfile,
 }) {
   const canvasRef = React.useRef(null);
   const camRef = React.useRef({ yaw: -0.6, pitch: 0.85, dist: 2.2 });
@@ -138,7 +155,11 @@ export default function Map3D({
          no dimensions. The published picture carries the squared ratio, so its
          square root is the real footprint. */
       const shape = aspect ?? aspectFromImage(hImg.naturalWidth, hImg.naturalHeight);
-      const mesh = buildMesh(heightsFrom(hImg, cols, rows), cols, rows, shape);
+      const heights = heightsFrom(hImg, cols, rows);
+      /* Reported once per heightmap, not per frame: the caller uses it to say
+         what the waterline actually floods. */
+      if (onProfile) onProfile(profileOf(heights));
+      const mesh = buildMesh(heights, cols, rows, shape);
       const wide = mesh.idx instanceof Uint32Array;
       if (wide && !gl.getExtension("OES_element_index_uint")) {
         setError("This graphics driver cannot draw a mesh this size.");

@@ -175,6 +175,19 @@ pub struct AppStatus {
 /// `content.rs` and `install.rs` own the Zero-K data directory and a second
 /// writer is how two tools end up disagreeing about what is installed.
 pub fn apps_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+    apps_dir_with(app, None)
+}
+
+/// Where apps live, honouring a folder the player chose.
+///
+/// The same shape as `install::detect_with`: an empty or absent override means
+/// the default, so a cleared setting is not a path of its own. Apps already
+/// sitting in the chosen folder are found there, which is the point - pointing
+/// Shiro at a folder should show what is in it, not start it empty.
+pub fn apps_dir_with(app: &tauri::AppHandle, root: Option<&str>) -> Result<PathBuf, String> {
+    if let Some(root) = root.map(str::trim).filter(|r| !r.is_empty()) {
+        return Ok(PathBuf::from(root));
+    }
     let base = app
         .path()
         .app_data_dir()
@@ -183,10 +196,14 @@ pub fn apps_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
 }
 
 fn app_dir(app: &tauri::AppHandle, id: &str) -> Result<PathBuf, String> {
+    app_dir_with(app, id, None)
+}
+
+fn app_dir_with(app: &tauri::AppHandle, id: &str, root: Option<&str>) -> Result<PathBuf, String> {
     if !id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-') {
         return Err(format!("not an app id: {id:?}"));
     }
-    Ok(apps_dir(app)?.join(id))
+    Ok(apps_dir_with(app, root)?.join(id))
 }
 
 fn entry(id: &str) -> Result<&'static CatalogueApp, String> {
@@ -208,10 +225,10 @@ pub fn zka_catalogue() -> Vec<CatalogueApp> {
 /// directory has uninstalled it, and a launcher that disagrees is worse than
 /// one that is a little slower.
 #[tauri::command]
-pub fn zka_status(app: tauri::AppHandle) -> Result<Vec<AppStatus>, String> {
+pub fn zka_status(app: tauri::AppHandle, apps_root: Option<String>) -> Result<Vec<AppStatus>, String> {
     let mut out = Vec::new();
     for a in CATALOGUE {
-        let dir = app_dir(&app, a.id)?;
+        let dir = app_dir_with(&app, a.id, apps_root.as_deref())?;
         let exe = a.run.map(|r| dir.join(r));
         let installed = exe.as_deref().map(Path::is_file).unwrap_or(false);
         let version = std::fs::read_to_string(dir.join("installed-version"))
@@ -255,7 +272,17 @@ fn why_not(a: &CatalogueApp) -> Option<String> {
 /// is about. Without it, every launch would helpfully reinstall the app the
 /// user just removed, which is the kind of helpfulness nobody asks for twice.
 fn removal_marker(app: &tauri::AppHandle, id: &str) -> Result<PathBuf, String> {
-    Ok(apps_dir(app)?.join(format!("{id}.removed")))
+    removal_marker_with(app, id, None)
+}
+
+fn removal_marker_with(
+    app: &tauri::AppHandle,
+    id: &str,
+    root: Option<&str>,
+) -> Result<PathBuf, String> {
+    let _ = &app;
+    let _ = root;
+    Ok(apps_dir_with(app, root)?.join(format!("{id}.removed")))
 }
 
 /// Put bundled apps in place, once, on startup.
@@ -343,6 +370,7 @@ pub fn zka_launch(
     app: tauri::AppHandle,
     id: String,
     install_root: Option<String>,
+    apps_root: Option<String>,
 ) -> Result<(), String> {
     let a = entry(&id)?;
     if let Some(why) = why_not(a) {
@@ -351,7 +379,7 @@ pub fn zka_launch(
     let run = a
         .run
         .ok_or_else(|| format!("{} is not something to run", a.name))?;
-    let exe = app_dir(&app, a.id)?.join(run);
+    let exe = app_dir_with(&app, a.id, apps_root.as_deref())?.join(run);
     if !exe.is_file() {
         return Err(format!("{} is not installed", a.name));
     }
@@ -455,17 +483,27 @@ fn staging_dir(dir: &Path) -> PathBuf {
 /// it is the hash that decides whether the bytes get to become a program on
 /// somebody's machine - so a mismatch deletes what it fetched and says so.
 #[tauri::command]
-pub async fn zka_install(app: tauri::AppHandle, id: String) -> Result<(), String> {
+pub async fn zka_install(
+    app: tauri::AppHandle,
+    id: String,
+    apps_root: Option<String>,
+) -> Result<(), String> {
     /* Off the main thread. A synchronous command runs on it, and this one
     downloads a whole release, hashes it and unpacks it - so the window
     stopped answering for as long as that took, with no way to cancel a
     server that had gone quiet mid-body. */
-    tauri::async_runtime::spawn_blocking(move || install_blocking(&app, &id))
+    tauri::async_runtime::spawn_blocking(move || {
+        install_blocking(&app, &id, apps_root.as_deref())
+    })
         .await
         .map_err(|e| format!("the install did not finish: {e}"))?
 }
 
-fn install_blocking(app: &tauri::AppHandle, id: &str) -> Result<(), String> {
+fn install_blocking(
+    app: &tauri::AppHandle,
+    id: &str,
+    apps_root: Option<&str>,
+) -> Result<(), String> {
     let a = entry(id)?;
     if let Some(why) = why_not(a) {
         return Err(why);
@@ -523,7 +561,7 @@ fn install_blocking(app: &tauri::AppHandle, id: &str) -> Result<(), String> {
         ));
     }
 
-    let dir = app_dir(&app, a.id)?;
+    let dir = app_dir_with(&app, a.id, apps_root)?;
 
     /* Unpacked beside the install and swapped in, rather than over it.
     Clearing first and unpacking after means a failure between the two
@@ -581,9 +619,13 @@ fn install_blocking(app: &tauri::AppHandle, id: &str) -> Result<(), String> {
 
 /// Remove an installed app. Its own directory, and nothing above it.
 #[tauri::command]
-pub fn zka_uninstall(app: tauri::AppHandle, id: String) -> Result<(), String> {
+pub fn zka_uninstall(
+    app: tauri::AppHandle,
+    id: String,
+    apps_root: Option<String>,
+) -> Result<(), String> {
     let a = entry(&id)?;
-    let dir = app_dir(&app, a.id)?;
+    let dir = app_dir_with(&app, a.id, apps_root.as_deref())?;
 
     /* The note goes down before the directory does. Written afterwards, a
     failed write - or a crash between the two - left the app removed with

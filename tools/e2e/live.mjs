@@ -560,9 +560,30 @@ check("wrapped onto several rows rather than shrunk into slivers",
   many.rows > 1 && many.width >= 200, JSON.stringify(many));
 check("and never scrolls sideways, which would hide teams outright",
   !many.overflows, JSON.stringify(many));
-check("every team is still joinable, including the last",
-  await page.evaluate(() => [...document.querySelectorAll("button")]
-    .some(b => b.textContent.trim() === "Join team 16")));
+/* Issue #13. `ServerBattle.ValidateBattleStatus` starts
+     if (Mode != AutohostMode.None) ubs.AllyNumber = 0;
+   so only a Custom room lets a player pick a side. The fixture room is Teams,
+   which is why the per-team button is absent here - offering one the server
+   undoes is exactly what was reported. */
+const named = re => page.evaluate(r => [...document.querySelectorAll("button")]
+  .filter(b => new RegExp(r).test(b.textContent.trim())).length, re.source);
+
+check("a host-balanced room offers no side to pick",
+  await named(/^Join team \d+$/) === 0);
+check("and offers the one thing that does work instead",
+  await named(/^Join as player$/) === 1);
+
+const asCustom = async mode => {
+  await page.evaluate(m => window.__ZKS.push("BattleUpdate " + JSON.stringify({
+    Header: { BattleID: 11, Mode: m } })), mode);
+  await page.waitForTimeout(300);
+};
+await asCustom(0);
+check("a custom room offers every team, including the last",
+  await waitFor("join-16", async () => await named(/^Join team 16$/) === 1));
+check("and drops the fallback button when the choice is real",
+  await named(/^Join as player$/) === 0);
+await asCustom(6);
 await shot("live-07-sixteen-teams");
 
 await page.evaluate(() => window.__ZKS.push('UserDisconnected {"Name":"marrow"}'));
@@ -578,9 +599,13 @@ await page.evaluate(() =>
   window.__ZKS.push('UpdateUserBattleStatus {"Name":"marrow","IsSpectator":false,"AllyNumber":19}'));
 check("an ally number the engine would reject stops at the sixteenth column",
   await waitFor("clamped", async () => (await teamGrid()).columns === 16));
+/* In a custom room, where the buttons exist at all - in a host-balanced one
+   this would pass without asserting anything. */
+await asCustom(0);
 check("and no column is offered that would break the script",
-  !(await page.evaluate(() => [...document.querySelectorAll("button")]
-    .some(b => /^Join team (1[7-9]|20)$/.test(b.textContent.trim())))));
+  await named(/^Join team (1[7-9]|20)$/) === 0
+    && await named(/^Join team 16$/) === 1);
+await asCustom(6);
 
 await page.evaluate(() => window.__ZKS.push('UserDisconnected {"Name":"marrow"}'));
 await waitFor("teams-restored", async () => (await teamGrid()).columns === 2);
@@ -633,12 +658,70 @@ check("room chat renders the sender as a chip, not a string",
 await shot("live-02-room");
 
 console.log("room actions");
+/* Picking a side only reaches the server from a custom room; everywhere else
+   `ValidateBattleStatus` overwrites it. Both halves are worth a check. */
+await asCustom(0);
 await clickText(/Join team 2/);
 check("changing team sends UpdateUserBattleStatus",
   await waitFor("team", () => sentAny(/^UpdateUserBattleStatus \{.*"AllyNumber":1/)));
+
+await asCustom(6);
+const beforeJoin = await mark();
+await clickText(/^Join as player$/);
+check("and a host-balanced room still sends a plain join",
+  await waitFor("plain-join",
+    () => sentSince(beforeJoin, /^UpdateUserBattleStatus \{.*"IsSpectator":false/)));
 await clickText(/^Spectate$/);
 check("spectating sends UpdateUserBattleStatus",
   await waitFor("spec", () => sentAny(/^UpdateUserBattleStatus \{.*"IsSpectator":true/)));
+
+/* Issue #1: right-clicking a name. Every action already existed on some other
+   screen, so what is checked here is that the way in works and that it reaches
+   the same calls - not that the server grew anything new. */
+console.log("the player menu");
+const rowFor = n => page.locator('div[style*="--row-default"]').filter({ hasText: n }).first();
+const menuItems = () => page.locator('[role="menu"]').getByRole("menuitem").allInnerTexts();
+
+check("no menu until asked for", await page.locator('[role="menu"]').count() === 0);
+
+await rowFor("hexed").click({ button: "right" });
+check("right-clicking a player opens one",
+  await waitFor("menu", async () => (await menuItems()).length > 0));
+const theirs = await menuItems();
+check("with the actions that were scattered across other screens",
+  ["Message", "Profile", "Ignore"].every(l => theirs.some(t => t.includes(l))),
+  JSON.stringify(theirs));
+/* hexed is in the fixture's FriendList, so this is the far half of the toggle.
+   An "Add friend" here would mean the menu is not reading the friend list. */
+check("and a friend is offered the opposite of a stranger",
+  theirs.some(t => t.includes("Remove friend")), JSON.stringify(theirs));
+
+await page.keyboard.press("Escape");
+check("Escape closes it", await waitFor("menu-gone",
+  async () => await page.locator('[role="menu"]').count() === 0));
+
+await rowFor("Qrow").click({ button: "right" });
+await page.waitForTimeout(200);
+const mine = await menuItems();
+check("your own row offers nothing to do to yourself",
+  !mine.some(t => /friend|Ignore|Report|Message/.test(t)), JSON.stringify(mine));
+await page.keyboard.press("Escape");
+
+await rowFor("CAI-Brutal").click({ button: "right" });
+await page.waitForTimeout(200);
+check("and a bot has no menu at all",
+  await page.locator('[role="menu"]').count() === 0);
+
+const beforeMenu = await mark();
+await rowFor("hexed").click({ button: "right" });
+await page.waitForTimeout(200);
+await page.getByRole("menuitem", { name: /Remove friend/ }).click();
+check("choosing an action sends what that action sends",
+  await waitFor("relation", () =>
+    sentSince(beforeMenu, /^SetAccountRelation \{.*"TargetName":"hexed"/)));
+check("and the menu goes away once it has",
+  await page.locator('[role="menu"]').count() === 0);
+await shot("live-08-player-menu");
 
 const composer = page.getByPlaceholder("Message the room");
 await composer.fill("gl hf");
