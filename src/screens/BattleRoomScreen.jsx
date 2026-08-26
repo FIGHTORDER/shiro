@@ -73,13 +73,13 @@ export function TeamColumn({ ally, players, max = 8, onJoin, onKick, onAddBot, o
 function WaitingPanel({ waiting, full, onPlayer }) {
   if (!waiting || waiting.players.length === 0) return null;
   const { players, kind } = waiting;
+  /* A queue says what it is by being a queue - the header already reads
+     WAITING TO PLAY with a count beside it - so it carries no note. */
   const note = kind === "queue"
-    ? "Last to claim a slot. If the game started now, the server would move "
-      + (players.length === 1 ? "this player" : "these players") + " to the spectators."
+    ? undefined
     : full
       ? "Asked to play after the room filled up, so the server made "
-        + (players.length === 1 ? "them a spectator" : "them spectators") + ". "
-        + "Nothing holds a place - a slot that frees up goes to whoever takes it first."
+        + (players.length === 1 ? "them a spectator" : "them spectators") + "."
       /* Not full, so the cap is not the explanation. ValidateBattleStatus flips
          the same bit for an Elo, level or rank limit and never says which, so
          neither do we. */
@@ -103,10 +103,12 @@ function WaitingPanel({ waiting, full, onPlayer }) {
             onClick={onPlayer ? () => onPlayer(p.user) : undefined} />
         ))}
       </div>
-      <div style={{ padding: "var(--sp-3) var(--sp-4)", borderBottom: "1px solid var(--w-06)" }}>
-        <span style={{ font: "var(--w-regular) var(--size-micro)/1.4 var(--font-core)",
-          color: "var(--text-faint)" }}>{note}</span>
-      </div>
+      {note && (
+        <div style={{ padding: "var(--sp-3) var(--sp-4)", borderBottom: "1px solid var(--w-06)" }}>
+          <span style={{ font: "var(--w-regular) var(--size-micro)/1.4 var(--font-core)",
+            color: "var(--text-faint)" }}>{note}</span>
+        </div>
+      )}
     </>
   );
 }

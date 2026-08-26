@@ -16,7 +16,12 @@ import { create } from "zustand";
 
 const KEY = "shiro.settings";
 
-export type SkinId = "paper" | "vellum" | "graphite" | "slate";
+/* A bundled skin, or the id of a downloaded one.
+ *
+ * The four below ship inside Shiro because they are a few dozen declarations
+ * each. Anything that carries pictures is a download - see src-tauri/skins.rs -
+ * so this cannot be a closed union any more. */
+export type SkinId = string;
 
 /**
  * The skins the app ships with, in the order the picker offers them. The
@@ -42,6 +47,14 @@ export function applySkin(skin: SkinId): void {
   if (!root) return;
   if (skin === "paper") delete root.dataset.skin;
   else root.dataset.skin = skin;
+
+  /* A skin that is not one of the four bundled ones is a download, and its
+     tokens are not in the app's stylesheet - Rust has to hand them over. The
+     attribute above is set either way, so the CSS matches once it arrives. */
+  const bundled = SKINS.some(s => s.id === skin);
+  void import("../net/skins.ts")
+    .then(m => m.applyDownloadedSkin(bundled ? undefined : skin))
+    .catch(() => {});
 }
 
 export interface Settings {

@@ -1,7 +1,8 @@
 import React from "react";
 import { Button, Input, Checkbox, Icon } from "../ds/shiro.js";
-import logoMark from "../assets/logo-mark.svg";
 import glaive from "../assets/art/glaive-sidelit.png";
+import LogoMark from "./LogoMark.jsx";
+import { skinAssets } from "../net/skins.ts";
 
 /* Screen 1. First impression, and the only place the "Steam users must set a
    password" caveat is explained.
@@ -9,7 +10,19 @@ import glaive from "../assets/art/glaive-sidelit.png";
    onLogin(name, password, remember) may be async and may reject; the rejection
    message is shown against the password field. It is never retried automatically - the
    server logs failed attempts by IP and bans repeat offenders. */
-export default function LoginScreen({ onLogin, onRegister, live, defaultName, defaultPassword, defaultRemember }) {
+export default function LoginScreen({ onLogin, onRegister, live, defaultName, defaultPassword, defaultRemember, skin }) {
+  /* The plate a downloaded skin brought, if any. Looked up after mount as well
+     as on the skin changing, because a downloaded skin's files land a tick
+     after the attribute does. */
+  const [skinArt, setSkinArt] = React.useState(undefined);
+  React.useEffect(() => {
+    let live = true;
+    const read = () => { if (live) setSkinArt(skinAssets()["login.png"]); };
+    read();
+    const t = setTimeout(read, 140);
+    return () => { live = false; clearTimeout(t); };
+  }, [skin]);
+
   const [name, setName] = React.useState(defaultName || "");
   const [pw, setPw] = React.useState(defaultPassword || "");
   const [busy, setBusy] = React.useState(false);
@@ -44,16 +57,25 @@ export default function LoginScreen({ onLogin, onRegister, live, defaultName, de
             Black ink on transparent, so a dark skin has to invert it;
             --art-filter is that hook and resolves to `none` in the light
             system. Same on the friends screen and the loading dialog. */}
-        <img src={glaive} alt="" aria-hidden="true"
-          style={{ position: "absolute", right: "3%", bottom: "0%", height: "82%", width: "auto",
-            filter: "var(--art-filter, none)", pointerEvents: "none", userSelect: "none" }} />
+        {/* A downloaded skin may bring its own plate as `login.png`. It takes no
+            filter: the invert that recolours the ink plate for a dark skin
+            would ruin a coloured one. Its framing is its own, because a plate
+            drawn for a different pose does not sit where this one does. */}
+        {skinArt ? (
+          <img src={skinArt} alt="" aria-hidden="true"
+            style={{ position: "absolute", right: "-14%", bottom: "-8%", height: "78%", width: "auto",
+              pointerEvents: "none", userSelect: "none" }} />
+        ) : (
+          <img src={glaive} alt="" aria-hidden="true"
+            style={{ position: "absolute", right: "3%", bottom: "0%", height: "82%", width: "auto",
+              filter: "var(--art-filter, none)", pointerEvents: "none", userSelect: "none" }} />
+        )}
 
         {/* The type sits above the art, on its own so long copy stays readable
             wherever the figure happens to fall. */}
         <div style={{ position: "relative", display: "flex", alignItems: "center",
           gap: "var(--sp-6)" }}>
-          <img src={logoMark} width="72" height="72" alt=""
-            style={{ filter: "var(--logo-filter, none)" }} />
+          <LogoMark size={72} />
           <span style={{ font: "var(--w-bold) var(--size-4xl)/1 var(--font-core)", fontStretch: "100%",
             letterSpacing: "var(--track-wordmark)", color: "var(--text-hi)" }}>SHIRO</span>
         </div>

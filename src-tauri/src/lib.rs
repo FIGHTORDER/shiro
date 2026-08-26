@@ -13,6 +13,7 @@ mod managed;
 mod mapview;
 mod relay;
 mod sidecar;
+mod skins;
 mod apps;
 mod zkcontent;
 mod zkweb;
@@ -100,6 +101,11 @@ pub fn run() {
             managed::zks_managed_remove,
             managed::zks_loadscreen_state,
             managed::zks_loadscreen_set,
+            skins::zks_skin_catalogue,
+            skins::zks_skin_status,
+            skins::zks_skin_install,
+            skins::zks_skin_remove,
+            skins::zks_skin_load,
             apps::zka_catalogue,
             apps::zka_status,
             apps::zka_install,

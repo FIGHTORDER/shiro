@@ -499,8 +499,13 @@ await page.evaluate(() => {
 /* Waiting on the wording rather than on the names: the refused panel above
    already listed exactly these two, so a check for "two names" is satisfied by
    the state we are trying to leave and races the update we are testing. */
-check("and says so definitely, because the cut is computable",
-  await waitFor("time-queue", () => seeing(/If the game started now/)));
+/* The queue panel carries no explanation - a queue says what it is by being
+   one - so the marker for the transition is the refused note going away rather
+   than a sentence arriving. Every refused note opens "Asked to play"; the queue
+   form has none, which is what tells the two apart without racing the update. */
+check("the panel switches to the queue form, which explains nothing",
+  await waitFor("time-queue", async () =>
+    (await seeing(/WAITING TO PLAY/)) && !(await seeing(/Asked to play/))));
 check("naming exactly who StartGame would move to the spectators",
   await (async () => {
     const n = await waitingNames();

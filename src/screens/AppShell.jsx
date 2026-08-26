@@ -1,7 +1,8 @@
 import React from "react";
 import { IconButton, Icon } from "../ds/shiro.js";
 import { minimize, toggleMaximize, close } from "../net/window.js";
-import logoMark from "../assets/logo-mark.svg";
+import LogoMark from "./LogoMark.jsx";
+import Petals from "./Petals.jsx";
 
 export const NAV = [
   { id: "battles", icon: "swords", label: "Battles" },
@@ -19,8 +20,7 @@ export function TitleBar({ version = "0.1.0", updateReady, inbox }) {
     <div data-tauri-drag-region style={{ height: "var(--shell-titlebar)", flex: "0 0 auto", display: "flex", alignItems: "center",
       gap: "var(--sp-5)", padding: "0 var(--sp-3) 0 var(--sp-5)", borderBottom: "1px solid var(--w-12)",
       background: "var(--surface-base)" }}>
-      <img src={logoMark} width="15" height="15" alt=""
-        style={{ opacity: 0.9, filter: "var(--logo-filter, none)" }} />
+      <LogoMark size={15} style={{ opacity: 0.9 }} />
       <span style={{ font: "var(--w-bold) var(--size-micro)/1 var(--font-core)", fontStretch: "100%",
         letterSpacing: "var(--track-wordmark)", color: "var(--text-hi)" }}>SHIRO</span>
       <span style={{ flex: 1 }} />
@@ -105,10 +105,34 @@ export function StatusBar({ connection = "online", users, engine, game, onReconn
 }
 
 export default function AppShell({ view, onView, inRoom, connection, users, engine, game, onReconnect, attempt, children, overlay,
-  version, updateReady, inbox }) {
+  version, updateReady, inbox, skin }) {
+  /* Read off the document rather than passed in: the value arrives with the
+     skin's stylesheet, which for a downloaded skin lands after this renders. */
+  const [wantsPetals, setWantsPetals] = React.useState(false);
+  React.useEffect(() => {
+    let live = true;
+    const read = () => {
+      if (!live || typeof document === "undefined") return;
+      const v = getComputedStyle(document.documentElement)
+        .getPropertyValue("--skin-petals").trim();
+      setWantsPetals(v === "1");
+    };
+    read();
+    // A downloaded skin's tokens arrive a tick later; look again once.
+    const t = setTimeout(read, 120);
+    return () => { live = false; clearTimeout(t); };
+  }, [skin]);
+
   return (
     <div style={{ position: "relative", display: "flex", flexDirection: "column", height: "100%",
       minHeight: 0, background: "var(--surface-base)", overflow: "hidden" }}>
+      {/* Behind the shell, which paints its own background - so this shows
+          through the app's transparent gaps rather than over its content.
+
+          Asked for by the skin rather than keyed on its name: a skin sets
+          `--skin-petals: 1` in its own tokens, so a downloaded one can turn
+          this on without the app having to know it exists. */}
+      {wantsPetals && <Petals />}
       <TitleBar version={version} updateReady={updateReady} inbox={inbox} />
       <div style={{ flex: 1, display: "flex", minHeight: 0 }}>
         <NavRail view={view} onView={onView} inRoom={inRoom} />

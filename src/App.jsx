@@ -22,6 +22,7 @@ import HostBattleDialog from "./screens/HostBattleDialog.jsx";
 import ReportDialog from "./screens/ReportDialog.jsx";
 import SwitchRoomDialog from "./screens/SwitchRoomDialog.jsx";
 import { useInbox } from "./store/notify.ts";
+import { installSkin, skinCatalogue, skinStatus } from "./net/skins.ts";
 import MapsScreen from "./screens/MapsScreen.jsx";
 import { mapCatalogue } from "./net/zkcatalogue.ts";
 import AddAiDialog from "./screens/AddAiDialog.jsx";
@@ -219,6 +220,31 @@ export default function App() {
   const roomOptions = useRoom(s => s.modOptions);
   const roomPoll = useRoom(s => s.poll);
   const roomPollOutcome = useRoom(s => s.pollOutcome);
+
+  /* The picker shows both kinds. A bundled skin is always usable; a
+     downloaded one is a row that has to be fetched first, and one with nothing
+     published says why instead of offering a button that fails. */
+  const [dlSkins, setDlSkins] = React.useState([]);
+  const [dlStatus, setDlStatus] = React.useState([]);
+  const [gettingSkin, setGettingSkin] = React.useState(undefined);
+  const refreshSkins = React.useCallback(() => {
+    skinCatalogue().then(setDlSkins, () => setDlSkins([]));
+    skinStatus().then(setDlStatus, () => setDlStatus([]));
+  }, []);
+  React.useEffect(() => { refreshSkins(); }, [refreshSkins]);
+
+  const allSkins = React.useMemo(() => {
+    const installed = new Set(dlStatus.filter(s => s.installed).map(s => s.id));
+    return [
+      ...SKINS,
+      ...dlSkins.map(s => ({
+        id: s.id, name: s.name, note: s.note,
+        unavailable: s.unavailable,
+        needsInstall: !s.unavailable && !installed.has(s.id),
+        busy: gettingSkin === s.id,
+      })),
+    ];
+  }, [dlSkins, dlStatus, gettingSkin]);
 
   const inboxItems = useInbox(s => s.items);
   const inboxUnread = useInbox(s => s.unread);
@@ -602,6 +628,7 @@ export default function App() {
 
   const shell = {
     version: appVer,
+    skin: settings.skin,
     // A mark beside the version, not a dialog over whatever you are doing.
     updateReady: updateState.kind === "available" || updateState.kind === "ready",
     connection: live ? statusBarKind(connection, reconnectAttempt) : "online",
@@ -627,7 +654,7 @@ export default function App() {
           <LoginScreen onLogin={handleLogin} live={live}
             onRegister={() => setRegistering(true)}
             defaultName={settings.name} defaultPassword={settings.password}
-            defaultRemember={settings.remember} />
+            defaultRemember={settings.remember} skin={settings.skin} />
         </ErrorBoundary>
         <RegisterDialog open={registering} onClose={() => setRegistering(false)}
           onRegister={handleRegister} />
@@ -778,8 +805,15 @@ export default function App() {
   else if (view === "apps") body = (
     <AppsScreen apps={appCatalogue} statuses={appStatusList} error={appError}
       installing={installing}
-      skins={SKINS} skin={settings.skin}
+      skins={allSkins} skin={settings.skin}
       onSkin={id => useSettings.getState().set({ skin: id })}
+      onSkinInstall={id => {
+        setGettingSkin(id);
+        installSkin(id)
+          .then(() => { refreshSkins(); useSettings.getState().set({ skin: id }); },
+                e => setAppError(String(e?.message ?? e)))
+          .finally(() => setGettingSkin(undefined));
+      }}
       onInstall={id => {
         setAppError(undefined);
         setInstalling(id);

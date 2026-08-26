@@ -68,3 +68,29 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:none;box-s
 @media (prefers-reduced-motion: reduce) {
   .shiro-duck-bob, .shiro-duck-paddle { animation: none !important; }
 }
+
+/* Sakura petals. Only ever on screen for that skin - Petals.jsx does not mount
+   otherwise - so none of this costs anything on the other four.
+
+   The field sits at z-index 0 under the shell, which paints on its own
+   background, so petals read as weather behind the app rather than confetti
+   over it. pointer-events:none because a petal must never eat a click. */
+.sakura-field{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.sakura-petal{
+  position:absolute;top:-24px;
+  /* A leaf, not a circle: one round corner and one square on each diagonal is
+     the cheapest thing that reads as a petal at six pixels. */
+  border-radius:100% 0 100% 0;
+  will-change:transform;
+  animation-name:sakura-fall;animation-timing-function:linear;
+  animation-iteration-count:infinite;
+}
+@keyframes sakura-fall{
+  from{transform:translate3d(0,0,0) rotate(0deg)}
+  to{transform:translate3d(var(--drift),105vh,0) rotate(var(--spin))}
+}
+/* Somebody who asked for less motion asked for this too. The petals stay,
+   still, so the skin still looks like itself. */
+@media (prefers-reduced-motion: reduce){
+  .sakura-petal{animation:none;opacity:.5}
+}

@@ -5,7 +5,7 @@ import { ACTION, META, appState } from "./appState.ts";
 /* Add-ons: the things Shiro can add to itself or to Zero-K, by kind.
  *
  * Six kinds, one rail. Only two of them have anything in them today - the four
- * apps that ship in the catalogue, and the four skins that used to live in
+ * apps that ship in the catalogue, and the skins that used to live in
  * Settings - and the rest say so plainly rather than being hidden until they
  * are ready.
  *
@@ -139,7 +139,7 @@ const SWATCH = {
 /* A skin is a set of colour tokens on <html>. Picking one is the whole
    interaction - there is nothing to download and nothing to confirm, which is
    why this row has no state machine and the app rows do. */
-function SkinRow({ skin, active, onPick }) {
+function SkinRow({ skin, active, onPick, onInstall }) {
   const [hover, setHover] = React.useState(false);
   return (
     <div onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
@@ -168,9 +168,17 @@ function SkinRow({ skin, active, onPick }) {
             whiteSpace: "nowrap" }}>{skin.note}</span>
         </div>
       </button>
-      {active
-        ? <Badge tone="solid">In use</Badge>
-        : <Button variant="secondary" size="sm" onClick={onPick}>Use</Button>}
+      {/* Three states, not two: a skin that ships is always usable, a
+          downloaded one has to arrive first, and one with nothing published
+          says so rather than offering a button that fails. */}
+      {skin.unavailable
+        ? <Badge tone="outline">{skin.unavailable}</Badge>
+        : skin.needsInstall
+          ? <Button variant="secondary" size="sm" disabled={skin.busy}
+              onClick={onInstall}>{skin.busy ? "Getting..." : "Get"}</Button>
+          : active
+            ? <Badge tone="solid">In use</Badge>
+            : <Button variant="secondary" size="sm" onClick={onPick}>Use</Button>}
     </div>
   );
 }
@@ -188,7 +196,7 @@ function NotYet() {
 }
 
 export default function AppsScreen({ apps = [], statuses = [], onLaunch, onInstall,
-  onUninstall, installing, error, skins = [], skin, onSkin }) {
+  onUninstall, installing, error, skins = [], skin, onSkin, onSkinInstall }) {
   const [kind, setKind] = React.useState("apps");
   const [sel, setSel] = React.useState(undefined);
   const [confirming, setConfirming] = React.useState(undefined);
@@ -238,7 +246,8 @@ export default function AppsScreen({ apps = [], statuses = [], onLaunch, onInsta
           <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
             {skins.map(sk => (
               <SkinRow key={sk.id} skin={sk} active={sk.id === skin}
-                onPick={() => onSkin?.(sk.id)} />
+                onPick={() => onSkin?.(sk.id)}
+                onInstall={() => onSkinInstall?.(sk.id)} />
             ))}
           </div>
         )}
