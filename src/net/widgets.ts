@@ -36,13 +36,50 @@ export function localWidgetsOn(installRoot?: string): Promise<boolean> {
   return invoke<boolean>("zks_widgets_local_enabled", { installRoot });
 }
 
+/** How an add-on's files are laid down. See the Rust module for the rules. */
+export type WidgetMode = "namespaced" | "replace";
+
+export interface Build {
+  /** A release tag, a tag, or a branch name. */
+  label: string;
+  sha: string;
+  /** "release", "tag" or "branch". */
+  kind: string;
+  date?: string;
+}
+
+export interface AddonPreview {
+  id: string;
+  repo: string;
+  build: Build;
+  files: number;
+  /** Packaged Zero-K widgets this would replace. Empty means it only adds. */
+  replaces: string[];
+  /** Why it cannot be installed at all. */
+  refused: string[];
+}
+
+/**
+ * Look at a GitHub repository and report what installing it would do.
+ *
+ * Downloads and unpacks to say so, because the only honest way to know what a
+ * pack contains is to read it. Nothing reaches the Zero-K install here.
+ */
+export function fetchAddon(repo: string): Promise<AddonPreview> {
+  return invoke<AddonPreview>("zks_widget_fetch", { repo });
+}
+
 /** Copy an add-on's widgets in. Returns the filenames actually written.
 
     Only the add-on's id crosses the bridge - Rust reads the files out of the
     unpacked add-on itself, so the page never says what gets written into the
     game install. */
-export function installWidgets(addon: string, installRoot?: string): Promise<string[]> {
-  return invoke<string[]>("zks_widget_install", { addon, installRoot });
+export function installWidgets(
+  addon: string,
+  mode: WidgetMode = "namespaced",
+  installRoot?: string,
+): Promise<string[]> {
+  return invoke<string[]>("zks_widget_install", { addon, mode, installRoot });
 }
 
 export function removeWidgets(addon: string, installRoot?: string): Promise<string[]> {

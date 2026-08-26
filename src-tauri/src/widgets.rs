@@ -27,6 +27,7 @@ use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 
+use crate::gitsource::{self, Build, Repo};
 use crate::install;
 
 /// Every widget filename Zero-K ships, from `tools/gen-stock-widgets.mjs`.
@@ -310,6 +311,38 @@ fn order_entry(text: &str, name: &str) -> Option<(usize, usize, i64)> {
     None
 }
 
+/// Every entry in an order list, as declared name to order value.
+///
+/// Used to read a pack's *own* ZK_order.lua. The file itself is never
+/// installed - it carries the player's whole widget selection and their
+/// keybinds live beside it - but the entries for widgets the pack actually
+/// ships are the pack saying which of its own parts should be on, and
+/// dropping that leaves it installed with the wrong selection.
+pub fn order_entries(text: &str) -> BTreeMap<String, i64> {
+    let mut out = BTreeMap::new();
+    for line in text.lines() {
+        let t = line.trim().trim_end_matches(',');
+        let Some((key, value)) = t.split_once('=') else {
+            continue;
+        };
+        let Ok(v) = value.trim().parse::<i64>() else {
+            continue;
+        };
+        let key = key.trim();
+        // Both forms table.save writes, plus the bookkeeping keys it adds.
+        let name = if let Some(inner) = key.strip_prefix('[').and_then(|k| k.strip_suffix(']')) {
+            inner.trim().trim_matches('"').to_string()
+        } else {
+            key.to_string()
+        };
+        if name.is_empty() || name == "version" || name == "lastWidgetDetailLevel" {
+            continue;
+        }
+        out.insert(name, v);
+    }
+    out
+}
+
 /// The order value recorded for a widget, if any.
 pub fn order_of(text: &str, name: &str) -> Option<i64> {
     order_entry(text, name).map(|(_, _, v)| v)
@@ -391,9 +424,15 @@ pub fn empty_data() -> String {
 ///
 /// Namespaced by add-on so ownership is never ambiguous, and so a file can
 /// never take the place of a packaged widget by accident.
-pub fn installed_name(addon: &str, original: &str) -> String {
-    let stem = original.rsplit('/').next().unwrap_or(original);
-    format!("{PREFIX}{addon}_{stem}")
+pub fn installed_name(addon: &str, original: &str, mode: Mode) -> String {
+    let under = rel_under_widgets(original)
+        .unwrap_or_else(|| original.rsplit('/').next().unwrap_or(original).to_string());
+    match mode {
+        // Flat by construction: namespaced mode refuses subdirectories.
+        Mode::Namespaced => format!("{PREFIX}{addon}_{under}"),
+        // The whole point of this mode is that the path is the original one.
+        Mode::Replace => under,
+    }
 }
 
 /// Whether a filename in the widget directory is one of ours.
@@ -401,8 +440,49 @@ pub fn ours(file: &str) -> bool {
     file.starts_with(PREFIX)
 }
 
+/// How an add-on's files are laid down.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Mode {
+    /// Namespaced, so nothing can take the place of a packaged widget. The
+    /// default, and the right answer for a pack of single-purpose widgets.
+    Namespaced,
+    /// Original filenames, which under RAW_FIRST means packaged widgets of the
+    /// same name are replaced. This is what a UI replacement pack needs in
+    /// order to work at all, and it is never chosen on a player's behalf.
+    ///
+    /// Reversible: the packaged widget is never touched. It stays in the game
+    /// archive, and removing our raw file is enough to bring it back.
+    Replace,
+}
+
+impl Default for Mode {
+    fn default() -> Self {
+        Self::Namespaced
+    }
+}
+
+/// The part of an add-on path that sits under `LuaUI/Widgets`, or `None` if it
+/// does not. Keeps any subdirectory: `COFCtools/Interpolate.lua` is included by
+/// path, so flattening it breaks the widget that includes it.
+pub fn rel_under_widgets(path: &str) -> Option<String> {
+    let p = path.replace('\\', "/");
+    let rest = p.strip_prefix("LuaUI/Widgets/")?;
+    (!rest.is_empty()).then(|| rest.to_string())
+}
+
+/// Whether a file is a library rather than a widget.
+///
+/// Zero-K ships these itself - `COFCtools/Interpolate.lua` and
+/// `Include/DrawPrimitiveAtUnit.lua` are both in the stock list - and a pack
+/// that carries one is normal. They declare no `GetInfo`, so they get no order
+/// entry and simply sit there for a widget to include.
+pub fn is_library(body: &str) -> bool {
+    parse_get_info(body).is_none()
+}
+
 /// Why a file cannot be installed, or `None` if it can.
-pub fn refuse(path: &str, body: &str) -> Option<String> {
+pub fn refuse(path: &str, body: &str, mode: Mode) -> Option<String> {
     let rel = path.replace('\\', "/");
     let base = rel.rsplit('/').next().unwrap_or(&rel);
 
@@ -411,7 +491,7 @@ pub fn refuse(path: &str, body: &str) -> Option<String> {
     }
     // The config files carry the player's own settings and keybinds. An add-on
     // shipping them means to replace both wholesale, which is never something
-    // an install should do on somebody's behalf.
+    // an install should do on somebody's behalf. True in either mode.
     if rel.starts_with("LuaUI/Config/") || rel.starts_with("LuaUI/Configs/") {
         return Some(format!(
             "{base}: add-ons may not replace your widget settings or keybinds"
@@ -420,11 +500,29 @@ pub fn refuse(path: &str, body: &str) -> Option<String> {
     if !base.to_ascii_lowercase().ends_with(".lua") {
         return Some(format!("{base}: not a widget"));
     }
+    let Some(under) = rel_under_widgets(&rel) else {
+        return Some(format!("{base}: not under LuaUI/Widgets"));
+    };
+
+    if mode == Mode::Replace {
+        // Replace mode lays files down exactly as the pack has them, so a
+        // library and a subdirectory are both fine. Only the rules above apply.
+        return None;
+    }
+
+    // Namespaced mode renames, and renaming breaks two things.
+    if under.contains('/') {
+        return Some(format!(
+            "{base}: sits in a subdirectory, which only a replacing install can keep"
+        ));
+    }
+    if is_library(body) {
+        return Some(format!(
+            "{base}: a library rather than a widget, and renaming it would break whatever includes it"
+        ));
+    }
     if is_stock(base) {
         return Some(format!("{base}: Zero-K ships a widget by this name"));
-    }
-    if parse_get_info(body).is_none() {
-        return Some(format!("{base}: no readable GetInfo() name"));
     }
     None
 }
@@ -516,21 +614,39 @@ pub fn zks_widgets_list(install_root: Option<String>) -> Result<Vec<InstalledWid
 pub fn plan_install(
     addon: &str,
     files: &BTreeMap<String, String>,
+    mode: Mode,
 ) -> Result<Vec<(String, String)>, String> {
     if addon.is_empty() || !addon.chars().all(|c| c.is_ascii_alphanumeric() || c == '-') {
         return Err(format!("{addon} is not a usable add-on id"));
     }
     let refused: Vec<String> = files
         .iter()
-        .filter_map(|(path, body)| refuse(path, body))
+        .filter_map(|(path, body)| refuse(path, body, mode))
         .collect();
     if !refused.is_empty() {
         return Err(refused.join("; "));
     }
     Ok(files
         .iter()
-        .map(|(path, body)| (installed_name(addon, path), body.clone()))
+        .map(|(path, body)| (installed_name(addon, path, mode), body.clone()))
         .collect())
+}
+
+/// Which of an add-on's files would take the place of a packaged widget.
+///
+/// Read before installing, so the number can be put in front of somebody rather
+/// than discovered afterwards.
+pub fn would_replace(files: &BTreeMap<String, String>) -> Vec<String> {
+    let mut out: Vec<String> = files
+        .keys()
+        .filter_map(|p| {
+            // read_addon already normalises separators to "/".
+            let base = p.rsplit('/').next().unwrap_or(p).to_string();
+            is_stock(&base).then_some(base)
+        })
+        .collect();
+    out.sort();
+    out
 }
 
 /// Where downloaded widget add-ons are unpacked, one directory each.
@@ -586,6 +702,116 @@ fn read_addon(dir: &Path) -> Result<BTreeMap<String, String>, String> {
     Ok(out)
 }
 
+/// What fetching a repository found, before anything is installed.
+///
+/// Every number here is read off the add-on that was actually downloaded, not
+/// off its description, so the count of replaced widgets is the real one.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AddonPreview {
+    pub id: String,
+    pub repo: String,
+    pub build: Build,
+    /// How many `.lua` files it carries.
+    pub files: usize,
+    /// The names of packaged Zero-K widgets it would replace, if installed in
+    /// replace mode. Empty means it adds only new widgets.
+    pub replaces: Vec<String>,
+    /// Why it cannot be installed at all, in either mode.
+    pub refused: Vec<String>,
+}
+
+impl AddonPreview {
+    /// Whether the safe mode is enough, which is the common case and the one
+    /// that needs no decision from anybody.
+    pub fn installs_safely(&self) -> bool {
+        self.refused.is_empty() && self.replaces.is_empty()
+    }
+}
+
+/// A directory name for a repository. `alexpyattaev/Hel-K` becomes `hel-k`.
+pub fn id_for(repo: &Repo) -> String {
+    let mut out = String::new();
+    for c in repo.name.chars() {
+        if c.is_ascii_alphanumeric() {
+            out.push(c.to_ascii_lowercase());
+        } else if !out.ends_with('-') {
+            out.push('-');
+        }
+    }
+    let trimmed = out.trim_matches('-').to_string();
+    if trimmed.is_empty() {
+        "addon".to_string()
+    } else {
+        trimmed
+    }
+}
+
+/// Look at a repository and report what installing it would do.
+///
+/// Downloads and unpacks, because the only honest way to say what a pack
+/// contains is to read it. Nothing reaches the Zero-K install here.
+#[tauri::command]
+pub fn zks_widget_fetch(app: tauri::AppHandle, repo: String) -> Result<AddonPreview, String> {
+    let parsed = gitsource::parse_repo(&repo)?;
+    let build = gitsource::resolve(&parsed)?;
+    let id = id_for(&parsed);
+    let dir = addon_dir(&app, &id)?;
+
+    // A fresh tree each time, so a file dropped upstream does not linger.
+    std::fs::remove_dir_all(&dir).ok();
+    std::fs::create_dir_all(&dir).map_err(|e| format!("could not make {}: {e}", dir.display()))?;
+
+    let bytes = gitsource::download(&parsed, &build.sha)?;
+    gitsource::unpack_tree(&bytes, &dir)?;
+
+    let files = read_addon(&dir)?;
+    let replaces = would_replace(&files);
+    // What is wrong with it even allowing replacement - config files, things
+    // that are not widgets, anything unreadable.
+    let refused: Vec<String> = files
+        .iter()
+        .filter_map(|(path, body)| refuse(path, body, Mode::Replace))
+        .collect();
+
+    Ok(AddonPreview {
+        id,
+        repo: parsed.slug(),
+        build,
+        files: files.len(),
+        replaces,
+        refused,
+    })
+}
+
+/// What was already fetched, without going back to the network.
+#[tauri::command]
+pub fn zks_widget_preview(app: tauri::AppHandle, addon: String) -> Result<usize, String> {
+    Ok(read_addon(&addon_dir(&app, &addon)?)?.len())
+}
+
+/// What an add-on actually wrote into the game, so removal can take exactly
+/// that and nothing else.
+///
+/// The `shiro_` prefix is enough to identify a namespaced install, but a
+/// Replace install writes original filenames on purpose - and guessing at
+/// those from the add-on's current contents would delete a file the player
+/// installed themselves if the pack changed between install and removal.
+const MANIFEST: &str = "installed.json";
+
+fn read_manifest(dir: &Path) -> Vec<String> {
+    std::fs::read_to_string(dir.join(MANIFEST))
+        .ok()
+        .and_then(|t| serde_json::from_str::<Vec<String>>(&t).ok())
+        .unwrap_or_default()
+}
+
+fn write_manifest(dir: &Path, names: &[String]) -> Result<(), String> {
+    let text = serde_json::to_string_pretty(names)
+        .map_err(|e| format!("could not record what was installed: {e}"))?;
+    std::fs::write(dir.join(MANIFEST), text)
+        .map_err(|e| format!("could not record what was installed: {e}"))
+}
+
 /// Copy an add-on's widget files into the install and make them loadable.
 ///
 /// Rust reads the add-on's own directory rather than taking file bodies from
@@ -596,15 +822,17 @@ fn read_addon(dir: &Path) -> Result<BTreeMap<String, String>, String> {
 pub fn zks_widget_install(
     app: tauri::AppHandle,
     addon: String,
+    mode: Option<Mode>,
     install_root: Option<String>,
 ) -> Result<Vec<String>, String> {
+    let mode = mode.unwrap_or_default();
     let source = addon_dir(&app, &addon)?;
     let files = read_addon(&source)?;
     if files.is_empty() {
         return Err(format!("{addon} contains no widgets"));
     }
 
-    let planned = plan_install(&addon, &files)?;
+    let planned = plan_install(&addon, &files, mode)?;
 
     let found = install::detect_with(install_root.as_deref())?;
     let dir = zk_path(&found.root, WIDGET_DIR);
@@ -618,10 +846,15 @@ pub fn zks_widget_install(
     let mut written = Vec::new();
     for (name, body) in &planned {
         let target = dir.join(name);
+        if let Some(parent) = target.parent() {
+            std::fs::create_dir_all(parent)
+                .map_err(|e| format!("could not create {}: {e}", parent.display()))?;
+        }
         std::fs::write(&target, body)
             .map_err(|e| format!("could not write {}: {e}", target.display()))?;
         written.push(name.clone());
     }
+    write_manifest(&source, &written)?;
 
     // Raw widgets have to be switched on at all, or none of the above loads.
     let data = read_or(&found.root, DATA_FILE, empty_data)?;
@@ -630,17 +863,39 @@ pub fn zks_widget_install(
         write_config(&found.root, DATA_FILE, &next)?;
     }
 
-    // Only widgets that ship disabled need an order entry; the rest load on
-    // their own declaration, which is what the game would do without us.
+    // What the pack says about its own widgets, if it shipped an order list.
+    // Only names it actually ships are taken, so a pack cannot switch off a
+    // widget the player installed themselves.
+    let mine: BTreeMap<String, WidgetInfo> = files
+        .iter()
+        .filter(|(p, _)| rel_under_widgets(p).is_some())
+        .filter_map(|(_, body)| parse_get_info(body).map(|i| (i.name.clone(), i)))
+        .collect();
+    let wanted: BTreeMap<String, i64> = files
+        .iter()
+        .find(|(p, _)| p.ends_with("ZK_order.lua"))
+        .map(|(_, body)| order_entries(body))
+        .unwrap_or_default()
+        .into_iter()
+        .filter(|(name, _)| mine.contains_key(name))
+        .collect();
+
     let mut order = read_or(&found.root, ORDER_FILE, empty_order)?;
     let mut touched = false;
-    for body in files.values() {
-        if let Some(info) = parse_get_info(body) {
-            let recorded = order_of(&order, &info.name);
-            if !info.enabled && recorded.is_none() || recorded == Some(0) {
-                order = set_order(&order, &info.name, BACK_OF_THE_PACK)?;
+    for (name, info) in &mine {
+        let recorded = order_of(&order, name);
+        // The pack's own choice wins where it made one.
+        if let Some(&v) = wanted.get(name) {
+            if recorded != Some(v) {
+                order = set_order(&order, name, v)?;
                 touched = true;
             }
+            continue;
+        }
+        // Otherwise only widgets that would not load on their own need saying.
+        if (!info.enabled && recorded.is_none()) || recorded == Some(0) {
+            order = set_order(&order, name, BACK_OF_THE_PACK)?;
+            touched = true;
         }
     }
     if touched {
@@ -659,22 +914,29 @@ pub fn zks_widget_remove(
 ) -> Result<Vec<String>, String> {
     let found = install::detect_with(install_root.as_deref())?;
     let dir = zk_path(&found.root, WIDGET_DIR);
-    let want = format!("{PREFIX}{addon}_");
+    let source = addon_dir(&app, &addon)?;
 
-    let entries = match std::fs::read_dir(&dir) {
-        Ok(e) => e,
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
-        Err(e) => return Err(format!("could not read {}: {e}", dir.display())),
-    };
+    // What we recorded writing. An install from before manifests existed, or
+    // one whose record was lost, still has the namespaced prefix to go on.
+    let mut names = read_manifest(&source);
+    if names.is_empty() {
+        let want = format!("{PREFIX}{addon}_");
+        if let Ok(entries) = std::fs::read_dir(&dir) {
+            names = entries
+                .flatten()
+                .map(|e| e.file_name().to_string_lossy().into_owned())
+                .filter(|f| f.starts_with(&want))
+                .collect();
+        }
+    }
 
     let mut removed = Vec::new();
-    for entry in entries.flatten() {
-        let file = entry.file_name().to_string_lossy().into_owned();
-        if !file.starts_with(&want) {
+    for file in names {
+        let path = dir.join(&file);
+        if !path.is_file() {
             continue;
         }
-        std::fs::remove_file(entry.path())
-            .map_err(|e| format!("could not remove {file}: {e}"))?;
+        std::fs::remove_file(&path).map_err(|e| format!("could not remove {file}: {e}"))?;
         removed.push(file);
     }
     // The unpacked copy goes too, so a reinstall fetches rather than resurrects.
@@ -887,7 +1149,7 @@ local defaults = { name = "not a widget" }
 
     #[test]
     fn a_plain_widget_is_accepted() {
-        assert_eq!(refuse("LuaUI/Widgets/my_thing.lua", &ok_widget("My Thing")), None);
+        assert_eq!(refuse("LuaUI/Widgets/my_thing.lua", &ok_widget("My Thing"), Mode::Namespaced), None);
     }
 
     /// The one that matters. 39 of Hel-K's 98 files share a name with a stock
@@ -895,7 +1157,7 @@ local defaults = { name = "not a widget" }
     #[test]
     fn a_file_named_after_a_stock_widget_is_refused() {
         for stock in ["unit_healthbars.lua", "api_chili.lua", "gui_epicmenu.lua"] {
-            let why = refuse(&format!("LuaUI/Widgets/{stock}"), &ok_widget("X"))
+            let why = refuse(&format!("LuaUI/Widgets/{stock}"), &ok_widget("X"), Mode::Namespaced)
                 .unwrap_or_else(|| panic!("{stock} was allowed"));
             assert!(why.contains("Zero-K ships"), "{why}");
         }
@@ -904,29 +1166,29 @@ local defaults = { name = "not a widget" }
     #[test]
     fn an_addon_may_not_replace_the_players_settings_or_keybinds() {
         for path in ["LuaUI/Config/ZK_data.lua", "LuaUI/Config/ZK_order.lua"] {
-            let why = refuse(path, "return {}").unwrap();
+            let why = refuse(path, "return {}", Mode::Namespaced).unwrap();
             assert!(why.contains("settings or keybinds"), "{why}");
         }
     }
 
     #[test]
     fn nothing_escapes_the_widget_directory() {
-        for path in ["../../evil.lua", "/etc/evil.lua", "C:/evil.lua"] {
-            assert!(refuse(path, &ok_widget("X")).is_some(), "{path} was allowed");
+        for path in ["../../evil.lua", "/etc/evil.lua", "C:/evil.lua", "elsewhere/x.lua"] {
+            assert!(refuse(path, &ok_widget("X"), Mode::Namespaced).is_some(), "{path} was allowed");
         }
     }
 
     #[test]
     fn a_file_that_is_not_a_widget_is_refused() {
-        assert!(refuse("LuaUI/Widgets/notes.txt", "hello").is_some());
-        assert!(refuse("LuaUI/Widgets/mystery.lua", "-- nothing here").is_some());
+        assert!(refuse("LuaUI/Widgets/notes.txt", "hello", Mode::Namespaced).is_some());
+        assert!(refuse("LuaUI/Widgets/mystery.lua", "-- nothing here", Mode::Namespaced).is_some());
     }
 
     // ------------------------------------------------------------ naming ----
 
     #[test]
     fn an_installed_file_says_who_owns_it() {
-        let n = installed_name("helk", "LuaUI/Widgets/thing.lua");
+        let n = installed_name("helk", "LuaUI/Widgets/thing.lua", Mode::Namespaced);
         assert_eq!(n, "shiro_helk_thing.lua");
         assert!(ours(&n));
         assert!(!ours("unit_healthbars.lua"));
@@ -947,7 +1209,7 @@ local defaults = { name = "not a widget" }
         let mut shadow = Vec::new();
         let mut other = Vec::new();
         for (path, body) in &files {
-            if let Some(why) = refuse(path, body) {
+            if let Some(why) = refuse(path, body, Mode::Namespaced) {
                 if why.contains("Zero-K ships") {
                     shadow.push(path.clone());
                 } else {
@@ -966,7 +1228,7 @@ local defaults = { name = "not a widget" }
         for (p, why) in other.iter().take(8) {
             println!("    {p}  --  {why}");
         }
-        match plan_install("helk", &files) {
+        match plan_install("helk", &files, Mode::Namespaced) {
             Ok(planned) => println!("VERDICT: would install {} files", planned.len()),
             Err(_) => println!(
                 "VERDICT: refused - {} of {} files are blocked",
@@ -1024,7 +1286,7 @@ local defaults = { name = "not a widget" }
             ("LuaUI/Widgets/mark_spots.lua", ok_widget("Mark Spots")),
             ("LuaUI/Widgets/lag_handler.lua", ok_widget("Lag Handler")),
         ]);
-        let planned = plan_install("helk", &files).unwrap();
+        let planned = plan_install("helk", &files, Mode::Namespaced).unwrap();
         let names: Vec<&str> = planned.iter().map(|(n, _)| n.as_str()).collect();
         assert!(names.contains(&"shiro_helk_mark_spots.lua"));
         assert!(names.contains(&"shiro_helk_lag_handler.lua"));
@@ -1040,7 +1302,7 @@ local defaults = { name = "not a widget" }
             ("LuaUI/Widgets/fine.lua", ok_widget("Fine")),
             ("LuaUI/Widgets/unit_healthbars.lua", ok_widget("Health Bars")),
         ]);
-        let why = plan_install("helk", &files).unwrap_err();
+        let why = plan_install("helk", &files, Mode::Namespaced).unwrap_err();
         assert!(why.contains("Zero-K ships"), "{why}");
     }
 
@@ -1050,15 +1312,182 @@ local defaults = { name = "not a widget" }
             ("LuaUI/Widgets/fine.lua", ok_widget("Fine")),
             ("LuaUI/Config/ZK_order.lua", "return {}".to_string()),
         ]);
-        assert!(plan_install("helk", &files).is_err());
+        assert!(plan_install("helk", &files, Mode::Namespaced).is_err());
     }
 
     #[test]
     fn an_addon_id_cannot_walk_out_of_its_directory() {
         let files = addon_of(&[("LuaUI/Widgets/fine.lua", ok_widget("Fine"))]);
         for bad in ["..", "../evil", "a/b", ""] {
-            assert!(plan_install(bad, &files).is_err(), "{bad} was allowed");
+            assert!(plan_install(bad, &files, Mode::Namespaced).is_err(), "{bad} was allowed");
         }
+    }
+
+    // ---------------------------------------------------------- replace mode --
+
+    /// A pack that means to replace Zero-K's own UI cannot be namespaced: a
+    /// renamed api_chili.lua does not take the place of the packaged one, it
+    /// runs beside it. Replace mode is the only way such a pack works, and it
+    /// is never chosen on a player's behalf.
+    #[test]
+    fn replace_mode_keeps_the_original_names() {
+        let files = addon_of(&[
+            ("LuaUI/Widgets/api_chili.lua", ok_widget("Chili Framework")),
+            ("LuaUI/Widgets/unit_healthbars.lua", ok_widget("Health Bars")),
+        ]);
+        assert!(
+            plan_install("helk", &files, Mode::Namespaced).is_err(),
+            "the safe mode must still refuse these"
+        );
+        let planned = plan_install("helk", &files, Mode::Replace).unwrap();
+        let names: Vec<&str> = planned.iter().map(|(n, _)| n.as_str()).collect();
+        assert!(names.contains(&"api_chili.lua"));
+        assert!(names.contains(&"unit_healthbars.lua"));
+        assert!(names.iter().all(|n| !ours(n)), "replacements are not prefixed");
+    }
+
+    /// Replace mode relaxes exactly one rule. The player's settings and
+    /// keybinds are a separate question and stay refused either way.
+    #[test]
+    fn replace_mode_still_refuses_everything_else() {
+        for (path, body) in [
+            ("LuaUI/Config/ZK_order.lua", "return {}".to_string()),
+            ("LuaUI/Widgets/notes.txt", "hello".to_string()),
+            ("../evil.lua", ok_widget("Evil")),
+            ("elsewhere/x.lua", ok_widget("Elsewhere")),
+        ] {
+            assert!(
+                refuse(path, &body, Mode::Replace).is_some(),
+                "{path} was allowed in replace mode"
+            );
+        }
+    }
+
+    /// The number that has to be put in front of somebody before they agree to
+    /// a replacing install.
+    #[test]
+    fn what_would_be_replaced_is_countable_up_front() {
+        let files = addon_of(&[
+            ("LuaUI/Widgets/api_chili.lua", ok_widget("A")),
+            ("LuaUI/Widgets/unit_healthbars.lua", ok_widget("B")),
+            ("LuaUI/Widgets/my_own.lua", ok_widget("C")),
+        ]);
+        let replaced = would_replace(&files);
+        assert_eq!(replaced, vec!["api_chili.lua", "unit_healthbars.lua"]);
+    }
+
+    #[test]
+    fn a_repository_name_becomes_a_directory_name() {
+        let r = |o: &str, n: &str| Repo { owner: o.into(), name: n.into() };
+        assert_eq!(id_for(&r("alexpyattaev", "Hel-K")), "hel-k");
+        assert_eq!(id_for(&r("a", "Zero-K.Widgets")), "zero-k-widgets");
+        assert_eq!(id_for(&r("a", "___")), "addon");
+    }
+
+    /// The whole fetch pipeline against the real repository: resolve, download,
+    /// unpack, and count what installing would do. Ignored because it needs the
+    /// network, and it is the only check that the resolver and the zipball
+    /// layout are what this code assumes.
+    ///
+    ///   cargo test widgets:: -- --ignored --nocapture
+    #[test]
+    #[ignore]
+    fn fetching_hel_k_reports_what_it_would_do() {
+        let repo = gitsource::parse_repo("alexpyattaev/Hel-K").unwrap();
+        let build = gitsource::resolve(&repo).expect("resolve");
+        println!("build: {} {} ({})", build.kind, build.label, build.short());
+
+        let bytes = gitsource::download(&repo, &build.sha).expect("download");
+        println!("archive: {} bytes", bytes.len());
+
+        let dir = std::env::temp_dir().join(format!("shiro-fetch-{}", build.short()));
+        std::fs::remove_dir_all(&dir).ok();
+        std::fs::create_dir_all(&dir).unwrap();
+        let n = gitsource::unpack_tree(&bytes, &dir).expect("unpack");
+        println!("unpacked {n} files");
+
+        // The tree must survive, because the path is what decides the verdict.
+        assert!(
+            dir.join("LuaUI").join("Widgets").is_dir(),
+            "the zipball wrapper directory was not stripped correctly"
+        );
+
+        let files = read_addon(&dir).unwrap();
+        let replaces = would_replace(&files);
+        let refused: Vec<String> = files
+            .iter()
+            .filter_map(|(p, b)| refuse(p, b, Mode::Replace))
+            .collect();
+        println!("lua files: {}", files.len());
+        println!("would replace {} packaged widgets", replaces.len());
+        println!("refused even in replace mode: {}", refused.len());
+        for r in refused.iter().take(6) {
+            println!("    {r}");
+        }
+        println!(
+            "safe mode: {}",
+            match plan_install("hel-k", &files, Mode::Namespaced) {
+                Ok(p) => format!("would install {} files", p.len()),
+                Err(_) => "refused".to_string(),
+            }
+        );
+
+        assert!(!files.is_empty());
+        assert!(!replaces.is_empty(), "Hel-K is known to replace stock widgets");
+        std::fs::remove_dir_all(&dir).ok();
+    }
+
+    /// Stock Zero-K ships libraries in LuaUI/Widgets itself, so a pack that
+    /// carries one is normal. Namespacing renames it, which breaks the include
+    /// path of whatever needs it - so the safe mode says so plainly rather
+    /// than installing something that cannot work.
+    #[test]
+    fn a_library_can_only_be_installed_by_a_replacing_install() {
+        let lib = ("LuaUI/Widgets/UtilsFunc.lua", "local M = {}
+return M".to_string());
+        let why = refuse(lib.0, &lib.1, Mode::Namespaced).unwrap();
+        assert!(why.contains("library"), "{why}");
+        assert_eq!(refuse(lib.0, &lib.1, Mode::Replace), None);
+    }
+
+    /// COFCtools/Interpolate.lua is included by path. Flattening it to
+    /// Interpolate.lua breaks every widget that includes it.
+    #[test]
+    fn a_subdirectory_survives_a_replacing_install() {
+        let p = "LuaUI/Widgets/COFCtools/Interpolate.lua";
+        assert_eq!(rel_under_widgets(p).as_deref(), Some("COFCtools/Interpolate.lua"));
+        assert_eq!(
+            installed_name("helk", p, Mode::Replace),
+            "COFCtools/Interpolate.lua"
+        );
+        assert!(refuse(p, "local M = {}", Mode::Namespaced).is_some());
+        assert_eq!(refuse(p, "local M = {}", Mode::Replace), None);
+    }
+
+    #[test]
+    fn a_file_outside_the_widget_directory_is_refused() {
+        assert!(refuse("README.md", "hi", Mode::Replace).is_some());
+        assert!(refuse("scripts/build.lua", "x", Mode::Replace).is_some());
+    }
+
+    #[test]
+    fn a_packs_own_order_list_is_read_but_not_installed() {
+        let pack = "-- Widget Order List  (0 disables a widget)
+return {
+	[\"version\"] = 8,
+	[\"Ally Shapes\"] = 42,
+	AdvPlayersList = 0,
+	[\"lastWidgetDetailLevel\"] = 3,
+}
+";
+        let got = order_entries(pack);
+        assert_eq!(got.get("Ally Shapes"), Some(&42));
+        assert_eq!(got.get("AdvPlayersList"), Some(&0));
+        assert!(!got.contains_key("version"), "bookkeeping keys are not widgets");
+        assert!(!got.contains_key("lastWidgetDetailLevel"));
+
+        // And the file itself still never reaches the install.
+        assert!(refuse("LuaUI/Config/ZK_order.lua", pack, Mode::Replace).is_some());
     }
 
     #[test]

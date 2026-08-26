@@ -13,6 +13,7 @@ mod managed;
 mod mapview;
 mod relay;
 mod sidecar;
+mod gitsource;
 mod skins;
 mod widgets;
 mod apps;
@@ -112,6 +113,8 @@ pub fn run() {
             widgets::zks_widget_remove,
             widgets::zks_widget_set_enabled,
             widgets::zks_widgets_local_enabled,
+            widgets::zks_widget_fetch,
+            widgets::zks_widget_preview,
             apps::zka_catalogue,
             apps::zka_status,
             apps::zka_install,

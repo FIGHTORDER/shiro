@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Badge, EmptyState, Icon, Switch } from "../ds/shiro.js";
+import { Button, Badge, EmptyState, Icon, Switch, Input } from "../ds/shiro.js";
 import { ACTION, META, appState } from "./appState.ts";
 
 /* Add-ons: the things Shiro can add to itself or to Zero-K, by kind.
@@ -216,6 +216,114 @@ function WidgetRow({ widget, busy, onToggle }) {
   );
 }
 
+/* Adding a pack from a repository.
+
+   Two outcomes, and the difference matters enough to be the whole design of
+   this panel. A pack of ordinary widgets installs with no decision to make. A
+   pack that replaces Zero-K's own widgets is a different thing to agree to, so
+   it is never installed without the number being said out loud first. */
+function AddFromSource({ onInstalled }) {
+  const [repo, setRepo] = React.useState("");
+  const [busy, setBusy] = React.useState(false);
+  const [preview, setPreview] = React.useState(undefined);
+  const [error, setError] = React.useState(undefined);
+
+  const look = async () => {
+    setBusy(true); setError(undefined); setPreview(undefined);
+    try {
+      const net = await import("../net/widgets.ts");
+      setPreview(await net.fetchAddon(repo));
+    } catch (e) {
+      setError(String((e && e.message) || e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const install = async mode => {
+    setBusy(true); setError(undefined);
+    try {
+      const net = await import("../net/widgets.ts");
+      await net.installWidgets(preview.id, mode);
+      setPreview(undefined); setRepo("");
+      onInstalled();
+    } catch (e) {
+      setError(String((e && e.message) || e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const blocked = preview && preview.refused.length > 0;
+  const replaces = preview ? preview.replaces.length : 0;
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "var(--sp-4)",
+      padding: "var(--sp-5)", boxShadow: "var(--rule-inset)" }}>
+      <div style={{ display: "flex", gap: "var(--sp-4)", alignItems: "flex-end" }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <Input label="Add from GitHub" value={repo} icon="github"
+            placeholder="alexpyattaev/Hel-K"
+            onChange={e => setRepo(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && repo.trim() && look()} />
+        </div>
+        <Button variant="secondary" size="sm" disabled={busy || !repo.trim()}
+          onClick={look}>{busy ? "Looking..." : "Look"}</Button>
+      </div>
+
+      {error && (
+        <span style={{ font: "var(--w-regular) var(--size-tiny)/1.4 var(--font-core)",
+          color: "var(--danger)" }}>{error}</span>
+      )}
+
+      {preview && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "var(--sp-3)" }}>
+          <span style={{ font: "var(--w-semibold) var(--size-base)/1.2 var(--font-core)",
+            color: "var(--text-hi)" }}>{preview.repo}</span>
+          {/* The build, named the way Git names it, so two installs of the
+              same pack can be told apart. */}
+          <span style={{ font: "var(--w-regular) var(--size-tiny)/1.4 var(--font-core)",
+            color: "var(--text-low)" }}>
+            {preview.build.kind} {preview.build.label} · {preview.build.sha.slice(0, 7)}
+            {preview.build.date ? " · " + preview.build.date.slice(0, 10) : ""}
+            {" · "}{preview.files} files
+          </span>
+
+          {blocked && (
+            <span style={{ font: "var(--w-regular) var(--size-tiny)/1.45 var(--font-core)",
+              color: "var(--danger)" }}>
+              Cannot install: {preview.refused.join("; ")}
+            </span>
+          )}
+
+          {!blocked && replaces === 0 && (
+            <Button size="sm" disabled={busy}
+              onClick={() => install("namespaced")}>Install</Button>
+          )}
+
+          {!blocked && replaces > 0 && (
+            <>
+              {/* Said plainly and before the button, because this is the part
+                  somebody has to actually agree to. */}
+              <span style={{ font: "var(--w-regular) var(--size-tiny)/1.45 var(--font-core)",
+                color: "var(--text-body)" }}>
+                This replaces {replaces} of Zero-K&apos;s own widgets, including{" "}
+                {preview.replaces.slice(0, 3).join(", ")}
+                {replaces > 3 ? " and " + (replaces - 3) + " more" : ""}. Zero-K&apos;s
+                copies are not changed, so removing this pack restores them.
+              </span>
+              <Button variant="secondary" size="sm" disabled={busy}
+                onClick={() => install("replace")}>
+                Replace {replaces} widgets and install
+              </Button>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* The widgets Zero-K will load next time it starts.
 
    Read from the install rather than from a catalogue: widgets the player put
@@ -255,15 +363,19 @@ function WidgetsPanel() {
   if (state.error) return <NotePanel icon="alert-triangle" title="Nothing to show yet." body={state.error} />;
   if (!state.widgets || state.widgets.length === 0) {
     return (
-      <NotePanel title="No widgets installed."
-        body={state.localOn
-          ? "Widgets you install will appear here."
-          : "Zero-K is not set to load local widgets yet. Installing one turns that on."} />
+      <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+        <AddFromSource onInstalled={load} />
+        <NotePanel title="No widgets installed."
+          body={state.localOn
+            ? "Widgets you install will appear here."
+            : "Zero-K is not set to load local widgets yet. Installing one turns that on."} />
+      </div>
     );
   }
 
   return (
     <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+      <AddFromSource onInstalled={load} />
       <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
         {state.widgets.map(w => (
           <WidgetRow key={w.file} widget={w} busy={busy === w.name}
