@@ -37,6 +37,85 @@ function Note({ children, tone }) {
   );
 }
 
+/* Putting the game's UI back to how it ships.
+
+   Deliberately here rather than in Add-ons: the reason to reach for it is that
+   a widget pack has broken the game badly enough that its own widget list
+   cannot be opened, and hunting through an add-on screen for the fix is the
+   wrong thing to ask of somebody in that state.
+
+   Two steps rather than one. The button does something irreversible-looking to
+   a directory of files, so it says what it will do and waits to be told again. */
+function WidgetReset() {
+  const [asking, setAsking] = React.useState(false);
+  const [busy, setBusy] = React.useState(false);
+  const [done, setDone] = React.useState(undefined);
+  const [error, setError] = React.useState(undefined);
+
+  const run = async () => {
+    setBusy(true);
+    setError(undefined);
+    try {
+      const net = await import("../net/widgets.ts");
+      setDone(await net.resetWidgets());
+      setAsking(false);
+    } catch (e) {
+      setError(String((e && e.message) || e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (done) {
+    return (
+      <>
+        <Note>
+          {done.movedTo
+            ? "Moved " + done.widgets + " widget" + (done.widgets === 1 ? "" : "s")
+              + " aside into LuaUI/" + done.movedTo + "."
+            : "There were no local widgets to move."}
+          {done.orderReset ? " The widget list was reset." : ""}
+          {done.localWidgetsOff ? " Local widgets are now off." : ""}
+        </Note>
+        <Note>Start Zero-K to see the change. Nothing was deleted.</Note>
+      </>
+    );
+  }
+
+  return (
+    <>
+      {!asking && (
+        <div>
+          <Button variant="secondary" size="sm" onClick={() => setAsking(true)}>
+            Reset in-game widgets
+          </Button>
+        </div>
+      )}
+      {asking && (
+        <>
+          <Note tone="danger">
+            This moves every local widget out of Zero-K&apos;s LuaUI folder, clears the
+            widget list, and turns local widgets off. Zero-K&apos;s own interface is not
+            touched.
+          </Note>
+          <Note>
+            Nothing is deleted: the folder is renamed and the settings files are copied
+            to .bak first, so it can be undone by hand.
+          </Note>
+          <div style={{ display: "flex", gap: "var(--sp-4)" }}>
+            <Button variant="danger" size="sm" disabled={busy} onClick={run}>
+              {busy ? "Resetting..." : "Reset them"}
+            </Button>
+            <Button variant="secondary" size="sm" disabled={busy}
+              onClick={() => setAsking(false)}>Cancel</Button>
+          </div>
+        </>
+      )}
+      {error && <Note tone="danger">{error}</Note>}
+    </>
+  );
+}
+
 /**
  * A labelled fact.
  *
@@ -600,6 +679,11 @@ export default function SettingsScreen({ me, install, installError, engine, sett
         <GameSettingsSection installRoot={settings && settings.installRoot} disabled={!install} />
 
         <EngineSection installRoot={settings && settings.installRoot} disabled={!install} />
+
+        <Section title="In-game widgets"
+          hint="If a widget pack has broken Zero-K's interface, this puts it back to how the game ships.">
+          <WidgetReset />
+        </Section>
 
         <Section title="Content">
           <a href="https://zero-k.info" target="_blank" rel="noreferrer"

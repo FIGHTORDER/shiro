@@ -93,3 +93,23 @@ export function setWidgetEnabled(
 ): Promise<void> {
   return invoke("zks_widget_set_enabled", { name, enabled, installRoot });
 }
+
+/** What an emergency reset did. */
+export interface ResetReport {
+  /** The folder the widgets were moved into, if there were any. */
+  movedTo?: string;
+  widgets: number;
+  orderReset: boolean;
+  localWidgetsOff: boolean;
+}
+
+/**
+ * Put Zero-K's UI back to how it ships.
+ *
+ * The escape hatch for a pack that breaks the game badly enough that its own
+ * widget list cannot be reached. Nothing is deleted: the widget folder is
+ * renamed and the config files are copied to .bak first.
+ */
+export function resetWidgets(installRoot?: string): Promise<ResetReport> {
+  return invoke<ResetReport>("zks_widgets_reset", { installRoot });
+}

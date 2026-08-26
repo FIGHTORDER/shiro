@@ -388,9 +388,16 @@ pub fn empty_order() -> String {
 /// The presence of the table is the setting - see the module header. The stored
 /// booleans are dead, so they are deliberately not consulted.
 pub fn local_widgets_on(zk_data: &str) -> bool {
-    let clean = strip_comments(zk_data);
-    clean.contains(&format!("[{:?}]", LOCAL_WIDGETS_KEY))
-        || clean.contains(&format!("[{}]", LOCAL_WIDGETS_KEY))
+    find_local_widgets(zk_data).is_some()
+}
+
+/// Where the table's key begins, if it is there at all.
+fn find_local_widgets(zk_data: &str) -> Option<usize> {
+    // Comments are not stripped first: doing so shifts every offset, and the
+    // caller needs one into the original text.
+    zk_data
+        .find(&format!("[{:?}]", LOCAL_WIDGETS_KEY))
+        .or_else(|| zk_data.find(&format!("[{}]", LOCAL_WIDGETS_KEY)))
 }
 
 /// Add the table if it is absent, so an installed widget actually loads.
@@ -414,6 +421,46 @@ pub fn enable_local_widgets(zk_data: &str) -> Result<String, String> {
         block,
         &zk_data[close..]
     ))
+}
+
+/// Take the table out again, which is the only way to turn raw widgets off.
+///
+/// Writing `useLocalWidgets = false` does nothing at all - `cawidgets.lua:114`
+/// reads it as `x or true` - so the table has to go.
+pub fn disable_local_widgets(zk_data: &str) -> String {
+    let Some(at) = find_local_widgets(zk_data) else {
+        return zk_data.to_string();
+    };
+    // From the start of its line to just past the closing brace of its value.
+    let line_start = zk_data[..at].rfind('\n').map(|i| i + 1).unwrap_or(0);
+    let Some(open) = zk_data[at..].find('{').map(|i| i + at) else {
+        return zk_data.to_string();
+    };
+    let bytes = zk_data.as_bytes();
+    let mut depth = 0usize;
+    let mut end = None;
+    for (i, &c) in bytes.iter().enumerate().skip(open) {
+        if c == b'{' {
+            depth += 1;
+        } else if c == b'}' {
+            depth -= 1;
+            if depth == 0 {
+                end = Some(i + 1);
+                break;
+            }
+        }
+    }
+    let Some(mut end) = end else {
+        return zk_data.to_string();
+    };
+    // Take the trailing comma and newline with it, so no blank entry is left.
+    if bytes.get(end) == Some(&b',') {
+        end += 1;
+    }
+    while bytes.get(end) == Some(&b'\r') || bytes.get(end) == Some(&b'\n') {
+        end += 1;
+    }
+    format!("{}{}", &zk_data[..line_start], &zk_data[end..])
 }
 
 /// A `ZK_data.lua` for an install that has never written one.
@@ -632,10 +679,45 @@ fn zk_path(root: &Path, rel: &str) -> PathBuf {
     p
 }
 
+/// Zero-K's config files are not guaranteed to be UTF-8.
+///
+/// `ZK_data.lua` is written by the game from whatever widgets put in it, and a
+/// widget storing a byte string leaves the file undecodable - the reported
+/// failure was `stream did not contain valid UTF-8` on a real install.
+///
+/// Reading it lossily would be worse than failing: the text is written back,
+/// so every undecodable byte would come back as U+FFFD and quietly corrupt
+/// eighty kilobytes of somebody's widget settings. So each byte becomes one
+/// char instead. The parsing below only ever looks at ASCII - braces, `=`,
+/// digits, quoted keys - and every other byte survives untouched to be written
+/// back exactly as it was found.
+fn decode(bytes: &[u8]) -> String {
+    bytes.iter().map(|&b| b as char).collect()
+}
+
+/// The inverse of [`decode`].
+///
+/// A char above U+00FF cannot have come from `decode`, so it was introduced by
+/// us - a widget name out of a `GetInfo` - and is written as UTF-8. Zero-K
+/// reads these files as bytes, so a name is stored the way its own source
+/// spelled it.
+fn encode(text: &str) -> Vec<u8> {
+    let mut out = Vec::with_capacity(text.len());
+    let mut buf = [0u8; 4];
+    for c in text.chars() {
+        if (c as u32) <= 0xFF {
+            out.push(c as u8);
+        } else {
+            out.extend_from_slice(c.encode_utf8(&mut buf).as_bytes());
+        }
+    }
+    out
+}
+
 fn read_or(root: &Path, rel: &str, fallback: fn() -> String) -> Result<String, String> {
     let path = zk_path(root, rel);
-    match std::fs::read_to_string(&path) {
-        Ok(t) => Ok(t),
+    match std::fs::read(&path) {
+        Ok(bytes) => Ok(decode(&bytes)),
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(fallback()),
         Err(e) => Err(format!("could not read {}: {e}", path.display())),
     }
@@ -654,7 +736,8 @@ fn write_config(root: &Path, rel: &str, text: &str) -> Result<(), String> {
         std::fs::copy(&path, &bak)
             .map_err(|e| format!("could not back up {}: {e}", path.display()))?;
     }
-    std::fs::write(&path, text).map_err(|e| format!("could not write {}: {e}", path.display()))
+    std::fs::write(&path, encode(text))
+        .map_err(|e| format!("could not write {}: {e}", path.display()))
 }
 
 // -------------------------------------------------------------- commands ----
@@ -1101,6 +1184,88 @@ pub fn zks_widget_set_enabled(
     let order = read_or(&found.root, ORDER_FILE, empty_order)?;
     let next = set_order(&order, &name, if enabled { BACK_OF_THE_PACK } else { 0 })?;
     write_config(&found.root, ORDER_FILE, &next)
+}
+
+/// What an emergency reset did.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ResetReport {
+    /// Where the widget directory was moved to, if there was one.
+    pub moved_to: Option<String>,
+    /// How many `.lua` files went with it.
+    pub widgets: usize,
+    /// Whether the order list was taken out of the way.
+    pub order_reset: bool,
+    /// Whether raw widget loading was switched off.
+    pub local_widgets_off: bool,
+}
+
+/// Put the game's UI back to how it ships.
+///
+/// The escape hatch for a pack that breaks Zero-K badly enough that its own
+/// widget list cannot be reached to turn anything off. New-Hel-K's README gives
+/// the manual version of this - rename `LuaUI/Widgets`, then `/luaui reload` -
+/// and this is the same move without a file manager.
+///
+/// **Nothing is deleted.** The widget directory is moved aside and the config
+/// files are copied to `.bak` before being taken out of the way, so a reset is
+/// recoverable by hand if it turns out the widgets were not the problem.
+#[tauri::command]
+pub fn zks_widgets_reset(install_root: Option<String>) -> Result<ResetReport, String> {
+    let found = install::detect_with(install_root.as_deref())?;
+    let luaui = zk_path(&found.root, LUAUI_DIR);
+    let widgets = zk_path(&found.root, WIDGET_DIR);
+
+    let mut report = ResetReport {
+        moved_to: None,
+        widgets: 0,
+        order_reset: false,
+        local_widgets_off: false,
+    };
+
+    if widgets.is_dir() {
+        report.widgets = read_addon(&widgets)
+            .map(|f| f.keys().filter(|k| k.ends_with(".lua")).count())
+            .unwrap_or(0);
+        // A name that cannot already exist, so a second reset never overwrites
+        // the first one's copy.
+        let stamp = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_secs())
+            .unwrap_or(0);
+        let mut aside = luaui.join(format!("Widgets.off-{stamp}"));
+        let mut n = 1;
+        while aside.exists() {
+            aside = luaui.join(format!("Widgets.off-{stamp}-{n}"));
+            n += 1;
+        }
+        std::fs::rename(&widgets, &aside)
+            .map_err(|e| format!("could not move {}: {e}", widgets.display()))?;
+        report.moved_to = Some(aside.file_name().unwrap_or_default().to_string_lossy().into_owned());
+    }
+
+    // The order list names widgets that are no longer there. Zero-K rebuilds it
+    // from each widget's own default the next time it starts, which is what
+    // "back to how it ships" means.
+    let order_path = zk_path(&found.root, ORDER_FILE);
+    if order_path.is_file() {
+        let bak = order_path.with_extension("lua.bak");
+        std::fs::copy(&order_path, &bak)
+            .map_err(|e| format!("could not back up {}: {e}", order_path.display()))?;
+        std::fs::remove_file(&order_path)
+            .map_err(|e| format!("could not remove {}: {e}", order_path.display()))?;
+        report.order_reset = true;
+    }
+
+    // And stop raw widgets loading at all, so anything left behind stays quiet.
+    let data = read_or(&found.root, DATA_FILE, empty_data)?;
+    if local_widgets_on(&data) {
+        let next = disable_local_widgets(&data);
+        write_config(&found.root, DATA_FILE, &next)?;
+        report.local_widgets_off = true;
+    }
+
+    Ok(report)
 }
 
 /// Whether raw widgets load, so the screen can offer the switch.
@@ -1692,6 +1857,94 @@ local defaults = { name = "not a widget" }
 
         assert!(!files.is_empty());
         std::fs::remove_dir_all(&dir).ok();
+    }
+
+    // ------------------------------------------------ bytes we did not write --
+
+    /// The reported failure: `ZK_data.lua` on a real install did not decode as
+    /// UTF-8 and every read of it errored.
+    ///
+    /// Reading it lossily would have been worse than the error, because the
+    /// text is written back - so this asserts the bytes survive the round trip
+    /// rather than merely that it does not fail.
+    #[test]
+    fn a_config_file_that_is_not_utf8_still_round_trips() {
+        // 0xFF is not valid UTF-8 in any position.
+        let raw: Vec<u8> = b"return {\n\t[\"Odd\"] = \"\xFF\xFE\",\n}\n".to_vec();
+        assert!(String::from_utf8(raw.clone()).is_err(), "precondition");
+
+        let text = decode(&raw);
+        assert_eq!(encode(&text), raw, "the bytes came back changed");
+    }
+
+    /// And an edit to one line leaves every other byte alone, including the
+    /// ones that are not text at all.
+    #[test]
+    fn editing_one_entry_preserves_undecodable_bytes_elsewhere() {
+        let raw: Vec<u8> =
+            b"-- Widget Order List  (0 disables a widget)\nreturn {\n\t[\"Odd\xFF\"] = 5,\n\tAllyCursors = 37,\n}\n".to_vec();
+        let text = decode(&raw);
+        let next = set_order(&text, "AllyCursors", 0).unwrap();
+        let out = encode(&next);
+
+        let has = |needle: &[u8]| out.windows(needle.len()).any(|w| w == needle);
+        assert!(has(b"Odd\xFF"), "the undecodable key survived");
+        assert!(has(b"AllyCursors = 0,"), "the edit landed");
+        // Byte for byte, apart from the one value.
+        assert_eq!(
+            String::from_utf8_lossy(&out).replace("AllyCursors = 0,", "AllyCursors = 37,"),
+            String::from_utf8_lossy(&raw)
+        );
+    }
+
+    // ------------------------------------------------------------- reset ----
+
+    /// Writing `false` does nothing - `cawidgets.lua:114` reads `x or true` -
+    /// so turning raw widgets off means removing the table.
+    #[test]
+    fn turning_local_widgets_off_removes_the_table() {
+        let on = "-- Widget Custom Data\nreturn {\n\t[\"Chili\"] = {},\n\t[\"Local Widgets Config\"] = {\n\t\tuseLocalWidgets = true,\n\t\tuseLocalWidgetsFirst = true,\n\t},\n\t[\"After\"] = 1,\n}\n";
+        assert!(local_widgets_on(on));
+
+        let off = disable_local_widgets(on);
+        assert!(!local_widgets_on(&off), "still on: {off}");
+        assert!(off.contains("[\"Chili\"] = {},"), "kept what was around it");
+        assert!(off.contains("[\"After\"] = 1,"), "kept what came after it");
+        assert!(!off.contains("useLocalWidgets"), "took the whole value: {off}");
+    }
+
+    #[test]
+    fn turning_it_off_when_it_is_already_off_changes_nothing() {
+        let off = "return {\n\t[\"Chili\"] = {},\n}\n";
+        assert_eq!(disable_local_widgets(off), off);
+    }
+
+    /// On and off have to be inverses, or a reset followed by an install
+    /// leaves the file growing a table each time.
+    #[test]
+    fn enabling_and_disabling_round_trip() {
+        let base = "-- Widget Custom Data\nreturn {\n\t[\"Chili\"] = {},\n}\n";
+        let on = enable_local_widgets(base).unwrap();
+        assert!(local_widgets_on(&on));
+        let off = disable_local_widgets(&on);
+        assert_eq!(off, base, "did not get back to where it started");
+    }
+
+    /// The page reads these names off the object. Serde's default is the Rust
+    /// field name, so a missing rename_all here is a silently empty message
+    /// rather than a type error.
+    #[test]
+    fn the_reset_report_reaches_the_page_under_the_names_it_reads() {
+        let json = serde_json::to_string(&ResetReport {
+            moved_to: Some("Widgets.off-1".into()),
+            widgets: 3,
+            order_reset: true,
+            local_widgets_off: true,
+        })
+        .unwrap();
+        for key in ["movedTo", "widgets", "orderReset", "localWidgetsOff"] {
+            assert!(json.contains(&format!("\"{key}\"")), "{key} missing from {json}");
+        }
     }
 
     #[test]

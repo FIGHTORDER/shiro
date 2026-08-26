@@ -113,6 +113,7 @@ pub fn run() {
             widgets::zks_widget_remove,
             widgets::zks_widget_set_enabled,
             widgets::zks_widgets_local_enabled,
+            widgets::zks_widgets_reset,
             widgets::zks_widget_fetch,
             widgets::zks_widget_preview,
             apps::zka_catalogue,
