@@ -206,7 +206,7 @@ export function describeFailure(c: ConnectionState): string {
   if (c.kind === "rejected") {
     const label = LOGIN_CODE_LABEL[c.code] ?? `error ${c.code}`;
     if (c.code === CODE_INVALID_NAME) {
-      // Names are case-sensitive in practice - see ARCHITECTURE.md section 5.
+      // Names are case-sensitive in practice, verified against the server.
       return "No account with that name. Check the spelling and capitalisation.";
     }
     if (c.code === CODE_BANNED && c.message) return `Banned: ${c.message}`;
@@ -298,6 +298,17 @@ export interface RoomPlayerModel {
   spectator?: boolean;
   /** Whether they have the map and game. Spread straight into `PlayerRow`. */
   sync?: SyncMark;
+  /**
+   * Holding a slot now, but in the queue the server will cut at start.
+   *
+   * Only ever true in a time-queue room. There a person over the cap is still
+   * a player - `IsSpectator` is false, they sit in an ally column - and is
+   * also in `waitingToPlay`, because `StartGame` will move them out. Both
+   * statements are true at once, which is issue #14: the room listed the same
+   * person in a team and in the queue with nothing tying the two together, so
+   * they read the team column and thought they were in.
+   */
+  waiting?: boolean;
 }
 
 export interface RoomModel {
@@ -768,6 +779,13 @@ export function roomModel(
   }
 
   const waiting = waitingToPlay(battle, seats);
+  /* Mark them where they sit. The entries in `waiting` are the same objects
+     the ally columns hold, so this reaches both views from one place and they
+     cannot drift apart. Only the queue kind: a refused player is a spectator
+     and is already kept out of the spectator list below. */
+  if (waiting?.kind === "queue") {
+    for (const p of waiting.players) p.waiting = true;
+  }
 
   /* Every team up to one past the highest in use, and never fewer than two.
      This used to be the ally numbers actually present, which made a team you

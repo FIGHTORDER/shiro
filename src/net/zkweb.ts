@@ -4,8 +4,8 @@
  * The lobby protocol tells us nothing about a player who is offline, and
  * `UserProfile` is server-to-client only, so another player's awards and
  * progression never arrive over the socket. The Zero-K developers were asked
- * for an endpoint and declined. `docs/PROFILES-WITHOUT-ENDPOINTS.md` has the
- * measurements; the fetching and parsing are in `src-tauri/src/zkweb.rs`,
+ * for an endpoint and declined. The fetching and parsing are in
+ * `src-tauri/src/zkweb.rs`,
  * behind the same host allowlist and timeout as the rest of our outbound HTTP.
  *
  * Everything here is an *enrichment*. A profile that fails to load must leave
@@ -119,7 +119,7 @@ export async function webRatings(accountId: number, category = 1): Promise<Ratin
  *
  * `undefined` rather than 0 when there is nothing, because a zero on a rating
  * tile reads as a player who is terrible rather than as an answer we do not
- * have. See docs/PROFILE-AND-SEARCH.md section 5.
+ * have.
  */
 export function latestRating(points: RatingPoint[] | undefined): number | undefined {
   if (!points?.length) return undefined;

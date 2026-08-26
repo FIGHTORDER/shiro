@@ -2,7 +2,7 @@
  * Getting from "I am in a battle" to "the engine is running".
  *
  * This is a feature slice - it registers with store/slices.ts at module load.
- * The whole flow is four steps (docs/ARCHITECTURE.md section 6):
+ * The whole flow is four steps:
  *
  *   RequestConnectSpring -> ConnectSpring -> write script.txt -> spawn engine
  *

@@ -22,8 +22,7 @@ test("one point is still an answer", () => {
 
 /* Nothing, rather than zero. A new account and a category never played both
    come back as an empty series, and a zero on a rating tile reads as a player
-   who is terrible instead of as an answer we do not have.
-   docs/PROFILE-AND-SEARCH.md section 5. */
+   who is terrible instead of as an answer we do not have. */
 test("no series is not a rating of zero", () => {
   assert.equal(latestRating([]), undefined);
   assert.equal(latestRating(undefined), undefined);

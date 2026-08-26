@@ -28,8 +28,8 @@ pub fn run() {
 
            Zero-K's links are `zk://` and the Zero-K client claims that scheme
            too, so a machine with both hands them to whichever installed last.
-           That is understood and accepted - see docs/UPDATES.md's neighbours in
-           spirit: we behave like the client we are replacing.
+           That is understood and accepted: we behave like the client we are
+           replacing.
 
            Without this, following a link while Shiro is already open would
            start a second Shiro, which would fail to bind the relay and leave

@@ -1,10 +1,9 @@
 //! The app launcher: a small, curated set of tools Shiro can install and run.
 //!
-//! Not a plugin host and not a marketplace. `docs/APPS.md` has the reasoning;
-//! the short version is that nothing here runs inside Shiro's webview, so none
-//! of the sandboxing problems in `docs/PLUGINS.md` apply. What applies instead
-//! is that we are downloading executables and running them, which deserves more
-//! care than a plugin would, not less:
+//! Not a plugin host and not a marketplace. Nothing here runs inside Shiro's
+//! webview, so none of the sandboxing problems of a plugin apply. What applies
+//! instead is that we are downloading executables and running them, which
+//! deserves more care than a plugin would, not less:
 //!
 //! - **The catalogue ships with Shiro.** It is the constant below, not a URL.
 //!   Nobody can add an entry by serving a file; adding one is a pull request.

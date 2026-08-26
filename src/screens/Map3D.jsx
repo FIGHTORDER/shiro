@@ -111,17 +111,23 @@ function compile(gl, type, src) {
 
 // -------------------------------------------------------------- component ---
 
+/* Zero-K has one true height for a map - terrain is not something a player
+   scales - so there is nothing here for a viewer to choose. This is the
+   flattest setting the old HEIGHT slider could reach, which issue #15 found
+   renders the majority of maps the way they actually play. */
+const LIFT = 0.05;
+
 export default function Map3D({
-  heightmap, minimap, aspect, lift = 0.165, water = 0, showWater = false,
+  heightmap, minimap, aspect, water = 0, showWater = false,
   onProfile,
 }) {
   const canvasRef = React.useRef(null);
   const camRef = React.useRef({ yaw: -0.6, pitch: 0.85, dist: 2.2 });
-  const liveRef = React.useRef({ lift, water, showWater });
+  const liveRef = React.useRef({ water, showWater });
   const [error, setError] = React.useState(null);
   const [ready, setReady] = React.useState(false);
 
-  liveRef.current = { lift, water, showWater };
+  liveRef.current = { water, showWater };
 
   React.useEffect(() => {
     let cancelled = false;
@@ -234,7 +240,7 @@ export default function Map3D({
         ];
         gl.uniformMatrix4fv(uMvp, false,
           mul(perspective(Math.PI / 4, w / h, 0.01, 100), lookAt(eye, [0, 0, 0], [0, 1, 0])));
-        gl.uniform1f(uLift, liveRef.current.lift);
+        gl.uniform1f(uLift, LIFT);
         gl.uniform1f(uWater, liveRef.current.water);
         gl.uniform1f(uShowWater, liveRef.current.showWater ? 1 : 0);
         gl.activeTexture(gl.TEXTURE0);

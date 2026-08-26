@@ -2,8 +2,7 @@
 //!
 //! pr-downloader resolves a name through rapid and springfiles. Between them
 //! those cover the base game and most maps in circulation, and neither has
-//! recent community maps or any of the custom mods. `docs/DOWNLOADS-ZK-CONTENT.md`
-//! has the measurements; the short version is that Zero-K runs a WCF service
+//! recent community maps or any of the custom mods. Zero-K runs a WCF service
 //! which does have them, and one SOAP call turns a name into a file URL.
 //!
 //! Three things about that service shape this module:

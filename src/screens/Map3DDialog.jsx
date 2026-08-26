@@ -9,18 +9,6 @@ import Map3D from "./Map3D.jsx";
  * Big, because the whole point is to see relief that a 172px card cannot show,
  * and a shape you cannot turn is just a second picture. */
 
-/* Zero-K has one true height for a map - terrain is not something a player
-   scales - so this is the value that matches the game rather than a starting
-   guess. Measured against the real thing; the earlier 0.35 drew every map
-   about twice as tall as it is.
-
-   The slider stays for looking at gentle relief up close, which an 8-bit
-   heightmap otherwise hides, and its range is kept close to the true value so
-   most of the travel means something. */
-const DEFAULT_LIFT = 0.165;
-const LIFT_MIN = 0.05;
-const LIFT_MAX = 0.5;
-
 /**
  * How much of the map sits under a waterline, as a sentence.
  *
@@ -63,7 +51,6 @@ export default function Map3DDialog({ map, open, onClose }) {
   const name = map?.name;
   const [terrain, setTerrain] = React.useState(null);
   const [error, setError] = React.useState(null);
-  const [lift, setLift] = React.useState(DEFAULT_LIFT);
   const [water, setWater] = React.useState(0.28);
   const [showWater, setShowWater] = React.useState(false);
   const [profile, setProfile] = React.useState(undefined);
@@ -100,7 +87,7 @@ export default function Map3DDialog({ map, open, onClose }) {
               </div>
             : terrain
               ? <Map3D heightmap={terrain.heightmap} minimap={terrain.minimap}
-                  aspect={aspect} lift={lift} water={water} showWater={showWater}
+                  aspect={aspect} water={water} showWater={showWater}
                   onProfile={setProfile} />
               : <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center",
                   font: "var(--text-ui-sm)", color: "var(--text-low)" }}>
@@ -109,8 +96,6 @@ export default function Map3DDialog({ map, open, onClose }) {
         </div>
 
         <div style={{ display: "flex", gap: "var(--sp-5)", alignItems: "flex-end", flexWrap: "wrap" }}>
-          <Slider label="HEIGHT" value={lift} min={LIFT_MIN} max={LIFT_MAX} step={0.005}
-            onChange={setLift} hint={lift === DEFAULT_LIFT ? "true scale" : "exaggerated"} />
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--sp-2)", flex: 1, minWidth: 150 }}>
             <Checkbox checked={showWater} onChange={e => setShowWater(e.target.checked)} label="Show water" />
             {showWater && (

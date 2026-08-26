@@ -1048,9 +1048,9 @@ fn write_manifest(dir: &Path, names: &[String]) -> Result<(), String> {
 /// Copy an add-on's widget files into the install and make them loadable.
 ///
 /// Rust reads the add-on's own directory rather than taking file bodies from
-/// the page. `docs/PLUGINS.md` §10.4 is explicit that the frontend must not
-/// drive what gets written into the game install, and handing over the contents
-/// is the same hole as handing over the paths.
+/// the page. The frontend must not drive what gets written into the game
+/// install, and handing over the contents is the same hole as handing over the
+/// paths.
 #[tauri::command]
 pub fn zks_widget_install(
     app: tauri::AppHandle,

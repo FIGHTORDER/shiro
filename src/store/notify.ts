@@ -17,9 +17,9 @@
  *   ConnectSpring  the game you are in is starting without you
  *
  * Everything else does not: battle-list churn, ordinary channel traffic, a
- * download finishing. `docs/DESIGN_HANDOFF.md` §6 already settled the shape of
- * this argument for the updater - "an update prompt over a battle is an
- * interruption" - and the same judgement applies to a notification.
+ * download finishing. The same argument was settled for the updater - an
+ * update prompt over a battle is an interruption - and the judgement applies
+ * to a notification just as well.
  *
  * The decision is a pure function so it can be tested without a webview, a
  * notification permission or an OS. `subscribe` is the only part that touches

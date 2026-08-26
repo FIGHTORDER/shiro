@@ -39,17 +39,26 @@ export function TeamColumn({ ally, players, max = 8, onJoin, onKick, onAddBot, o
       {players.map((p, i) => (
         /* Wrapped rather than patched into the row: contextmenu bubbles, and
            src/ds/shiro.js is generated. */
-        <div key={i} onContextMenu={onMenu ? e => onMenu(e, p.user) : undefined}>
+        <div key={i} onContextMenu={onMenu ? e => onMenu(e, p.user) : undefined}
+          /* Issue #14. In a time-queue room this seat is real but provisional:
+             the server cuts the overflow when the game starts. Dimmed and
+             labelled so the team column and the queue below say the same
+             thing about the same person. */
+          title={p.waiting ? p.user.name + " is in the queue and will be moved out at start" : undefined}
+          style={p.waiting ? { opacity: 0.55 } : undefined}>
         <PlayerRow {...p} user={p.user}
           onClick={onPlayer ? () => onPlayer(p.user) : undefined}
           /* Host controls are offered to everyone; the server ignores them from
              anyone else, which is the only authority that counts. The rating
              is not repeated here - UserChip already draws it, and the design
              kit's duplicate was a bug. */
-          right={onKick
-            ? <IconButton icon="x" size="sm" label={"Remove " + p.user.name}
-                onClick={() => onKick(p.user)} />
-            : null} />
+          right={<>
+            {p.waiting && <Badge tone="outline">QUEUED</Badge>}
+            {onKick
+              ? <IconButton icon="x" size="sm" label={"Remove " + p.user.name}
+                  onClick={() => onKick(p.user)} />
+              : null}
+          </>} />
         </div>
       ))}
       {Array.from({ length: Math.max(0, Math.min(MAX_EMPTY_ROWS, max - players.length)) }).map((_, i) => (

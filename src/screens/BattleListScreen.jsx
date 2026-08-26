@@ -70,8 +70,8 @@ function NewsItem({ header, text, when, url, image }) {
    counted it as unhandled. It goes here rather than on a landing screen of its
    own: the battle list is the screen a player is already on, this is the one
    piece of it that is dead space, and a screen between login and the list would
-   put a page in the way of the thing people opened the app to do - which is the
-   density DESIGN_HANDOFF section 3 spends its anti-goals arguing against.
+   put a page in the way of the thing people opened the app to do, which is
+   exactly the density this design treats as an anti-goal.
 
    Ten items at most, so the strip scrolls rather than the filters moving. */
 function NewsStrip({ items }) {

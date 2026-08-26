@@ -70,8 +70,8 @@ export default function FriendsScreen({ users, profile, profileFor, onSelect, on
      had not caught up - `elo - 76` and `elo + 34`, under the real labels, on
      the live path, indistinguishable from figures the server sent. The general
      elo on the row is real and stands on its own; the rest are dashes until the
-     record carrying them is here. docs/PROFILE-AND-SEARCH.md section 5: another
-     player's missing fields are not blanks, zeroes, or guesses. */
+     record carrying them is here. Another player's missing fields are not
+     blanks, zeroes, or guesses. */
   const ratings = [
     ["GENERAL ELO", own ? own.elo : u && u.elo],
     ["MATCHMAKER", own ? own.mmElo : u && u.mmElo],

@@ -3,7 +3,7 @@
  *
  * The catalogue is compiled into the Rust binary rather than fetched, so this
  * is a thin wrapper: there is no network here and no way for the list to change
- * without shipping a new Shiro. See `src-tauri/src/apps.rs` and `docs/APPS.md`.
+ * without shipping a new Shiro. See `src-tauri/src/apps.rs`.
  */
 import { invoke } from "@tauri-apps/api/core";
 import { inTauri } from "./connection.ts";

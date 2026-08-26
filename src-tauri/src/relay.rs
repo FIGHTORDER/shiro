@@ -1,8 +1,7 @@
 //! Thin TCP relay for the ZkLobbyServer protocol.
 //!
 //! Deliberately dumb: it owns the socket lifecycle and nothing else. It does not
-//! parse messages or hold lobby state - that all lives in TypeScript. See
-//! docs/ARCHITECTURE.md section 4 for why.
+//! parse messages or hold lobby state - that all lives in TypeScript.
 //!
 //! Wire format is `CommandName {json}\n`, UTF-8, newline delimited.
 
@@ -216,7 +215,7 @@ pub async fn zks_disconnect(relay: State<'_, Relay>) -> Result<(), String> {
 }
 
 /// `Login.PasswordHash` is base64 of the RAW MD5 digest bytes, not of the hex
-/// string. Verified against the live server - see docs/ARCHITECTURE.md section 5.
+/// string. Verified against the live server.
 #[tauri::command]
 pub fn zks_password_hash(password: String) -> String {
     let digest = md5::compute(password.as_bytes());

@@ -4,7 +4,7 @@
 //! connected, and `UserProfile` is server-to-client only - awards, kudos and
 //! progression are yours and nobody else's. The Zero-K developers were asked
 //! for an endpoint and declined, so the remaining source is the site's own
-//! player page. `docs/PROFILES-WITHOUT-ENDPOINTS.md` has the measurements.
+//! player page.
 //!
 //! Three things make this workable rather than a guess:
 //!

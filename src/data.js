@@ -1,6 +1,5 @@
-/* Fake data shaped exactly like the ZkLobbyServer payloads documented in
-   docs/DESIGN_HANDOFF.md section 6. Replaced by the real protocol store
-   once the Rust TCP relay lands - see docs/ARCHITECTURE.md section 4. */
+/* Fake data shaped exactly like the ZkLobbyServer payloads. Replaced by the
+   real protocol store once the Rust TCP relay lands. */
 import { playerRank, rankColour } from "./net/ranks.ts";
 import { newsList } from "./store/adapters.ts";
 

@@ -18,8 +18,8 @@ import { WELL, Well, fitTo, thumbAspect } from "./mapWell.jsx";
  * old header row lined labels up against per-row content of unknown width, over
  * a list with its own scrollbar, so nothing ever met its heading.
  *
- * This is deliberately not a content browser in the sense DOWNLOADS.md rules
- * out. Nothing here installs or deletes anything; it is the map list you would
+ * This is deliberately not a content browser. Nothing here installs or
+ * deletes anything; it is the map list you would
  * otherwise open zero-k.info to read, with the one action a lobby can offer -
  * host a room on it.
  *
@@ -471,8 +471,8 @@ export default function MapsScreen({ maps = [], loading, onHost }) {
                   See CatalogueMap in src/net/zkcatalogue.ts. */}
             </div>
             {/* The one thing a lobby can do with a map. Nothing here installs
-                or removes content - that is the browser DOWNLOADS.md rules out,
-                and this is a list you would otherwise read on the website. */}
+                or removes content - this is a list you would otherwise read on
+                the website. */}
             {onHost && (
               <div style={{ padding: "var(--sp-5)", borderTop: "1px solid var(--w-12)" }}>
                 <Button variant="primary" size="lg" block icon="plus"

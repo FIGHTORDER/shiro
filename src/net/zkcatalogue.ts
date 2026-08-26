@@ -4,8 +4,7 @@
  * The lobby protocol has no "list all maps" command - the server only tells you
  * about maps that happen to be in an open battle - which is why the host dialog
  * used to suggest whatever one or two maps were live at the time. Zero-K's own
- * content service does have a searchable catalogue; see
- * docs/DOWNLOADS-ZK-CONTENT.md for how it was found.
+ * content service does have a searchable catalogue.
  */
 import { invoke } from "@tauri-apps/api/core";
 /* With the extension, as ais.ts and apps.ts have it. Without one this module

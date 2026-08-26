@@ -3,7 +3,7 @@
  * rest of the client depends on.
  *
  * Format: `CommandName {json}\n` - UTF-8, newline delimited, split on the FIRST
- * space only. See docs/ARCHITECTURE.md section 2.
+ * space only.
  */
 import {
   isCommandName,

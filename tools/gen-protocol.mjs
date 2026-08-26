@@ -9,7 +9,7 @@
  *
  *   node tools/gen-protocol.mjs
  *
- * Deliberate mapping decisions (see docs/ARCHITECTURE.md section 2):
+ * Deliberate mapping decisions:
  *   - C# enums serialize as NUMBERS (UseEnumString is off upstream).
  *   - DateTime serializes as an ISO-8601 string.
  *   - Nullable members are emitted optional, because the server sets

@@ -483,3 +483,59 @@ test("a news item with nothing to draw is dropped rather than left as a gap", ()
   assert.deepEqual(newsList([{ Url: "https://zero-k.info", Time: "2026-08-19T18:30:00Z" }]), []);
   assert.deepEqual(newsList(undefined), []);
 });
+
+/* Issue #14. In a time-queue room a person over the cap is still a player -
+   IsSpectator is false and they hold an ally slot - and is simultaneously in
+   the set StartGame will cut. Both are true, and the room used to state them
+   in two places with nothing tying them together, so people read the team
+   column and believed they were in. */
+test("a queued player is marked in the team column they are sitting in", () => {
+  const r = room({
+    a: { Name: "a", AllyNumber: 0, QueueOrder: 1 },
+    b: { Name: "b", AllyNumber: 1, QueueOrder: 2 },
+    c: { Name: "c", AllyNumber: 0, QueueOrder: 3 },
+  }, {}, { MaxPlayers: 2, MaxEvenPlayers: 0, TimeQueueEnabled: true });
+
+  assert.deepEqual(names(r), ["c"], "c is the one over the cap");
+  const seated = r.teams.flatMap(t => t.players);
+  const c = seated.find(p => p.user.name === "c");
+  assert.ok(c, "c still holds a slot, because the server has not cut them yet");
+  assert.equal(c.waiting, true, "and the column says so");
+  // Nobody under the cap is marked, or the flag means nothing.
+  for (const name of ["a", "b"]) {
+    assert.equal(seated.find(p => p.user.name === name)!.waiting, undefined, name);
+  }
+});
+
+/* The other half of #14: once the server actually seats them, the mark has to
+   go. It is derived per update rather than stored, so this is the check that
+   it is derived from the right thing. */
+test("and the mark clears when the room makes room for them", () => {
+  const full = room({
+    a: { Name: "a", AllyNumber: 0, QueueOrder: 1 },
+    c: { Name: "c", AllyNumber: 0, QueueOrder: 3 },
+  }, {}, { MaxPlayers: 1, MaxEvenPlayers: 0, TimeQueueEnabled: true });
+  assert.deepEqual(names(full), ["c"]);
+
+  // Same people, a cap that now fits them.
+  const roomier = room({
+    a: { Name: "a", AllyNumber: 0, QueueOrder: 1 },
+    c: { Name: "c", AllyNumber: 0, QueueOrder: 3 },
+  }, {}, { MaxPlayers: 4, MaxEvenPlayers: 0, TimeQueueEnabled: true });
+  assert.equal(roomier.waitingToPlay, null, "nobody is over the cap now");
+  const c = roomier.teams.flatMap(t => t.players).find(p => p.user.name === "c");
+  assert.equal(c!.waiting, undefined, "so nothing is left marked");
+});
+
+/* A refused player is a spectator, so the mark would be wrong: they hold no
+   slot to qualify. They are kept out of the spectator list instead, which is
+   covered above. */
+test("a refused player carries no queue mark, because they hold no seat", () => {
+  const r = room({
+    a: { Name: "a", AllyNumber: 0 },
+    late: { Name: "late", IsSpectator: true, QueueOrder: 7 },
+  });
+  assert.equal(r.waitingToPlay?.kind, "refused");
+  assert.ok(!r.teams.flatMap(t => t.players).some(p => p.user.name === "late"));
+  assert.equal(r.waitingToPlay!.players[0].waiting, undefined);
+});

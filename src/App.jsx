@@ -65,7 +65,7 @@ import {
 /* A rating we were actually told, rounded, or nothing.
    `Math.round(x || 0)` gave 0 for a field the record did not carry, and a zero
    on a rating tile reads as a player who is terrible rather than as an answer
-   we do not have. docs/PROFILE-AND-SEARCH.md section 5. */
+   we do not have. */
 const rounded = n => (typeof n === "number" && n ? Math.round(n) : undefined);
 
 /* Click-through: login -> battle list -> battle room -> (launch) -> debriefing.
@@ -157,8 +157,8 @@ export default function App() {
   const welcome = useLobby(s => s.welcome);
   const me = useLobby(s => s.me);
   /* Somebody else's profile, from their zero-k.info page. Only fetched for a
-     name we are actually looking at, and only when it is not our own - see
-     docs/PROFILES-WITHOUT-ENDPOINTS.md section 5 on not crawling them. */
+     name we are actually looking at, and only when it is not our own. Nobody
+     else's page is crawled. */
   const webProfileState = useWebProfile(
     live && viewingProfile && viewingProfile !== me ? viewingProfile : undefined,
   );
@@ -1247,9 +1247,8 @@ export default function App() {
       )}
 
       {/* An update, offered once at startup.
-          docs/UPDATES.md used to rule this out - "an update prompt over a
-          battle is an interruption" - and that reasoning still holds for a
-          prompt that arrives mid-session. This one cannot: it is shown from
+          An update prompt over a battle is an interruption, which rules out
+          one that arrives mid-session. This one cannot: it is shown from
           the startup check, before there is a battle to interrupt, and a
           decline is remembered for the session. */}
       <Dialog open={updateOffer === true && updateState.kind === "available"}

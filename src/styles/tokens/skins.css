@@ -1,7 +1,6 @@
 /* Skins. Each one is a scope override of the semantic colour layer only.
  *
- * Transcribed from the "Shiro Skins" design project; docs/design/SKINS-TOKENS.md
- * holds the same blocks with the design's own notes attached. Paper is the
+ * Transcribed from the "Shiro Skins" design project. Paper is the
  * canonical light system in colors.css and has no block here - it is what you
  * get with no `data-skin` attribute at all.
  *
@@ -16,8 +15,7 @@
  * or the literal alpha inks (--fff-*, --k-*). Those stay at their light-system
  * values on purpose: they are the values map imagery is composited against, and
  * map art is dark whatever the app's ground is. The consequence is that
- * anything reading the base ramp directly does not follow a skin - see
- * docs/SKINS.md for the list that is still outstanding in the vendored DS.
+ * anything reading the base ramp directly does not follow a skin.
  */
 
 [data-skin="vellum"] {

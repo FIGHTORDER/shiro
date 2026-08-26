@@ -1,6 +1,6 @@
 //! Locating an existing Zero-K installation.
 //!
-//! v1 never downloads content (docs/ARCHITECTURE.md section 7): we reuse the
+//! v1 never downloads content: we reuse the
 //! engine, games and maps of whatever Zero-K install is already on the machine.
 //! That makes this module the only thing standing between login and launch.
 //!

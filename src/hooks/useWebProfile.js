@@ -14,8 +14,7 @@ import { webProfile, webRatings } from "../net/zkweb.ts";
  * `loading` for it left the panel reading "Reading zero-k.info..." forever.
  *
  * One request per name actually looked at; the Rust side caches, so switching
- * back to somebody costs nothing. Nothing here is prefetched - see
- * docs/PROFILES-WITHOUT-ENDPOINTS.md section 5.
+ * back to somebody costs nothing. Nothing here is prefetched.
  */
 export function useWebProfile(name) {
   const [state, setState] = React.useState(undefined);

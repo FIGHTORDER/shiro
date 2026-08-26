@@ -1,8 +1,8 @@
 //! Handing a battle off to the Spring engine.
 //!
 //! The server hosts the game; all we do is write the eight-line connect script
-//! it implies and start the engine pointed at it (docs/ARCHITECTURE.md
-//! section 6). Everything up to the spawn is pure so it can be tested without
+//! it implies and start the engine pointed at it. Everything up to the spawn
+//! is pure so it can be tested without
 //! an engine on the machine.
 
 use std::ffi::OsString;

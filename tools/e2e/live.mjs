@@ -1040,7 +1040,7 @@ check("and says why the history is missing rather than showing an empty table",
 
 /* What the protocol will not tell us about another player, read off their
    zero-k.info page instead. The developers were asked for an endpoint and
-   declined; see docs/PROFILES-WITHOUT-ENDPOINTS.md. */
+   declined. */
 check("their zero-k.info page fills in what the protocol will not",
   await waitFor("web", () => seeing(/PLAYING FOR/) && seeing(/BATTLES/)));
 check("including awards with their counts",
@@ -1400,9 +1400,9 @@ check("the roster reflects the kick", await waitFor("gone", async () =>
   (await page.getByRole("button", { name: /Remove hexed/ }).count()) === 0));
 
 /* The update offer. It arrives from the startup check, which is deliberately
-   the only moment it can: docs/UPDATES.md rules out a prompt mid-session on the
-   grounds that an update prompt over a battle is an interruption, and at
-   startup there is no battle to interrupt. */
+   the only moment it can. A prompt mid-session is ruled out on the grounds
+   that an update prompt over a battle is an interruption, and at startup there
+   is no battle to interrupt. */
 {
   /* The app checks four seconds after login, once a session, so this reloads
      rather than waiting for a check that has already been and gone.

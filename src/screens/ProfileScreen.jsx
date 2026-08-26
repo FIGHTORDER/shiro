@@ -20,8 +20,7 @@ import { latestRating } from "../net/zkweb.ts";
  *
  * So a panel with no data for the person on screen is left out rather than
  * drawn empty - a player with no Planetwars rating and a player whose rating we
- * cannot see look identical otherwise, and only one of those is true.
- * docs/PROFILE-AND-SEARCH.md has the full accounting. */
+ * cannot see look identical otherwise, and only one of those is true. */
 
 const COUNTRIES = {
   DE: "Germany", US: "United States", GB: "United Kingdom", FR: "France",
@@ -151,7 +150,7 @@ function EloTrend({ points, source }) {
  *
  * The four states are kept apart on purpose. A player with no awards and a page
  * we could not read are different facts, and rendering both as blanks would say
- * they were the same. See docs/PROFILES-WITHOUT-ENDPOINTS.md.
+ * they were the same.
  */
 /** Rank and level as the lobby broadcast them, for when the site cannot be read. */
 function lobbyFacts(lobby) {
@@ -305,8 +304,8 @@ export default function ProfileScreen({ me, users = {}, profile, records = [], v
    * zero-k.info is the other source, and it only answers for the general elo:
    * the player page carries no figure at all, but the chart it links to ends at
    * where they are now. We already fetch that series for the trend line, so
-   * using it costs no extra request - see PROFILES-WITHOUT-ENDPOINTS.md section
-   * 5 on the volume ceiling. There is no matchmaker rating on the site at all.
+   * using it costs no extra request. There is no matchmaker rating on the
+   * site at all.
    *
    * Nothing here invents a number, and nothing renders an unknown as a zero. */
   const lobbyElo = u?.EffectiveElo || undefined;
@@ -543,7 +542,7 @@ export default function ProfileScreen({ me, users = {}, profile, records = [], v
 
           {/* Deliberately absent rather than empty: games played, win rate,
               hours and best elo are in the design but in no message the server
-              sends. See docs/PROFILE-AND-SEARCH.md. */}
+              sends. */}
           {!isMe && (
             <div style={{ padding: "var(--sp-6) var(--sp-7)" }}>
               <span style={{ font: "var(--w-regular) var(--size-tiny)/1.5 var(--font-core)",

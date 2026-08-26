@@ -9,9 +9,8 @@ import { ACTION, META, appState } from "./appState.ts";
  * Settings - and the rest say so plainly rather than being hidden until they
  * are ready.
  *
- * The catalogue still ships with Shiro; nothing here is fetched. See
- * docs/APPS.md for why entries arrive by pull request rather than over the
- * wire.
+ * The catalogue still ships with Shiro; nothing here is fetched. Entries
+ * arrive by pull request rather than over the wire.
  *
  * The design problem is the states, not the list: an add-on can be built in,
  * installed, not installed, or unavailable because there is nothing published

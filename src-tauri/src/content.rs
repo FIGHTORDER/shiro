@@ -4,8 +4,7 @@
 //! the spawn is pure and unit-tested, so the only part that needs a machine with
 //! Zero-K on it is the process itself.
 //!
-//! Background and the verified CLI are in `docs/DOWNLOADS.md`. The three things
-//! from that document that are easy to get wrong, and are handled here:
+//! Three things about the CLI are easy to get wrong, and are handled here:
 //!
 //! 1. **Progress is carriage-return terminated**, not newline terminated. A
 //!    `BufReader::lines()` reader stays silent for an entire download and then
@@ -779,7 +778,7 @@ fn spawn_job(app: &tauri::AppHandle, job: &Job, state: &Content2) -> Result<(), 
 
            This is only correct because each job now carries a single item: the
            exit code used to be an OR over the batch, so there was no per-item
-           failure to fall back from. See docs/DOWNLOADS-ZK-CONTENT.md. */
+           failure to fall back from. */
         let cancelled_since = || {
             state_w
                 .active
