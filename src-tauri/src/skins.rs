@@ -66,10 +66,15 @@ pub const CATALOGUE: &[CatalogueSkin] = &[CatalogueSkin {
     note: "White and pink, with petals.",
     description: "A white ground with light grey structure and pink where the eye \
 should land. Brings its own login art and a drift of falling petals.",
-    download: None,
-    sha256: None,
-    version: None,
-    unavailable: Some("No build published yet."),
+    // Its own tag rather than `dev`: the release workflow sweeps every asset on
+    // `dev` that is not in the set it just built, which would delete this and
+    // leave the compiled-in URL pointing at a 404.
+    download: Some(
+        "https://github.com/FIGHTORDER/shiro/releases/download/skin-sakura-1.0.0/shiro-skin-sakura-1.0.0.zip",
+    ),
+    sha256: Some("1a43a155fbfd88dc2d1f1668cfeae02836b027232aedcaa8d69832aed4855423"),
+    version: Some("1.0.0"),
+    unavailable: None,
 }];
 
 #[derive(Debug, Clone, Serialize)]
