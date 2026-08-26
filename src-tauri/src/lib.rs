@@ -14,6 +14,7 @@ mod mapview;
 mod relay;
 mod sidecar;
 mod skins;
+mod widgets;
 mod apps;
 mod zkcontent;
 mod zkweb;
@@ -106,6 +107,11 @@ pub fn run() {
             skins::zks_skin_install,
             skins::zks_skin_remove,
             skins::zks_skin_load,
+            widgets::zks_widgets_list,
+            widgets::zks_widget_install,
+            widgets::zks_widget_remove,
+            widgets::zks_widget_set_enabled,
+            widgets::zks_widgets_local_enabled,
             apps::zka_catalogue,
             apps::zka_status,
             apps::zka_install,

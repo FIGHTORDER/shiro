@@ -413,7 +413,7 @@ mod tests {
             ("skin.css", b"[data-skin=\"x\"]{}"),
             ("evil.js", b"fetch('https://example.test')"),
             ("evil.html", b"<script>alert(1)</script>"),
-            ("evil.wasm", b" asm"),
+            ("evil.wasm", b"\0asm"),
             ("notes.txt", b"harmless but still not a picture"),
         ]);
         let out = read_skin(&dir).unwrap();

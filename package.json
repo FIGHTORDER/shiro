@@ -20,6 +20,8 @@
     "gen:loadscreen": "node tools/gen-loadscreen-art.mjs",
     "check:loadscreen": "node tools/gen-loadscreen-art.mjs --check",
     "gen:settings": "node tools/gen-settings.mjs",
+    "gen:widgets": "node tools/gen-stock-widgets.mjs",
+    "check:widgets": "node tools/gen-stock-widgets.mjs --check",
     "gen:modoptions": "node tools/gen-modoptions.mjs",
     "typecheck": "tsc --noEmit",
     "check:names": "node tools/check-names.mjs",
