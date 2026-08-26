@@ -51,7 +51,7 @@ permissions:
 env:
   # Bumped by hand. `github.run_number` cannot be reset, and a rebuilt
   # repository would restart it at 1 - which is a version going backwards.
-  SHIRO_VERSION: 1.0.6
+  SHIRO_VERSION: 1.0.8
   # Whether this run is allowed to publish. Main only: a dev build is a public
   # download link, and publishing an unreviewed branch to it would be a way to
   # hand somebody code nobody has looked at.
