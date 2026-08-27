@@ -18,7 +18,7 @@ const KEY = "shiro.settings";
 
 /* A bundled skin, or the id of a downloaded one.
  *
- * The four below ship inside Shiro because they are a few dozen declarations
+ * The ones below ship inside Shiro because they are a few dozen declarations
  * each. Anything that carries pictures is a download - see src-tauri/skins.rs -
  * so this cannot be a closed union any more. */
 export type SkinId = string;
@@ -26,15 +26,37 @@ export type SkinId = string;
 /**
  * The skins the app ships with, in the order the picker offers them. The
  * values themselves live in src/styles/tokens/skins.css; this is only the
- * roster, so adding a skin is a stylesheet block plus a line here.
+ * roster, so adding a skin is a stylesheet block plus an entry here and in
+ * SWATCH below.
  */
 export const SKINS: { id: SkinId; name: string; note: string }[] = [
   { id: "paper", name: "Paper", note: "The default. Ink on white." },
   { id: "vellum", name: "Vellum", note: "Warm paper, brown-black ink." },
   { id: "graphite", name: "Graphite", note: "Neutral dark." },
   { id: "slate", name: "Slate", note: "Cool dark, closest to the game." },
-  { id: "azure", name: "Azure", note: "Color theory is my passion. Blue and also Gold where I could fit it." },
+  { id: "azure", name: "Azure", note: "Deep blue, gold text." },
 ];
+
+/**
+ * The paper and ink each skin paints with, for the picker's preview square.
+ *
+ * Literal rather than `data-skin` on the swatch: Paper deliberately has no
+ * block in skins.css - it is the base set in colors.css, and `applySkin`
+ * clears the attribute for it - so a swatch driven by the attribute would show
+ * Paper as whatever skin is currently on.
+ *
+ * Beside SKINS rather than in the screen that draws it, because a skin listed
+ * with no entry here does not fail: it borrows Paper's white and black and
+ * advertises itself with the wrong colours. The test below keeps the two in
+ * step.
+ */
+export const SWATCH: Record<string, { paper: string; ink: string }> = {
+  paper: { paper: "#ffffff", ink: "#0a0a0a" },
+  vellum: { paper: "#faf7f0", ink: "#14100a" },
+  graphite: { paper: "#0d0d0d", ink: "#ffffff" },
+  slate: { paper: "#0b0e13", ink: "#f5f8fc" },
+  azure: { paper: "#000064", ink: "#fff58c" },
+};
 
 /**
  * Put the skin on the document root, where skins.css is scoped to find it.

@@ -8,7 +8,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { useSettings, applySkin, usableSkin, SKINS } from "./settings.ts";
+import { useSettings, applySkin, usableSkin, SKINS, SWATCH } from "./settings.ts";
 
 test("settings survive having nowhere to persist to", () => {
   assert.equal(globalThis.localStorage, undefined, "precondition for this test");
@@ -49,6 +49,16 @@ test("every skin the picker offers is one the loader will keep", () => {
   // SKINS would silently make a listed skin unselectable.
   assert.ok(SKINS.some(s => s.id === "paper"));
   assert.equal(new Set(SKINS.map(s => s.id)).size, SKINS.length);
+});
+
+test("every skin the picker offers has its own preview square", () => {
+  /* A missing entry does not throw: the row falls back to Paper's white and
+     black, so the skin sits in the list advertising the wrong colours. Azure
+     shipped that way. */
+  for (const s of SKINS) {
+    assert.ok(SWATCH[s.id], `${s.id} has no SWATCH entry`);
+  }
+  assert.deepEqual(Object.keys(SWATCH).sort(), SKINS.map(s => s.id).sort());
 });
 
 test("a server override is only what was set, not a half-filled pair", () => {

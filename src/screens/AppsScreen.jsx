@@ -1,6 +1,7 @@
 import React from "react";
 import { Button, Badge, EmptyState, Icon, Switch, Input } from "../ds/shiro.js";
 import { ACTION, META, appState } from "./appState.ts";
+import { SWATCH } from "../store/settings.ts";
 
 /* Add-ons: the things Shiro can add to itself or to Zero-K, by kind.
  *
@@ -120,20 +121,6 @@ function KindRow({ kind, active, onPick }) {
     </button>
   );
 }
-
-/* The paper and ink each skin paints with, for the preview square only.
- *
- * Literal rather than `data-skin` on the swatch: Paper deliberately has no
- * block in skins.css - it is the base set in colors.css, and settings.ts
- * clears the attribute for it - so a swatch driven by the attribute would show
- * Paper as whatever skin is currently on. Two values each, and the preview is
- * the only thing that reads them. */
-const SWATCH = {
-  paper: { paper: "#ffffff", ink: "#0a0a0a" },
-  vellum: { paper: "#faf7f0", ink: "#14100a" },
-  graphite: { paper: "#0d0d0d", ink: "#ffffff" },
-  slate: { paper: "#0b0e13", ink: "#f5f8fc" },
-};
 
 /* A skin is a set of colour tokens on <html>. Picking one is the whole
    interaction - there is nothing to download and nothing to confirm, which is

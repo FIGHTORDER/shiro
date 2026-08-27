@@ -166,23 +166,23 @@
 }
 
 [data-skin="azure"] {
-  --surface-void:#000064; /*black*/
+  --surface-void:#000064;
   --surface-base:#000064;
-  --surface-raised:#000064; /*still black*/
-  --surface-panel:#00329b; /*ligher black*/
-  --surface-sunken:#002387; /*lightishdark black*/
-  --surface-hover:rgba(255,255,255,.05); /*WHITE*/
-  --surface-active:rgba(255,255,255,.10); /*STILL WHITE*/
-  --surface-selected:#003764; /*LIGHTERER BLACK*/
-  --surface-inverse:#ffffff; /*FLASHBANG*/
-  --scrim:rgba(0,0,0,.82); /*BLAK GREYISH NESS*/
+  --surface-raised:#000064;
+  --surface-panel:#00329b;
+  --surface-sunken:#002387;
+  --surface-hover:rgba(255,255,255,.05);
+  --surface-active:rgba(255,255,255,.10);
+  --surface-selected:#003764;
+  --surface-inverse:#ffffff;
+  --scrim:rgba(0,0,0,.82);
   --text-hi:#ffffff;
-  --text-body:#fff58c; /*GOLD*/
-  --text-mid:#cdc35a; /*DARKER GOLD*/
-  --text-low:#b9af46; /*DARKERER GOLD*/
-  --text-faint:#9b9132; /*DARKERERER GOLD*/
-  --text-inverse:#000064; /*stiller black*/
-  --text-link:#ffffff; /*guess what*/
+  --text-body:#fff58c;
+  --text-mid:#cdc35a;
+  --text-low:#b9af46;
+  --text-faint:#9b9132;
+  --text-inverse:#000064;
+  --text-link:#ffffff;
   --w-04:rgba(255,255,255,0.04);
   --w-06:rgba(255,255,255,0.07);
   --w-08:rgba(255,255,255,0.1);
@@ -196,7 +196,7 @@
   --border-strong:1px solid rgba(255,255,255,0.24);
   --border-focus:1px solid #ffffff;
   --rule-inset:inset 0 -1px 0 rgba(255,255,255,0.07);
-  --focus-ring:0 0 0 1px #0d0d0d,0 0 0 2px #ffffff;
+  --focus-ring:0 0 0 1px #000064,0 0 0 2px #ffffff;
   --elev-menu:0 1px 0 rgba(255,255,255,0.15),0 6px 16px rgba(0,0,0,.6);
   --elev-dialog:0 1px 0 rgba(255,255,255,0.24),0 18px 48px rgba(0,0,0,.6);
   --faction-machines:#e51616;
@@ -205,13 +205,13 @@
   --signal-danger:#e04040;
   --signal-warn:#d0a020;
   --signal-ok:#ffffff;
-  --signal-info:#9e9e9e;
+  --signal-info:#959ec1;
   --presence-online:#ffffff;
-  --presence-away:#7e7e7e;
-  --presence-room:#9e9e9e;
+  --presence-away:#727dac;
+  --presence-room:#959ec1;
   --presence-ingame:#e04040;
-  --presence-offline:#202020;
-  --presence-bot:#9e9e9e;
+  --presence-offline:#262b40;
+  --presence-bot:#959ec1;
 }
 
 /* The page art, which the design system knows nothing about.
