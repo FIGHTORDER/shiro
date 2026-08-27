@@ -236,7 +236,8 @@
  * is loaded through <img>, which gives it its own document to resolve that in -
  * so it comes out black whatever the page around it is doing. */
 [data-skin="graphite"],
-[data-skin="slate"] {
+[data-skin="slate"],
+[data-skin="azure"] {
   --art-filter: invert(1) brightness(0.82);
   --logo-filter: invert(1);
 }
