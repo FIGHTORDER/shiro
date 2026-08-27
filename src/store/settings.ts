@@ -33,6 +33,7 @@ export const SKINS: { id: SkinId; name: string; note: string }[] = [
   { id: "vellum", name: "Vellum", note: "Warm paper, brown-black ink." },
   { id: "graphite", name: "Graphite", note: "Neutral dark." },
   { id: "slate", name: "Slate", note: "Cool dark, closest to the game." },
+  { id: "azure", name: "Azure", note: "Color theory is my passion. Blue and also Gold where I could fit it." },
 ];
 
 /**
