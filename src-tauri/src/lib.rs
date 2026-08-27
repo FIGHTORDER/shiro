@@ -8,6 +8,7 @@ mod engine_settings;
 mod game_files;
 mod install;
 mod launch;
+mod lobbybutton;
 mod loadscreen;
 mod managed;
 mod mapview;

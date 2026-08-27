@@ -108,7 +108,7 @@ pub const CATALOGUE: &[CatalogueApp] = &[
         download: Some(
             "https://github.com/FIGHTORDER/stournament/releases/download/dev/Stournament_1.0.0_x64.zip",
         ),
-        sha256: Some("88194fa90b9da52d27ce6002abb6cd1c4bb910728ada6e3345c3ddcb3716b08e"),
+        sha256: Some("683fd7f9eda333e41d33eb75641e6b5118b989884618c20220c3ec31f392f662"),
         version: Some("1.0.0"),
         run: Some("Stournament.exe"),
         /* Tourney control needs a permission most people do not have, and the
@@ -130,7 +130,7 @@ pub const CATALOGUE: &[CatalogueApp] = &[
         download: Some(
             "https://github.com/FIGHTORDER/Splaunch/releases/download/dev/Splaunch_1.0.0_x64.zip",
         ),
-        sha256: Some("97e89015d6b82195202d9a332459472912c17548c966cf2efe385fd405fe11a8"),
+        sha256: Some("36507b3c7d288d77df9e9e668db2b8c3557d3872062a19f7ff581a676bfd5f43"),
         version: Some("1.0.0"),
         run: Some("Splaunch.exe"),
         unavailable: None,
@@ -145,11 +145,11 @@ pub const CATALOGUE: &[CatalogueApp] = &[
         download: Some(
             "https://github.com/FIGHTORDER/Springen/releases/download/dev/Springen_1.0.0_x64.zip",
         ),
-        // Verified by hand against the downloaded file, not copied from the
-        // release notes: this value is what decides whether the bytes are
-        // allowed to become a program, so it is worth checking rather than
-        // trusting the thing it is meant to check.
-        sha256: Some("b59308fc4e515e742444b942657d6dd19ad9fb88556dd94069da9efaf3f2f3c3"),
+        // Checked against the `.sha256` the release publishes beside the asset,
+        // not only against our own download: a hash taken from bytes we fetched
+        // proves the file did not change in transit, and proves nothing about
+        // whether it is the file CI built.
+        sha256: Some("2c4756c0f3f961ddc0bb2f56eb88aff9064312055cc94f134feb19916ba9131c"),
         version: Some("1.0.0"),
         run: Some("springen-app.exe"),
         unavailable: None,

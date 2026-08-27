@@ -285,7 +285,24 @@ pub fn zks_launch_spring(
     // match, and the lobby has to come back by itself when it exits.
     let running = game.running.clone();
     std::thread::spawn(move || {
-        let code = child.wait().ok().and_then(|s| s.code());
+        /* Whatever the in-game Lobby button left behind last time counts as
+           already seen, so the first thing this match does is not raise the
+           lobby over the map somebody is trying to look at. */
+        let mut seen = crate::lobbybutton::prime(&root);
+        /* Waiting in steps rather than in one call, because this thread is also
+           the only one that knows a game is running, and the button is only
+           worth watching for while one is. */
+        let code = loop {
+            match child.try_wait() {
+                Ok(Some(status)) => break status.code(),
+                Err(_) => break None,
+                Ok(None) => {}
+            }
+            if crate::lobbybutton::pressed(&root, &mut seen) {
+                crate::lobbybutton::raise(&app);
+            }
+            std::thread::sleep(crate::lobbybutton::POLL);
+        };
         /* The match is over, so what the file beside the loading screen says
            about it stops being true. Nothing else would ever remove it - the
            next launch through Shiro overwrites it, but an engine started out of

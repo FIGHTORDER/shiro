@@ -2127,6 +2127,24 @@ local defaults = { name = "not a widget" }
         }
     }
 
+    /// The widget Shiro places in the game has to be one Shiro can read back.
+    ///
+    /// `zks_widgets_list` shows a widget by the name its `GetInfo` declares and
+    /// decides whether it is on from `enabled`. A widget whose `GetInfo` this
+    /// parser cannot read is invisible in the widget list and, worse, tells us
+    /// nothing about whether Zero-K would load it either.
+    #[test]
+    fn the_lobby_button_declares_an_info_shiro_can_read() {
+        let src = include_str!("lobbybutton/shiro_lobby_button.lua");
+        let info = parse_get_info(src).expect("GetInfo is unreadable");
+        assert_eq!(info.name, "Shiro Lobby Button");
+        assert!(info.enabled, "it would install and then not run");
+        assert!(!info.always_start);
+        // The name is what ZK_order.lua is keyed on, so a stock widget by the
+        // same name would have us fighting over one entry.
+        assert!(!is_stock("shiro_lobby_button.lua"));
+    }
+
     /// One bad file stops the whole pack. A partial install leaves something
     /// that half works and looks like Shiro broke the game.
     #[test]
