@@ -10,7 +10,7 @@ import assert from "node:assert/strict";
 
 import {
   springSettingsFor, defaultChoices, applyPreset, uiScaleBounds, formatValue,
-  computedSettingsAreCovered, notNvidiaFromInfolog, lupsTemplate,
+  computedSettingsAreCovered, lupsTemplate,
   lupsSubstitutions, cmdcolorSubstitutions, allSettings,
   inferChoices, changedSpringSettings,
   type Environment,
@@ -20,7 +20,6 @@ import { SETTINGS_TABS, COMPUTED } from "../protocol/settings.ts";
 /** A 1440p Nvidia machine, which is what the reference file below came off. */
 const ENV: Environment = {
   screen: { width: 2560, height: 1440 },
-  notNvidia: false,
   current: { OverheadScrollSpeed: "50" },
 };
 
@@ -34,7 +33,7 @@ test("the menu came across whole", () => {
   assert.deepEqual(SETTINGS_TABS.map(t => t.name), ["Graphics", "Game"]);
   assert.deepEqual(SETTINGS_TABS[0].presets.map(p => p.name),
     ["Compat.", "Lowest", "Low", "Medium", "High"]);
-  assert.equal(allSettings().length, 39);
+  assert.equal(allSettings().length, 38);
 });
 
 // -- the reference file ------------------------------------------------------
@@ -109,25 +108,6 @@ test("the dark command alpha steps with the band it falls in", () => {
   assert.equal(at(80).CmdAlphaDark, "0.9");    // >= 0.7 -> +0.1
   assert.equal(at(65).CmdAlphaDark, "0.7");    // >= 0.6 -> +0.05
   assert.equal(at(40).CmdAlphaDark, "0.42");   // else   -> +0.02
-});
-
-test("ATI/Intel compatibility only overrides where upstream would", () => {
-  const chosen = defaultChoices(ENV);          // Automatic
-  const nvidia = springSettingsFor(chosen, { ...ENV, notNvidia: false });
-  const other = springSettingsFor(chosen, { ...ENV, notNvidia: true });
-  // Anti Aliasing "Low" gives MSAALevel 4; the override forces it to 0.
-  assert.equal(nvidia.MSAALevel, "4");
-  assert.equal(other.MSAALevel, "0");
-  assert.equal(other.VSync, "1");
-  // Turned on by hand, the card does not matter.
-  const forced = springSettingsFor({ ...chosen, AtiIntelCompatibility_2: "On" },
-    { ...ENV, notNvidia: false });
-  assert.equal(forced.MSAALevel, "0");
-});
-
-test("the override is declared last so it wins over anti aliasing", () => {
-  const names = allSettings().map(s => s.name);
-  assert.ok(names.indexOf("AtiIntelCompatibility_2") > names.indexOf("AntiAliasing"));
 });
 
 // -- presets -----------------------------------------------------------------
@@ -298,13 +278,6 @@ test("an unrecognised setting is left alone unless the user touches it", () => {
 
 // -- odds and ends -----------------------------------------------------------
 
-test("the infolog scan stops at PostInit, and no log means Nvidia", () => {
-  assert.equal(notNvidiaFromInfolog("GL vendor : NVIDIA Corporation\nPostInit\n"), false);
-  assert.equal(notNvidiaFromInfolog("GL vendor : AMD\nPostInit\nNVIDIA\n"), true);
-  assert.equal(notNvidiaFromInfolog(null), false);
-  assert.equal(notNvidiaFromInfolog(""), true);
-});
-
 test("values are written without exponents or trailing zeroes", () => {
   assert.equal(formatValue(50), "50");
   assert.equal(formatValue(-0.0015), "-0.0015");
@@ -344,35 +317,32 @@ test("a cleared number box leaves the setting alone rather than writing a defaul
   assert.deepEqual(out, {}, "clearing a field silently applied Zero-K's default");
 });
 
-test("changing anti-aliasing does not defeat a compatibility override that is still on", () => {
-  /* The override owns six keys on ATI/Intel hardware, and Anti Aliasing writes
-     some of the same ones. Apply carries only the diff, so changing Anti
-     Aliasing alone used to write its values over an override still selected in
-     the menu - the setting said one thing and the file said another. */
-  const env: Environment = { ...ENV, notNvidia: true };
-  const before = { ...defaultChoices(env), AtiIntelCompatibility_2: "On", AntiAliasing: "Off" };
-  const after = { ...before, AntiAliasing: "High" };
-  const out = changedSpringSettings(before, after, env);
-
-  const overridden = springSettingsFor(
-    { ...after, AntiAliasing: "Off" }, env, n => n === "AtiIntelCompatibility_2",
-  );
-  for (const [key, value] of Object.entries(overridden)) {
-    if (key in out) {
-      assert.equal(out[key], value, `${key} was written over the compatibility override`);
-    }
-  }
-});
-
-test("the override does not drag in keys nobody touched", () => {
-  const env: Environment = { ...ENV, notNvidia: true };
-  const before = { ...defaultChoices(env), AtiIntelCompatibility_2: "On", CameraPanSpeed: 50 };
+test("Apply does not drag in keys nobody touched", () => {
+  const before = { ...defaultChoices(ENV), CameraPanSpeed: 50 };
   const after = { ...before, CameraPanSpeed: 60 };
-  const out = changedSpringSettings(before, after, env);
   assert.deepEqual(
-    Object.keys(out).sort(),
+    Object.keys(changedSpringSettings(before, after, ENV)).sort(),
     ["CamFreeScrollSpeed", "FPSScrollSpeed", "MiddleClickScrollSpeed",
       "OverheadScrollSpeed", "RotOverheadScrollSpeed"],
     "Apply wrote settings the player never changed",
   );
+});
+
+test("ATI/Intel compatibility is not offered and writes nothing", () => {
+  /* Upstream still declares it, so a regenerated settings.ts brings it back.
+     It forced AdvSky, VSync, FSAA, MSAALevel, SmoothLines and SmoothPoints on
+     any non-Nvidia card, which today just holds the player's anti-aliasing
+     down. Shiro drops it, and this fails if it ever reappears. */
+  const name = "AtiIntelCompatibility_2";
+  assert.ok(SETTINGS_TABS.some(t => t.settings.some(s => s.name === name)),
+    "upstream no longer declares it, so the drop can go too");
+  assert.ok(!allSettings().some(s => s.name === name), "the menu offers it again");
+  assert.ok(!(name in defaultChoices(ENV)), "it still has a chosen value");
+
+  // And nothing it used to force is written on top of the real settings.
+  const chosen = { ...defaultChoices(ENV), AntiAliasing: "High", FancySky: "On" };
+  const out = springSettingsFor({ ...chosen, [name]: "On" }, ENV);
+  assert.equal(out.MSAALevel, "8");
+  assert.equal(out.AdvSky, "1");
+  assert.deepEqual(out, springSettingsFor(chosen, ENV));
 });

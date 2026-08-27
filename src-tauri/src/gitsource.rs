@@ -28,6 +28,32 @@ const TOTAL_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(5 * 60
 /// Widget packs are source, so this is generous but not unbounded.
 const MAX_ARCHIVE: u64 = 64 * 1024 * 1024;
 
+/// What the compressed cap does not cover.
+///
+/// Deflate reaches something like a thousand to one on repetitive text, so a
+/// zipball that passes [`MAX_ARCHIVE`] can still write tens of gigabytes on the
+/// way out. The download is bounded; the unpack has to be bounded separately,
+/// or pressing "Look" on a repository fills the disk before anybody has decided
+/// to install anything.
+const MAX_UNPACKED: u64 = 256 * 1024 * 1024;
+const MAX_ENTRY: u64 = 32 * 1024 * 1024;
+const MAX_ENTRIES: usize = 20_000;
+
+/// What one unpack is allowed to cost. Kept apart from the constants so the
+/// tests can drive the same code with a budget small enough to reach quickly.
+#[derive(Debug, Clone, Copy)]
+struct Budget {
+    total: u64,
+    entry: u64,
+    entries: usize,
+}
+
+const DEFAULT_BUDGET: Budget = Budget {
+    total: MAX_UNPACKED,
+    entry: MAX_ENTRY,
+    entries: MAX_ENTRIES,
+};
+
 /// Which repository an add-on comes from.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Repo {
@@ -257,9 +283,28 @@ fn safe_relative(name: &str) -> Option<PathBuf> {
 /// installed at all - `LuaUI/Widgets` and `LuaUI/Config` mean very different
 /// things.
 pub fn unpack_tree(bytes: &[u8], into: &Path) -> Result<usize, String> {
+    unpack_within(bytes, into, DEFAULT_BUDGET).inspect_err(|_| {
+        // Nothing downstream can use half a tree, and leaving it behind on a
+        // full disk is the one case where the next fetch cannot clear it.
+        std::fs::remove_dir_all(into).ok();
+    })
+}
+
+fn too_big() -> String {
+    "the repository unpacks to more than this will install; it is not a widget pack".to_string()
+}
+
+fn unpack_within(bytes: &[u8], into: &Path, budget: Budget) -> Result<usize, String> {
     let mut zip = zip::ZipArchive::new(std::io::Cursor::new(bytes))
         .map_err(|e| format!("not a zip: {e}"))?;
+    if zip.len() > budget.entries {
+        return Err(format!(
+            "the repository holds {} files, which is more than a widget pack is",
+            zip.len()
+        ));
+    }
     let mut written = 0;
+    let mut total: u64 = 0;
     for i in 0..zip.len() {
         let mut f = zip
             .by_index(i)
@@ -270,6 +315,13 @@ pub fn unpack_tree(bytes: &[u8], into: &Path) -> Result<usize, String> {
         let Some(rel) = strip_top_level(f.name()).and_then(safe_relative) else {
             continue;
         };
+        // The declared size is what the zip's own directory says, so refusing
+        // on it costs nothing and never touches the disk. It is a claim rather
+        // than a fact, which is why the copy below is capped as well.
+        let declared = f.size();
+        if declared > budget.entry || total.saturating_add(declared) > budget.total {
+            return Err(too_big());
+        }
         let out = into.join(&rel);
         if let Some(dir) = out.parent() {
             std::fs::create_dir_all(dir)
@@ -277,8 +329,13 @@ pub fn unpack_tree(bytes: &[u8], into: &Path) -> Result<usize, String> {
         }
         let mut w = std::fs::File::create(&out)
             .map_err(|e| format!("could not write {}: {e}", out.display()))?;
-        std::io::copy(&mut f, &mut w)
+        let cap = budget.entry.min(budget.total - total);
+        let n = std::io::copy(&mut (&mut f).take(cap + 1), &mut w)
             .map_err(|e| format!("could not write {}: {e}", out.display()))?;
+        if n > cap {
+            return Err(too_big());
+        }
+        total += n;
         written += 1;
     }
     Ok(written)
@@ -346,6 +403,100 @@ mod tests {
             safe_relative("LuaUI/Widgets/x.lua"),
             Some(PathBuf::from("LuaUI").join("Widgets").join("x.lua"))
         );
+    }
+
+    /// A zipball wrapper directory plus one entry per (name, size), filled
+    /// with zeroes so it compresses the way a hostile pack would.
+    fn zipball(entries: &[(&str, usize)]) -> Vec<u8> {
+        use std::io::Write;
+        let mut buf = Vec::new();
+        {
+            let mut w = zip::ZipWriter::new(std::io::Cursor::new(&mut buf));
+            let opts: zip::write::FileOptions<()> = zip::write::FileOptions::default()
+                .compression_method(zip::CompressionMethod::Deflated);
+            let chunk = vec![0u8; 64 * 1024];
+            for (name, size) in entries {
+                w.start_file(format!("owner-repo-abc1234/{name}"), opts)
+                    .unwrap();
+                let mut left = *size;
+                while left > 0 {
+                    let n = left.min(chunk.len());
+                    w.write_all(&chunk[..n]).unwrap();
+                    left -= n;
+                }
+            }
+            w.finish().unwrap();
+        }
+        buf
+    }
+
+    fn scratch(tag: &str) -> PathBuf {
+        let dir = std::env::temp_dir().join(format!("shiro-unpack-{tag}-{}", std::process::id()));
+        std::fs::remove_dir_all(&dir).ok();
+        std::fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
+    /// The download cap counts compressed bytes, and deflate hides the rest.
+    /// This zip is a few hundred kilobytes and asks for 270 MiB of disk, which
+    /// is the whole shape of the problem.
+    #[test]
+    fn a_small_archive_may_not_inflate_onto_the_whole_disk() {
+        let mb = 1024 * 1024;
+        let entries: Vec<(String, usize)> = (0..9)
+            .map(|i| (format!("LuaUI/Widgets/pad{i}.lua"), 30 * mb))
+            .collect();
+        let refs: Vec<(&str, usize)> = entries.iter().map(|(n, s)| (n.as_str(), *s)).collect();
+        let bytes = zipball(&refs);
+        assert!(bytes.len() < MAX_ARCHIVE as usize, "the download cap passes it");
+
+        let dir = scratch("inflate");
+        let err = unpack_tree(&bytes, &dir).expect_err("270 MiB was allowed onto the disk");
+        assert!(err.contains("unpacks to more"), "{err}");
+        assert!(!dir.exists(), "the partial tree was left behind");
+    }
+
+    /// The same rule at a budget the test can reach without moving megabytes,
+    /// so both the running total and the per-entry cap are exercised.
+    #[test]
+    fn the_budget_counts_the_running_total_and_each_entry() {
+        let small = Budget { total: 4096, entry: 1024, entries: 16 };
+
+        let dir = scratch("total");
+        let bytes = zipball(&[("a.lua", 900), ("b.lua", 900), ("c.lua", 900), ("d.lua", 900), ("e.lua", 900)]);
+        let err = unpack_within(&bytes, &dir, small).expect_err("4500 bytes fitted in 4096");
+        assert!(err.contains("unpacks to more"), "{err}");
+        std::fs::remove_dir_all(&dir).ok();
+
+        let dir = scratch("entry");
+        let bytes = zipball(&[("one.lua", 2000)]);
+        let err = unpack_within(&bytes, &dir, small).expect_err("a 2000 byte entry fitted in 1024");
+        assert!(err.contains("unpacks to more"), "{err}");
+        std::fs::remove_dir_all(&dir).ok();
+
+        // And a pack that fits is still unpacked, byte for byte.
+        let dir = scratch("fits");
+        let bytes = zipball(&[("Widgets/x.lua", 100), ("Widgets/y.lua", 100)]);
+        assert_eq!(unpack_within(&bytes, &dir, small).unwrap(), 2);
+        assert_eq!(
+            std::fs::read(dir.join("Widgets").join("x.lua")).unwrap().len(),
+            100
+        );
+        std::fs::remove_dir_all(&dir).ok();
+    }
+
+    /// A repository can hold more files than a widget pack ever does, and each
+    /// one costs an inode and a directory entry even when it is empty.
+    #[test]
+    fn a_repository_of_nothing_but_files_is_refused_on_the_count() {
+        let names: Vec<String> = (0..20).map(|i| format!("Widgets/w{i}.lua")).collect();
+        let refs: Vec<(&str, usize)> = names.iter().map(|n| (n.as_str(), 1usize)).collect();
+        let bytes = zipball(&refs);
+        let dir = scratch("count");
+        let err = unpack_within(&bytes, &dir, Budget { total: 1 << 20, entry: 1 << 10, entries: 8 })
+            .expect_err("20 entries fitted in a limit of 8");
+        assert!(err.contains("more than a widget pack"), "{err}");
+        std::fs::remove_dir_all(&dir).ok();
     }
 
     #[test]

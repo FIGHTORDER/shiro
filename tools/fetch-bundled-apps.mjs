@@ -101,10 +101,19 @@ for (const app of bundledEntries()) {
   writeFileSync(tmpZip, zip);
 
   if (process.platform === "win32") {
+    /* The paths go through the environment rather than into the command text.
+       PowerShell escapes a literal quote by doubling it, and these are absolute
+       paths from wherever the repository was checked out - one apostrophe in a
+       folder name (C:\Users\O'Brien\...) ended the string early and turned the
+       command into a parse error, or something else entirely. Nothing here
+       needs quoting because nothing here is text any more. */
     execFileSync("powershell", [
       "-NoProfile", "-Command",
-      `Expand-Archive -LiteralPath '${tmpZip}' -DestinationPath '${tmpDir}' -Force`,
-    ], { stdio: "inherit" });
+      "Expand-Archive -LiteralPath $env:SHIRO_ZIP -DestinationPath $env:SHIRO_DEST -Force",
+    ], {
+      stdio: "inherit",
+      env: { ...process.env, SHIRO_ZIP: tmpZip, SHIRO_DEST: tmpDir },
+    });
   } else {
     execFileSync("unzip", ["-oq", tmpZip, "-d", tmpDir], { stdio: "inherit" });
   }

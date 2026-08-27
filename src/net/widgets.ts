@@ -22,6 +22,24 @@ export interface InstalledWidget {
   enabled: boolean;
   /** Shiro installed it, so Shiro may remove it. */
   ours: boolean;
+  /** The add-on that put it there, if one did. Removal works on the add-on,
+      not on the single file. */
+  addon?: string;
+}
+
+/** An unpacked add-on, and everything it wrote. */
+export interface InstalledAddon {
+  id: string;
+  repo?: string;
+  /** Paths relative to LuaUI. A replacing install writes outside Widgets too,
+      so this can be longer than what the widget list shows. */
+  files: string[];
+}
+
+/** The add-ons that can be removed. */
+export function widgetAddons(): Promise<InstalledAddon[]> {
+  if (!inTauri()) return Promise.resolve([]);
+  return invoke<InstalledAddon[]>("zks_widget_addons");
 }
 
 export function widgetList(installRoot?: string): Promise<InstalledWidget[]> {
@@ -82,6 +100,11 @@ export function installWidgets(
   return invoke<string[]>("zks_widget_install", { addon, mode, installRoot });
 }
 
+/** Take an add-on back out. Returns the filenames removed.
+
+    Only files Shiro recorded writing. Anything a replacing install had to move
+    aside is renamed back over them, so a widget the player already had at one
+    of those names comes back rather than staying gone. */
 export function removeWidgets(addon: string, installRoot?: string): Promise<string[]> {
   return invoke<string[]>("zks_widget_remove", { addon, installRoot });
 }

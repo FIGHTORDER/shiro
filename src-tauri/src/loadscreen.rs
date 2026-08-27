@@ -128,8 +128,25 @@ pub fn declined(root: &Path) -> bool {
 ///
 /// `installed` below counts the pictures, so an install left behind by a Shiro
 /// that predated them is repaired here rather than reported as fine.
+///
+/// An addon Shiro did not write is left alone. `remove` already refuses to
+/// delete one, and the two halves disagreeing about the same file meant the
+/// unattended half was the destructive one: somebody who hand-authored their
+/// own `LuaIntro/Addons/main.lua` in a managed install lost it at the next
+/// start, with no message and no copy kept. `install` still replaces it -
+/// that one is a switch somebody pressed.
 pub fn ensure_default(root: &Path) -> Result<(), String> {
+    /* Nothing is loading, so nothing should be claiming to. Shiro closed during
+    a match never clears the match file - the clear lives in the launch
+    supervisor thread, which dies with the process - and an engine started out
+    of this directory by hand then draws the roster of a match that finished
+    days ago. Startup is the next moment Shiro can say otherwise. */
+    crate::sidecar::clear(root);
     if declined(root) || current(root) {
+        return Ok(());
+    }
+    let file = path(root);
+    if file.exists() && !ours(&file) {
         return Ok(());
     }
     install(root)
@@ -282,6 +299,54 @@ mod tests {
         assert!(!installed(&dir));
         ensure_default(&dir).unwrap();
         assert!(installed(&dir), "not in place after the root was prepared");
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn a_screen_somebody_else_wrote_survives_a_restart() {
+        /* The two halves have to agree about whose file this is. `remove`
+        already refuses an addon Shiro did not write; seeding used to write
+        over one, unasked, at every start - so a hand-authored screen in a
+        managed install disappeared with no message and no copy kept, and the
+        one path that destroyed it was the one nobody triggered. */
+        let dir = temp("foreign-screen");
+        let file = path(&dir);
+        std::fs::create_dir_all(file.parent().unwrap()).unwrap();
+        let mine = "-- my own load screen, please leave it here\n";
+        std::fs::write(&file, mine).unwrap();
+
+        ensure_default(&dir).unwrap();
+        assert_eq!(
+            std::fs::read_to_string(&file).unwrap(),
+            mine,
+            "startup seeding overwrote a screen Shiro did not write"
+        );
+        // And the switch reads it honestly: this is not Shiro's screen.
+        assert!(!installed(&dir));
+
+        // Asked for by name, it is still replaced - that is a switch somebody
+        // pressed, and the answer to it is yes.
+        install(&dir).unwrap();
+        assert!(installed(&dir));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn a_match_left_over_from_last_time_does_not_outlive_a_restart() {
+        /* Shiro closed while the engine is running never reaches the clear in
+        the launch supervisor - that thread dies with the process - so the
+        roster stays on disk. An engine started out of this directory by hand
+        would draw it in front of an unrelated game. */
+        let dir = temp("stale-match");
+        ensure_default(&dir).unwrap();
+        let sidecar = crate::sidecar::path(&dir);
+        std::fs::write(&sidecar, "-- last week's match\n").unwrap();
+
+        ensure_default(&dir).unwrap();
+        assert!(
+            !sidecar.exists(),
+            "a roster from a finished match was left for the next engine to read"
+        );
         let _ = std::fs::remove_dir_all(&dir);
     }
 

@@ -87,6 +87,33 @@ test("typing again after a completion starts a fresh one", () => {
     "Shadowfuryx matches nobody, so this is not a cycle");
 });
 
+test("a cycle survives the people it was cycling through leaving", () => {
+  /* The candidates are the live room roster, rebuilt on every keystroke. Cycle
+     to the second of three, have two of them log off, press Tab again: the old
+     index no longer names anybody in the new list. */
+  const before = [["Shadowfury", "shadowplay", "shady"]];
+  const first = completeAt("sha", 3, before);
+  assert.equal(first?.text, "Shadowfury");
+  const second = completeAt(first!.text, first!.caret, before, first!);
+  assert.equal(second?.text, "shadowplay");
+
+  const after = [["shady"]];
+  const third = completeAt(second!.text, second!.caret, after, second!);
+  assert.equal(third?.text, "shady", "the name in the box was not replaced");
+  assert.equal(third?.caret, "shady".length);
+});
+
+test("a cycle whose place has run off the end starts again at the first match", () => {
+  const before = [["Shadowfury", "shadowplay", "shady", "shark"]];
+  let c = completeAt("sha", 3, before);
+  for (let i = 0; i < 2; i++) c = completeAt(c!.text, c!.caret, before, c!);
+  assert.equal(c?.text, "shady", "the third match");
+
+  const after = [["Shadowfury", "shadowplay"]];
+  const next = completeAt(c!.text, c!.caret, after, c!);
+  assert.equal(next?.text, "Shadowfury");
+});
+
 test("the same person listed twice is offered once", () => {
   assert.deepEqual(matchesFor("qrow", [["Qrow"], ["qrow"]]), ["Qrow"]);
 });

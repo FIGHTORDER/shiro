@@ -68,14 +68,28 @@ impl InstallGuard {
 }
 
 /// The platform directory Zero-K files engines under, and the one the download
-/// URL uses. The same four names appear in both.
+/// URL uses. The same names appear in both.
+///
+/// The single definition: detection in `install` has to look exactly where
+/// `ensure` writes, and a second copy of this that disagreed off win64/linux64
+/// made a managed install invisible to it.
 pub fn platform() -> &'static str {
-    if cfg!(windows) {
-        if cfg!(target_pointer_width = "64") { "win64" } else { "win32" }
-    } else if cfg!(target_pointer_width = "64") {
-        "linux64"
-    } else {
-        "linux32"
+    platform_for(
+        cfg!(windows),
+        cfg!(target_os = "macos"),
+        cfg!(target_pointer_width = "64"),
+    )
+}
+
+/// Split from the `cfg!`s so every target's answer can be checked from one
+/// machine, which is the only way a mistake here shows up before shipping.
+fn platform_for(windows: bool, macos: bool, bits64: bool) -> &'static str {
+    match (windows, macos, bits64) {
+        (true, _, true) => "win64",
+        (true, _, false) => "win32",
+        (_, true, _) => "osx64",
+        (_, _, true) => "linux64",
+        (_, _, false) => "linux32",
     }
 }
 
@@ -209,6 +223,15 @@ fn staging_dir(dir: &Path, version: &str) -> Result<PathBuf, String> {
     Ok(parent.join(format!(".partial-{version}")))
 }
 
+/// Where the downloaded zip lands, beside its staging directory.
+///
+/// Built by name for the same reason: `set_extension` on `.partial-2025.06.21`
+/// replaces the last dot-segment, so every version in a series would download
+/// into one `.partial-2025.06.zip`.
+fn staging_package(dir: &Path, version: &str) -> Result<PathBuf, String> {
+    Ok(staging_dir(dir, version)?.with_file_name(format!(".partial-{version}.zip")))
+}
+
 /// Download and install an engine, unless it is already here.
 ///
 /// `on_progress` is called with (received, total); total is 0 when the server
@@ -257,8 +280,7 @@ pub fn ensure(
     // replaces the last dot-segment, so 2025.06.21 and 2025.06.22 would both
     // stage as `2025.06.partial` and collide.
     let staging = staging_dir(&dir, version)?;
-    let mut package = staging.clone();
-    package.set_extension("zip");
+    let package = staging_package(&dir, version)?;
 
     let total = res.content_length().unwrap_or(0);
     if total > MAX_PACKAGE {
@@ -355,8 +377,8 @@ mod tests {
     }
 
     #[test]
-    fn the_platform_is_one_of_the_four_zero_k_files_engines_under() {
-        assert!(matches!(platform(), "win64" | "win32" | "linux64" | "linux32"));
+    fn the_platform_is_one_zero_k_files_engines_under() {
+        assert!(matches!(platform(), "win64" | "win32" | "osx64" | "linux64" | "linux32"));
     }
 
     #[test]
@@ -403,6 +425,18 @@ mod tests {
         let _ = std::fs::remove_dir_all(&dir);
     }
 
+    /// `install` used to work this out a second time and get macOS and the
+    /// 32-bit targets different answers, which put a managed install in a
+    /// directory detection never looked in.
+    #[test]
+    fn every_target_gets_the_directory_zero_k_files_engines_under() {
+        assert_eq!(platform_for(true, false, true), "win64");
+        assert_eq!(platform_for(true, false, false), "win32");
+        assert_eq!(platform_for(false, true, true), "osx64");
+        assert_eq!(platform_for(false, false, true), "linux64");
+        assert_eq!(platform_for(false, false, false), "linux32");
+    }
+
     #[test]
     fn staging_never_collides_between_two_versions() {
         // `with_extension` would make both of these `2025.06.partial`, so an
@@ -414,6 +448,24 @@ mod tests {
         // And neither can be mistaken for an installed version.
         assert_ne!(a, engine_dir(root, "2025.06.21"));
         assert!(a.file_name().unwrap().to_str().unwrap().starts_with(".partial-"));
+    }
+
+    /// The zip has to keep the version too. `set_extension` dropped it:
+    /// `.partial-2025.06.21` became `.partial-2025.06.zip`, one file for the
+    /// whole series.
+    #[test]
+    fn the_staging_zip_keeps_the_whole_version() {
+        let root = Path::new("/zk");
+        let a = staging_package(&engine_dir(root, "2025.06.21"), "2025.06.21").unwrap();
+        let b = staging_package(&engine_dir(root, "2025.06.22"), "2025.06.22").unwrap();
+        assert_ne!(a, b);
+        assert_eq!(a.file_name().unwrap(), ".partial-2025.06.21.zip");
+        // And a hash-suffixed version keeps all of it as well.
+        let c = staging_package(&engine_dir(root, "104.0.1-567-gc484c10"), "104.0.1-567-gc484c10")
+            .unwrap();
+        assert_eq!(c.file_name().unwrap(), ".partial-104.0.1-567-gc484c10.zip");
+        // Beside the staging directory, not inside it.
+        assert_eq!(a.parent(), staging_dir(&engine_dir(root, "2025.06.21"), "2025.06.21").unwrap().parent());
     }
 
     #[test]

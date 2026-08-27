@@ -2,6 +2,7 @@ import React from "react";
 
 import { aspectFromImage, buildMesh } from "./mapmesh.ts";
 import { FRAG, VERT } from "./mapshaders.ts";
+import { profileOf } from "./mapwater.ts";
 
 /* An orbit view of a Zero-K map, built from the two pictures the site already
    publishes: the heightmap for shape and the minimap for colour.
@@ -71,22 +72,6 @@ function loadImage(src) {
 /* Read the heightmap back as numbers. A data URL counts as same-origin, so the
    canvas is not tainted and getImageData is allowed. Fetching these straight
    from zero-k.info would taint it, which is why the bytes come through Rust. */
-/**
- * How the terrain is distributed, as 101 buckets of normalised height.
- *
- * Enough to answer "how much of this map is under a given waterline" to the
- * nearest percent without holding on to the whole grid or re-reading pixels
- * every time the slider moves.
- */
-function profileOf(heights) {
-  const buckets = new Array(101).fill(0);
-  for (let i = 0; i < heights.length; i++) {
-    const b = Math.min(100, Math.max(0, Math.round(heights[i] * 100)));
-    buckets[b]++;
-  }
-  return { buckets, total: heights.length };
-}
-
 function heightsFrom(img, cols, rows) {
   const c = document.createElement("canvas");
   c.width = cols;
@@ -126,6 +111,11 @@ export default function Map3D({
   const liveRef = React.useRef({ water, showWater });
   const [error, setError] = React.useState(null);
   const [ready, setReady] = React.useState(false);
+  /* A driver reset, a laptop switching GPUs, or the browser reclaiming a
+     context takes every buffer, texture and program with it. Bumping this
+     re-runs the build effect, which is the only way back. */
+  const [lost, setLost] = React.useState(false);
+  const [rebuild, setRebuild] = React.useState(0);
 
   liveRef.current = { water, showWater };
 
@@ -135,6 +125,24 @@ export default function Map3D({
     let cleanup = () => {};
     setError(null);
     setReady(false);
+
+    /* Registered before anything is built, so a loss during the build is
+       caught too. Without preventDefault the browser will not even try to
+       restore the context. */
+    const canvasNow = canvasRef.current;
+    const onLost = e => {
+      e.preventDefault();
+      cancelAnimationFrame(frame);
+      frame = 0;
+      setReady(false);
+      setLost(true);
+    };
+    const onRestored = () => {
+      setLost(false);
+      setRebuild(n => n + 1);
+    };
+    canvasNow?.addEventListener("webglcontextlost", onLost);
+    canvasNow?.addEventListener("webglcontextrestored", onRestored);
 
     (async () => {
       const canvas = canvasRef.current;
@@ -154,6 +162,8 @@ export default function Map3D({
         setError("This computer has no WebGL, so the 3D view cannot draw.");
         return;
       }
+      // Nothing built on a dead context survives; wait for the restore instead.
+      if (gl.isContextLost()) return;
 
       const cols = Math.max(2, Math.min(GRID_MAX, hImg.naturalWidth));
       const rows = Math.max(2, Math.min(GRID_MAX, hImg.naturalHeight));
@@ -222,6 +232,10 @@ export default function Map3D({
       setReady(true);
 
       const draw = () => {
+        /* Belt and braces for the event handler: every GL call on a lost
+           context is a silent no-op, so a loop that kept rescheduling would
+           burn a frame callback every 16ms against a frozen picture. */
+        if (gl.isContextLost()) return;
         const w = canvas.clientWidth || 1;
         const h = canvas.clientHeight || 1;
         const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -259,8 +273,14 @@ export default function Map3D({
       };
     })();
 
-    return () => { cancelled = true; cancelAnimationFrame(frame); cleanup(); };
-  }, [heightmap, minimap, aspect]);
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(frame);
+      canvasNow?.removeEventListener("webglcontextlost", onLost);
+      canvasNow?.removeEventListener("webglcontextrestored", onRestored);
+      cleanup();
+    };
+  }, [heightmap, minimap, aspect, rebuild]);
 
   const drag = React.useRef(null);
 
@@ -296,12 +316,24 @@ export default function Map3D({
     );
   }
 
+  /* The canvas stays mounted while the context is gone: `webglcontextrestored`
+     is delivered to that element, and unmounting it would mean never hearing
+     the one event that brings the view back. */
   return (
-    <canvas ref={canvasRef}
-      onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp}
-      onPointerCancel={onUp} onWheel={onWheel}
-      style={{ position: "absolute", inset: 0, width: "100%", height: "100%",
-        display: "block", cursor: "grab", touchAction: "none",
-        opacity: ready ? 1 : 0, transition: "opacity 160ms ease" }} />
+    <>
+      <canvas ref={canvasRef}
+        onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp}
+        onPointerCancel={onUp} onWheel={onWheel}
+        style={{ position: "absolute", inset: 0, width: "100%", height: "100%",
+          display: "block", cursor: "grab", touchAction: "none",
+          opacity: ready && !lost ? 1 : 0, transition: "opacity 160ms ease" }} />
+      {lost && (
+        <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center",
+          padding: "var(--sp-5)", textAlign: "center", background: "var(--surface-sunken)",
+          font: "var(--text-ui-sm)", color: "var(--text-low)" }}>
+          The graphics driver dropped the 3D view. Waiting for it to come back.
+        </div>
+      )}
+    </>
   );
 }

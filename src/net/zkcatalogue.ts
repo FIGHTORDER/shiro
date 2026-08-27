@@ -247,16 +247,31 @@ export function ratingRanker(maps: CatalogueMap[]): (m: CatalogueMap) => number 
  * Memoised for the session. It changes when maps are added, not while you play.
  */
 let catalogue: Promise<Map<string, CatalogueMap>> | undefined;
+/** Which attempt is the memoised one, so a late failure clears only its own. */
+let attempts = 0;
 
 export function mapCatalogue(): Promise<Map<string, CatalogueMap>> {
   if (!catalogue) {
+    /* The catch is inside, and forgets the memo on the way out. It used to wrap
+       the whole thing, which meant the empty map a failed fetch fell back to
+       was the memoised answer for the rest of the session: one backend hiccup
+       at the moment Maps was first opened, and every map picker and minimap
+       lookup found nothing until Shiro was restarted. Offline is still not an
+       error to the caller - it just stops being remembered as a catalogue. */
+    const mine = ++attempts;
     catalogue = (async () => {
       if (!inTauri()) return new Map<string, CatalogueMap>();
-      const maps = await invoke<CatalogueMap[]>("zks_map_catalogue");
-      /* Keyed by the normalised name. The lobby sends "Comet Catcher Redux"
-         and the catalogue says "Comet_Catcher_Redux" for the same map. */
-      return new Map(maps.map(m => [normaliseMapName(m.name), m]));
-    })().catch(() => new Map<string, CatalogueMap>());   // offline is not an error here
+      try {
+        const maps = await invoke<CatalogueMap[]>("zks_map_catalogue");
+        /* Keyed by the normalised name. The lobby sends "Comet Catcher Redux"
+           and the catalogue says "Comet_Catcher_Redux" for the same map. */
+        return new Map(maps.map(m => [normaliseMapName(m.name), m]));
+      } catch {
+        // Only this attempt's memo, not one a later call has already replaced.
+        if (attempts === mine) catalogue = undefined;
+        return new Map<string, CatalogueMap>();
+      }
+    })();
   }
   return catalogue;
 }

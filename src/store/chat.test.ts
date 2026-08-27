@@ -1,14 +1,20 @@
 /**
  * Run with:  node --test src/store/chat.test.ts
  *
- * Just the mention rule for now. It earns a file of its own because it is the
- * one piece of chat that is not obvious from reading it: the flag the protocol
- * appears to offer is not the flag you get.
+ * The mention rule earns most of this file because it is the one piece of chat
+ * that is not obvious from reading it: the flag the protocol appears to offer
+ * is not the flag you get. The reconnect tests at the bottom are the other
+ * one - what the server replays on a join is not new.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { mentionsMe } from "./chat.ts";
+import type { Message } from "../protocol/registry.ts";
+import { BACKLOG_SETTLE_MS, mentionsMe, roomKey, useChat } from "./chat.ts";
+
+function msg(cmd: string, data: unknown): Message {
+  return { cmd, data } as unknown as Message;
+}
 
 /* The mark beside a tab had never once appeared. It was keyed on `Say.Ring`,
    and `ZkLobbyServer/ConnectedUser.cs` strips that for any ordinary player in
@@ -82,4 +88,78 @@ test("blank and absent rules ring nothing", () => {
 
 test("Nightwatch stays silent even for a highlight", () => {
   assert.equal(mentionsMe("teams up", "Qrow", "Nightwatch", ["teams"]), false);
+});
+
+/* ------------------------------------------------------------ reconnect ---
+   A reconnect re-joins every channel, and the server answers a join with that
+   channel's backlog. Those lines have all been read already. */
+
+const joined = (channel: string) => useChat.getState().applyMessage(
+  msg("JoinChannelResponse", { Success: true, ChannelName: channel }));
+
+const said = (channel: string, user: string, text: string, time: string) =>
+  msg("Say", { Place: 0, Target: channel, User: user, Text: text, Time: time,
+    IsEmote: false, Ring: false });
+
+/** Push a room's clock back, the way sitting in a channel for an hour does. */
+function age(id: string, ms: number): void {
+  const room = useChat.getState().rooms[id];
+  useChat.setState({ rooms: { ...useChat.getState().rooms,
+    [id]: { ...room, openedAt: room.openedAt - ms } } });
+}
+
+test("the backlog replayed on a reconnect does not light every tab up", () => {
+  const chat = useChat.getState();
+  chat.reset();
+  chat.setMe("Qrow");
+  joined("zk");
+  joined("sy");
+  const lines = [
+    said("sy", "hexed", "anyone for teams", "2026-08-18T09:00:00Z"),
+    said("sy", "lorelei", "in a bit", "2026-08-18T09:00:05Z"),
+    said("sy", "hexed", "nice one Qrow", "2026-08-18T09:00:09Z"),
+  ];
+  useChat.getState().applyBatch(lines);
+  useChat.getState().setActive(roomKey("channel", "zk"));
+
+  const sy = roomKey("channel", "sy");
+  assert.equal(useChat.getState().rooms[sy].unread, 0, "read inside the settle window");
+  age(sy, 60 * 60 * 1000);
+  age(roomKey("channel", "zk"), 60 * 60 * 1000);
+
+  // Dropped and back. Every channel is asked for again and replayed at us.
+  useChat.getState().rejoinChannels();
+  joined("zk");
+  joined("sy");
+  useChat.getState().applyBatch(lines);
+
+  const room = useChat.getState().rooms[sy];
+  assert.equal(room.unread, 0, "the tab lit up for lines already read");
+  assert.equal(room.mention, false, "and rang for a mention already answered");
+  assert.equal(room.messages.length, 3, "the scrollback was said twice");
+});
+
+test("a line said again for real after a reconnect still counts", () => {
+  const chat = useChat.getState();
+  chat.reset();
+  chat.setMe("Qrow");
+  joined("zk");
+  joined("sy");
+  useChat.getState().setActive(roomKey("channel", "zk"));
+  const sy = roomKey("channel", "sy");
+  age(sy, 60 * 60 * 1000);
+
+  useChat.getState().rejoinChannels();
+  joined("sy");
+  useChat.getState().applyBatch([said("sy", "hexed", "gg", "2026-08-18T09:00:00Z")]);
+  useChat.getState().applyBatch([said("sy", "hexed", "wp", "2026-08-18T09:00:00Z")]);
+  assert.equal(useChat.getState().rooms[sy].messages.length, 2,
+    "different words at the same time are a different line");
+
+  // Out of the settle window, so this is the channel talking, not a replay.
+  age(sy, BACKLOG_SETTLE_MS + 1000);
+  useChat.getState().applyBatch([said("sy", "hexed", "gg", "2026-08-18T09:00:00Z")]);
+  const room = useChat.getState().rooms[sy];
+  assert.equal(room.messages.length, 3, "a live line was swallowed as a replay");
+  assert.equal(room.unread, 1);
 });

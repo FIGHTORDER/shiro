@@ -198,6 +198,21 @@ test("a bot is always ready, because it has nothing to download", () => {
   assert.equal(r.teams[0].players[0].sync, "ok");
 });
 
+test("a player on an ally past the last column is still on the screen", () => {
+  /* `!balance 20` in a big custom room hands out ally numbers the columns are
+     capped below. The cap stays - a twenty-first column cannot start a game -
+     but the people up there were counted and then drawn nowhere, so the
+     header said 3/8 beside two rows. */
+  const r = room({
+    Qrow: { Name: "Qrow", AllyNumber: 0 },
+    hexed: { Name: "hexed", AllyNumber: 17 },
+  }, { "CAI (1)": { Name: "CAI (1)", AllyNumber: 19, AiLib: "CAI" } });
+
+  const shown = r.teams.flatMap(t => t.players.map(p => p.user.name)).sort();
+  assert.deepEqual(shown, ["CAI (1)", "Qrow", "hexed"], "somebody is in the room and nowhere on it");
+  assert.equal(r.players, 2, "and the count still says they are here");
+});
+
 test("a spectator gets no mark, because nobody is waiting for one", () => {
   const r = room({ watcher: { Name: "watcher", IsSpectator: true, Sync: 2 } });
   assert.equal(r.spectators[0].sync, undefined);

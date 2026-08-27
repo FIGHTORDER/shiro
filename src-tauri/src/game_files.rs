@@ -36,14 +36,6 @@ const CMDCOLORS: &str = include_str!("templates/cmdcolors_source.txt");
 
 const LUPS_TARGET: &str = "lups.cfg";
 const CMDCOLORS_TARGET: &str = "cmdcolors.txt";
-const INFOLOG: &str = "infolog.txt";
-
-/// How much of the engine's log to hand back for the GPU check.
-///
-/// The driver banner is in the first couple of hundred lines and the scan gives
-/// up at `PostInit` anyway, but a full infolog from a long game runs to many
-/// megabytes and there is no reason to move it across the bridge.
-const INFOLOG_SCAN_BYTES: usize = 64 * 1024;
 
 /// Pick a Lups template by the path upstream names it with.
 ///
@@ -110,42 +102,84 @@ fn data_file(root: &Path, name: &str) -> PathBuf {
     root.join(name)
 }
 
+/// Write a config file whole, or leave the old one alone.
+///
+/// `fs::write` truncates and then writes, so a crash in between leaves a short
+/// file where a config was. `springsettings.cfg` is the one that hurts: it is
+/// read-modify-written, so a bad moment there loses the hundred-odd settings
+/// the user never touched, not just the one being saved. A sibling temp file
+/// keeps the rename on one volume, which is what makes it a replacement rather
+/// than a second truncating write.
+///
+/// Lives here because `engine_settings` and `sidecar` write the same kind of
+/// file for the same reason.
+pub fn write_atomic(path: &Path, data: &str) -> Result<(), String> {
+    let Some(name) = path.file_name() else {
+        return Err(format!("{} is not a file", path.display()));
+    };
+    let tmp = path.with_file_name(format!(".{}.shiro-new", name.to_string_lossy()));
+
+    let staged = (|| -> std::io::Result<()> {
+        use std::io::Write;
+        let mut f = std::fs::File::create(&tmp)?;
+        f.write_all(data.as_bytes())?;
+        f.sync_all()
+    })();
+
+    /* Same error text either way: which half failed is our business, and the
+       user's question is only whether the file was saved. On Windows the
+       rename is the half that refuses while the engine holds the file open. */
+    let done = staged.and_then(|()| std::fs::rename(&tmp, path));
+    if let Err(e) = done {
+        let _ = std::fs::remove_file(&tmp);
+        return Err(format!("could not write {}: {e}", path.display()));
+    }
+    Ok(())
+}
+
 // -------------------------------------------------------------- commands ----
 
-/// The head of the engine's own log, for the ATI/Intel compatibility check.
+/// Run a command body off the thread that draws the window.
 ///
-/// A missing log is not an error - the engine has simply never run here - and
-/// the caller treats `None` the way upstream does.
-#[tauri::command]
-pub fn zks_read_infolog(install_root: Option<String>) -> Result<Option<String>, String> {
-    let found = install::detect_with(install_root.as_deref())?;
-    let path = data_file(&found.root, INFOLOG);
-    match std::fs::read(&path) {
-        Ok(bytes) => {
-            let head = &bytes[..bytes.len().min(INFOLOG_SCAN_BYTES)];
-            Ok(Some(String::from_utf8_lossy(head).into_owned()))
-        }
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(None),
-        Err(e) => Err(format!("could not read {}: {e}", path.display())),
-    }
+/// Every command here detects the install first, which probes a list of
+/// directories, and then reads or writes a file. Small, but all of it is disk.
+async fn spawn<T, F>(work: F) -> Result<T, String>
+where
+    T: Send + 'static,
+    F: FnOnce() -> Result<T, String> + Send + 'static,
+{
+    tauri::async_runtime::spawn_blocking(work)
+        .await
+        .map_err(|e| format!("reading the install did not finish: {e}"))?
 }
 
 /// The generated `lups.cfg` as it stands, so the settings screen can open
 /// showing what the six Lups settings are actually set to.
 #[tauri::command]
-pub fn zks_read_lups(install_root: Option<String>) -> Result<Option<String>, String> {
-    let found = install::detect_with(install_root.as_deref())?;
-    let path = data_file(&found.root, LUPS_TARGET);
-    match std::fs::read_to_string(&path) {
-        Ok(text) => Ok(Some(text)),
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(None),
-        Err(e) => Err(format!("could not read {}: {e}", path.display())),
-    }
+pub async fn zks_read_lups(install_root: Option<String>) -> Result<Option<String>, String> {
+    spawn(move || {
+        let found = install::detect_with(install_root.as_deref())?;
+        let path = data_file(&found.root, LUPS_TARGET);
+        match std::fs::read_to_string(&path) {
+            Ok(text) => Ok(Some(text)),
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(None),
+            Err(e) => Err(format!("could not read {}: {e}", path.display())),
+        }
+    })
+    .await
 }
 
 /// Regenerate `lups.cfg` from the template `upstream_path` names.
 #[tauri::command]
-pub fn zks_write_lups(
+pub async fn zks_write_lups(
+    install_root: Option<String>,
+    upstream_path: String,
+    subs: BTreeMap<String, String>,
+) -> Result<(), String> {
+    spawn(move || write_lups_blocking(install_root, upstream_path, subs)).await
+}
+
+fn write_lups_blocking(
     install_root: Option<String>,
     upstream_path: String,
     subs: BTreeMap<String, String>,
@@ -159,12 +193,19 @@ pub fn zks_write_lups(
     }
     let found = install::detect_with(install_root.as_deref())?;
     let path = data_file(&found.root, LUPS_TARGET);
-    std::fs::write(&path, text).map_err(|e| format!("could not write {}: {e}", path.display()))
+    write_atomic(&path, &text)
 }
 
 /// Regenerate `cmdcolors.txt` from the two alpha sliders.
 #[tauri::command]
-pub fn zks_write_cmdcolors(
+pub async fn zks_write_cmdcolors(
+    install_root: Option<String>,
+    subs: BTreeMap<String, String>,
+) -> Result<(), String> {
+    spawn(move || write_cmdcolors_blocking(install_root, subs)).await
+}
+
+fn write_cmdcolors_blocking(
     install_root: Option<String>,
     subs: BTreeMap<String, String>,
 ) -> Result<(), String> {
@@ -175,7 +216,7 @@ pub fn zks_write_cmdcolors(
     }
     let found = install::detect_with(install_root.as_deref())?;
     let path = data_file(&found.root, CMDCOLORS_TARGET);
-    std::fs::write(&path, text).map_err(|e| format!("could not write {}: {e}", path.display()))
+    write_atomic(&path, &text)
 }
 
 #[cfg(test)]
@@ -184,6 +225,48 @@ mod tests {
 
     fn subs(pairs: &[(&str, &str)]) -> BTreeMap<String, String> {
         pairs.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect()
+    }
+
+    fn temp(name: &str) -> PathBuf {
+        let dir = std::env::temp_dir().join(format!("shiro-gamefiles-{name}"));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
+    /// A config is replaced, never truncated in place, and the temp file does
+    /// not survive the write. What cannot be tested here is the crash itself;
+    /// what can is that the old content is whole until the rename and that
+    /// nothing is left beside it afterwards.
+    #[test]
+    fn a_config_is_replaced_rather_than_truncated() {
+        let dir = temp("atomic-write");
+        let path = dir.join("springsettings.cfg");
+        std::fs::write(&path, "FontSize = 18\nXResolution = 1920\n").unwrap();
+
+        write_atomic(&path, "FontSize = 24\nXResolution = 1920\n").unwrap();
+        assert_eq!(
+            std::fs::read_to_string(&path).unwrap(),
+            "FontSize = 24\nXResolution = 1920\n"
+        );
+
+        let left: Vec<String> = std::fs::read_dir(&dir)
+            .unwrap()
+            .flatten()
+            .map(|e| e.file_name().to_string_lossy().into_owned())
+            .collect();
+        assert_eq!(left, ["springsettings.cfg"], "a temp file was left behind");
+
+        // A path that does not exist yet is a create, same as `fs::write`.
+        let fresh = dir.join("cmdcolors.txt");
+        write_atomic(&fresh, "alpha 0.5\n").unwrap();
+        assert_eq!(std::fs::read_to_string(&fresh).unwrap(), "alpha 0.5\n");
+
+        // And a failure leaves the original alone rather than a short file.
+        let nowhere = dir.join("missing").join("lups.cfg");
+        assert!(write_atomic(&nowhere, "anything").is_err());
+
+        let _ = std::fs::remove_dir_all(&dir);
     }
 
     /// The whole point of vendoring: if a pin bump renames or drops a

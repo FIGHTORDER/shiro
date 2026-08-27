@@ -152,7 +152,29 @@ test("a user who left a battle is not still in it", () => {
   assert.equal(u.BattleID, undefined, "still listed in a battle they left");
   assert.equal(u.AwaySince, undefined, "still greyed out as away");
   assert.equal(u.InGameSince, undefined, "still shown as in a game");
-  assert.equal(u.Clan, "ZKF", "and the rest of the record still merges");
+  assert.equal(u.Clan, "ZKF", "and what the broadcast does carry is kept");
+});
+
+test("a user who left their clan is not still wearing its tag", () => {
+  fresh();
+  useLobby.getState().applyMessage(msg("User", {
+    Name: "hexed", AccountID: 2, Clan: "ZKF", Faction: "Dynasty",
+    Country: "US", Avatar: "corsair", Icon: "supporter", Badges: ["dev"],
+  }));
+  assert.equal(useLobby.getState().users.hexed.Clan, "ZKF");
+
+  /* Same shape of thing as leaving a battle: the record is rebuilt whole and
+     the field is simply gone. Only three names used to be read that way, so
+     the clan tag, the faction and the avatar stayed on screen for the rest of
+     the session. */
+  useLobby.getState().applyMessage(msg("User", { Name: "hexed", AccountID: 2, Country: "US" }));
+  const u = useLobby.getState().users.hexed;
+  assert.equal(u.Clan, undefined, "still in a clan they left");
+  assert.equal(u.Faction, undefined, "still in a faction they left");
+  assert.equal(u.Avatar, undefined);
+  assert.equal(u.Icon, undefined);
+  assert.equal(u.Badges, undefined);
+  assert.equal(u.Country, "US", "and what is still there is still there");
 });
 
 test("a user update that still names a battle keeps it", () => {

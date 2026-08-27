@@ -25,6 +25,22 @@ import { fanout } from "../store/slices";
 export const LOBBY_VERSION = "NewLobby/Shiro 0.1.0";
 
 /**
+ * `Login.UserID` / `Register.UserID`, deliberately nothing.
+ *
+ * The field is required by the protocol and upstream fills it with a number
+ * derived from the machine - a hardware fingerprint the server uses to link
+ * installs when it is hunting smurfs and ban evaders. Shiro does not
+ * fingerprint the machine, and inventing a value here would be worse than
+ * sending none: a made-up id that is stable per install is a fingerprint by
+ * another name, and one that is not stable is noise in somebody's ban records.
+ *
+ * `InstallID` goes out beside it and already carries a real per-install value
+ * (see `installIdentity`), so the account is identifiable to the degree this
+ * client intends. Zero is the answer, not an unfinished field.
+ */
+const NO_HARDWARE_USER_ID = 0;
+
+/**
  * Reconnect backoff, in milliseconds, then every 30s.
  *
  * Deliberately not aggressive. A reconnect loop hammering a production game
@@ -267,7 +283,7 @@ export async function login(
       void sendLine(serialize("Login", {
         Name: creds.name,
         PasswordHash: hash,
-        UserID: 0,
+        UserID: NO_HARDWARE_USER_ID,
         InstallID: installId,
         ClientType: CLIENT_TYPE_ZKLOBBY,
         LobbyVersion: LOBBY_VERSION,
@@ -332,7 +348,7 @@ export async function register(
           Name: creds.name,
           PasswordHash: hash,
           Email: email,
-          UserID: 0,
+          UserID: NO_HARDWARE_USER_ID,
           InstallID: installId,
         }));
       }

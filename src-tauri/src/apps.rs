@@ -167,6 +167,15 @@ pub struct AppStatus {
     /// The version on disk, when we recorded one.
     pub installed_version: Option<String>,
     pub path: Option<String>,
+    /// Why this app cannot be used on this machine, if it cannot.
+    ///
+    /// `why_not` already blocked the install and the launch, but its answer
+    /// stopped in Rust: the catalogue's own `unavailable` is a compile-time
+    /// constant and is None for every entry, so on Linux every row drew an
+    /// Install button for a Windows .exe and every press failed. The reason is
+    /// worked out per machine, so it belongs on the status rather than the
+    /// catalogue.
+    pub unavailable: Option<String>,
 }
 
 /// Where installed apps live: Shiro's own data directory, never the Zero-K one.
@@ -194,10 +203,6 @@ pub fn apps_dir_with(app: &tauri::AppHandle, root: Option<&str>) -> Result<PathB
     Ok(base.join("apps"))
 }
 
-fn app_dir(app: &tauri::AppHandle, id: &str) -> Result<PathBuf, String> {
-    app_dir_with(app, id, None)
-}
-
 fn app_dir_with(app: &tauri::AppHandle, id: &str, root: Option<&str>) -> Result<PathBuf, String> {
     if !id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-') {
         return Err(format!("not an app id: {id:?}"));
@@ -223,11 +228,35 @@ pub fn zka_catalogue() -> Vec<CatalogueApp> {
 /// Read from disk every time rather than remembered: a person who deletes the
 /// directory has uninstalled it, and a launcher that disagrees is worse than
 /// one that is a little slower.
+///
+/// Seeds the bundled apps into the folder it is asked about, first. Startup
+/// seeding runs before any window exists and so knows only the default folder,
+/// while the chosen one lives in a frontend setting - so pointing Shiro at
+/// another drive used to put the bundled Sprofiler somewhere the Apps screen
+/// never looks, and offer a 9 MB download of a file already on disk. This is
+/// the first moment Rust is told which folder the player means.
+///
+/// Off the main thread, as the installer is: seeding can copy that 9 MB.
 #[tauri::command]
-pub fn zka_status(app: tauri::AppHandle, apps_root: Option<String>) -> Result<Vec<AppStatus>, String> {
+pub async fn zka_status(
+    app: tauri::AppHandle,
+    apps_root: Option<String>,
+) -> Result<Vec<AppStatus>, String> {
+    tauri::async_runtime::spawn_blocking(move || status_blocking(&app, apps_root.as_deref()))
+        .await
+        .map_err(|e| format!("could not read the app folder: {e}"))?
+}
+
+fn status_blocking(app: &tauri::AppHandle, apps_root: Option<&str>) -> Result<Vec<AppStatus>, String> {
+    /* Best effort: a folder that cannot be seeded is still a folder worth
+    reporting the truth about, and the row falls back to offering the
+    download it would have offered anyway. */
+    if let Err(e) = seed_bundled_with(app, apps_root) {
+        eprintln!("could not place the bundled apps: {e}");
+    }
     let mut out = Vec::new();
     for a in CATALOGUE {
-        let dir = app_dir_with(&app, a.id, apps_root.as_deref())?;
+        let dir = app_dir_with(app, a.id, apps_root)?;
         let exe = a.run.map(|r| dir.join(r));
         let installed = exe.as_deref().map(Path::is_file).unwrap_or(false);
         let version = std::fs::read_to_string(dir.join("installed-version"))
@@ -239,6 +268,7 @@ pub fn zka_status(app: tauri::AppHandle, apps_root: Option<String>) -> Result<Ve
             installed,
             installed_version: version,
             path: exe.filter(|_| installed).map(|p| p.display().to_string()),
+            unavailable: why_not(a),
         });
     }
     Ok(out)
@@ -270,27 +300,36 @@ fn why_not(a: &CatalogueApp) -> Option<String> {
 /// uninstalling deletes that directory - the note has to outlive the thing it
 /// is about. Without it, every launch would helpfully reinstall the app the
 /// user just removed, which is the kind of helpfulness nobody asks for twice.
-fn removal_marker(app: &tauri::AppHandle, id: &str) -> Result<PathBuf, String> {
-    removal_marker_with(app, id, None)
-}
-
+///
+/// A sibling of the *chosen* folder's directory, not the default one's. A
+/// note filed somewhere other than beside the thing it describes says nothing
+/// about it: an uninstall from a folder the player picked used to leave the
+/// note in the default folder, where seeding read it and skipped an app that
+/// was never removed there.
 fn removal_marker_with(
     app: &tauri::AppHandle,
     id: &str,
     root: Option<&str>,
 ) -> Result<PathBuf, String> {
-    let _ = &app;
-    let _ = root;
     Ok(apps_dir_with(app, root)?.join(format!("{id}.removed")))
 }
 
-/// Put bundled apps in place, once, on startup.
+/// Put bundled apps in the default folder, once, on startup.
+pub fn seed_bundled(app: &tauri::AppHandle) -> Result<(), String> {
+    seed_bundled_with(app, None)
+}
+
+/// Put bundled apps in place, once, for one apps folder.
 ///
 /// Three things stop this: the app is already there, the user removed it, or
 /// this build has no bundled copy to place. A version mismatch does *not* stop
 /// it - a Shiro carrying a newer Sprofiler should hand it over rather than make
 /// the user download what it already has.
-pub fn seed_bundled(app: &tauri::AppHandle) -> Result<(), String> {
+///
+/// Every folder is its own world: the copy and the removal note are siblings,
+/// so a folder the player pointed Shiro at gets the bundled app the first time
+/// it is looked at, and an app removed there stays removed there.
+pub fn seed_bundled_with(app: &tauri::AppHandle, root: Option<&str>) -> Result<(), String> {
     for a in CATALOGUE {
         let (Some(rel), Some(run)) = (a.bundled, a.run) else {
             continue;
@@ -300,11 +339,11 @@ pub fn seed_bundled(app: &tauri::AppHandle) -> Result<(), String> {
         if why_not(a).is_some() {
             continue;
         }
-        if removal_marker(app, a.id)?.exists() {
+        if removal_marker_with(app, a.id, root)?.exists() {
             continue;
         }
 
-        let dir = app_dir(app, a.id)?;
+        let dir = app_dir_with(app, a.id, root)?;
         let exe = dir.join(run);
         let installed_version = std::fs::read_to_string(dir.join("installed-version"))
             .ok()
@@ -364,27 +403,42 @@ fn handed_root(install_root: Option<&str>) -> Option<PathBuf> {
 ///
 /// Only ever from a catalogue entry's own `run` path inside its own directory,
 /// so this cannot be talked into starting something else.
+/// Off the main thread, as the installer is: this stats the executable and
+/// detects the Zero-K directory, both of which touch the disk.
 #[tauri::command]
-pub fn zka_launch(
+pub async fn zka_launch(
     app: tauri::AppHandle,
     id: String,
     install_root: Option<String>,
     apps_root: Option<String>,
 ) -> Result<(), String> {
-    let a = entry(&id)?;
+    tauri::async_runtime::spawn_blocking(move || {
+        launch_blocking(&app, &id, install_root.as_deref(), apps_root.as_deref())
+    })
+    .await
+    .map_err(|e| format!("the launch did not finish: {e}"))?
+}
+
+fn launch_blocking(
+    app: &tauri::AppHandle,
+    id: &str,
+    install_root: Option<&str>,
+    apps_root: Option<&str>,
+) -> Result<(), String> {
+    let a = entry(id)?;
     if let Some(why) = why_not(a) {
         return Err(why);
     }
     let run = a
         .run
         .ok_or_else(|| format!("{} is not something to run", a.name))?;
-    let exe = app_dir_with(&app, a.id, apps_root.as_deref())?.join(run);
+    let exe = app_dir_with(app, a.id, apps_root)?.join(run);
     if !exe.is_file() {
         return Err(format!("{} is not installed", a.name));
     }
     let mut command = Command::new(&exe);
     command.current_dir(exe.parent().unwrap_or(Path::new(".")));
-    if let Some(root) = handed_root(install_root.as_deref()) {
+    if let Some(root) = handed_root(install_root) {
         command.env(ROOT_ENV, root);
     }
     command
@@ -560,7 +614,7 @@ fn install_blocking(
         ));
     }
 
-    let dir = app_dir_with(&app, a.id, apps_root)?;
+    let dir = app_dir_with(app, a.id, apps_root)?;
 
     /* Unpacked beside the install and swapped in, rather than over it.
     Clearing first and unpacking after means a failure between the two
@@ -611,27 +665,41 @@ fn install_blocking(
         .map_err(|e| format!("could not put {} in place: {e}", a.name))?;
     // Asking for it back cancels the note that said not to put it there.
     if a.bundled.is_some() {
-        let _ = std::fs::remove_file(removal_marker(&app, a.id)?);
+        let _ = std::fs::remove_file(removal_marker_with(app, a.id, apps_root)?);
     }
     Ok(())
 }
 
 /// Remove an installed app. Its own directory, and nothing above it.
+/// Off the main thread, as the installer is: removing a directory tree is disk
+/// work, and on Windows it can be slow enough to be seen.
 #[tauri::command]
-pub fn zka_uninstall(
+pub async fn zka_uninstall(
     app: tauri::AppHandle,
     id: String,
     apps_root: Option<String>,
 ) -> Result<(), String> {
-    let a = entry(&id)?;
-    let dir = app_dir_with(&app, a.id, apps_root.as_deref())?;
+    tauri::async_runtime::spawn_blocking(move || {
+        uninstall_blocking(&app, &id, apps_root.as_deref())
+    })
+    .await
+    .map_err(|e| format!("the removal did not finish: {e}"))?
+}
+
+fn uninstall_blocking(
+    app: &tauri::AppHandle,
+    id: &str,
+    apps_root: Option<&str>,
+) -> Result<(), String> {
+    let a = entry(id)?;
+    let dir = app_dir_with(app, a.id, apps_root)?;
 
     /* The note goes down before the directory does. Written afterwards, a
     failed write - or a crash between the two - left the app removed with
     nothing saying so, and the next start put it straight back. */
     let marker = match a.bundled {
         Some(_) => {
-            let path = removal_marker(&app, a.id)?;
+            let path = removal_marker_with(app, a.id, apps_root)?;
             if let Some(parent) = path.parent() {
                 let _ = std::fs::create_dir_all(parent);
             }

@@ -38,6 +38,8 @@ const PREFIX: &str = "shiro_";
 
 const LUAUI_DIR: &str = "LuaUI";
 const WIDGET_DIR: &str = "LuaUI/Widgets";
+/// The same directory, relative to `LuaUI`, which is how manifests record it.
+const WIDGET_DIR_REL: &str = "Widgets";
 const ORDER_FILE: &str = "LuaUI/Config/ZK_order.lua";
 const DATA_FILE: &str = "LuaUI/Config/ZK_data.lua";
 
@@ -69,6 +71,22 @@ pub struct InstalledWidget {
     pub enabled: bool,
     /// True when Shiro installed it, which is what makes it ours to remove.
     pub ours: bool,
+    /// The add-on that installed it, if one did. A replacing install writes
+    /// original filenames, so the prefix cannot answer this on its own and the
+    /// manifests are read instead.
+    pub addon: Option<String>,
+}
+
+/// An add-on as it sits unpacked, for the page to offer removal of.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InstalledAddon {
+    pub id: String,
+    /// The repository it came from, if that was recorded.
+    pub repo: Option<String>,
+    /// Everything it wrote, relative to `LuaUI`. Not every one of these shows
+    /// in the widget list: a replacing install writes outside `Widgets` too,
+    /// and removal takes all of them.
+    pub files: Vec<String>,
 }
 
 // ------------------------------------------------------------- stock list ---
@@ -101,50 +119,65 @@ pub fn is_stock(widgets_rel: &str) -> bool {
 /// would eat the rest of a legitimate line. Long comments (`--[[ ]]`) are
 /// handled because widgets genuinely use them to disable blocks.
 fn strip_comments(lua: &str) -> String {
-    let b = lua.as_bytes();
-    let mut out = String::with_capacity(lua.len());
-    let mut i = 0;
-    let mut quote: Option<u8> = None;
-    while i < b.len() {
-        let c = b[i];
-        match quote {
-            Some(q) => {
-                out.push(c as char);
-                if c == b'\\' && i + 1 < b.len() {
-                    out.push(b[i + 1] as char);
-                    i += 2;
-                    continue;
+    lua_scan(lua).map(|(_, c, _)| c).collect()
+}
+
+/// Walks Lua source a character at a time, dropping comments and reporting
+/// whether each character it yields sits inside a string literal.
+///
+/// The comment strip and the brace scan both need the same notion of "inside a
+/// string" - a `--` there is not a comment and a `{` there is not a table - and
+/// two copies of that would drift apart. Characters, not bytes: the input is
+/// already valid UTF-8 and widget authors write in every language there is.
+struct LuaScan<'a> {
+    src: &'a str,
+    at: usize,
+    quote: Option<char>,
+    escaped: bool,
+}
+
+fn lua_scan(src: &str) -> LuaScan<'_> {
+    LuaScan { src, at: 0, quote: None, escaped: false }
+}
+
+impl Iterator for LuaScan<'_> {
+    /// Byte offset into the source, the character, and whether it is inside a
+    /// string literal. The quotes themselves count as inside.
+    type Item = (usize, char, bool);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            let at = self.at;
+            let c = self.src[at..].chars().next()?;
+            if let Some(q) = self.quote {
+                self.at += c.len_utf8();
+                if self.escaped {
+                    self.escaped = false;
+                } else if c == '\\' {
+                    self.escaped = true;
+                } else if c == q {
+                    self.quote = None;
                 }
-                if c == q {
-                    quote = None;
-                }
-                i += 1;
+                return Some((at, c, true));
             }
-            None => {
-                if c == b'"' || c == b'\'' {
-                    quote = Some(c);
-                    out.push(c as char);
-                    i += 1;
-                } else if c == b'-' && i + 1 < b.len() && b[i + 1] == b'-' {
-                    // A long comment runs to its matching close; a short one to end of line.
-                    if b[i..].starts_with(b"--[[") {
-                        match lua[i..].find("]]") {
-                            Some(end) => i += end + 2,
-                            None => i = b.len(),
-                        }
-                    } else {
-                        while i < b.len() && b[i] != b'\n' {
-                            i += 1;
-                        }
-                    }
+            if c == '"' || c == '\'' {
+                self.quote = Some(c);
+                self.at += c.len_utf8();
+                return Some((at, c, true));
+            }
+            if self.src[at..].starts_with("--") {
+                // A long comment runs to its matching close; a short one to end of line.
+                self.at = if self.src[at..].starts_with("--[[") {
+                    self.src[at..].find("]]").map_or(self.src.len(), |e| at + e + 2)
                 } else {
-                    out.push(c as char);
-                    i += 1;
-                }
+                    self.src[at..].find('\n').map_or(self.src.len(), |n| at + n)
+                };
+                continue;
             }
+            self.at += c.len_utf8();
+            return Some((at, c, false));
         }
     }
-    out
 }
 
 /// Whether the `GetInfo` at `at` is a definition rather than a call site.
@@ -165,10 +198,13 @@ fn is_definition(lua: &str, at: usize) -> bool {
         return false;
     };
     let head = head.trim_end();
+    // Stepping off the char, not off the byte: `rfind` reports where a char
+    // begins, so `+ 1` landed mid-character and the slice below panicked.
     let receiver_start = head
-        .rfind(|c: char| !(c.is_alphanumeric() || c == '_'))
-        .map(|i| i + 1)
-        .unwrap_or(0);
+        .char_indices()
+        .rev()
+        .find(|(_, c)| !(c.is_alphanumeric() || *c == '_'))
+        .map_or(0, |(i, c)| i + c.len_utf8());
     if receiver_start == head.len() {
         return false;
     }
@@ -188,16 +224,22 @@ fn get_info_block(lua: &str) -> Option<&str> {
         from = idx + "GetInfo".len();
     }
     let at = at?;
-    let open = lua[at..].find('{')? + at;
-    let b = lua.as_bytes();
+    // Quote-aware, because a lone brace in a `desc` string is a real thing and
+    // counting it ran the scan off the end, losing the widget altogether.
+    let mut open = None;
     let mut depth = 0usize;
-    for (i, &c) in b.iter().enumerate().skip(open) {
-        if c == b'{' {
+    for (i, c, in_string) in lua_scan(lua) {
+        if i < at || in_string {
+            continue;
+        }
+        if c == '{' {
             depth += 1;
-        } else if c == b'}' {
+            open.get_or_insert(i);
+        } else if c == '}' {
+            let start = open?;
             depth -= 1;
             if depth == 0 {
-                return Some(&lua[open + 1..i]);
+                return Some(&lua[start + 1..i]);
             }
         }
     }
@@ -283,14 +325,40 @@ fn lua_key(name: &str) -> String {
     if ident {
         name.to_string()
     } else {
-        format!("[{:?}]", name)
+        format!("[{}]", lua_string(name))
     }
+}
+
+/// A quoted string literal in Lua 5.1's own spelling.
+///
+/// `{:?}` is Rust's escaping, not Lua's: it would emit `\u{NN}`, which Lua 5.1
+/// has no escape for at all. Everything outside the handful of escapes below
+/// passes through as written, so a name in any script stays readable.
+fn lua_string(s: &str) -> String {
+    let mut out = String::with_capacity(s.len() + 2);
+    out.push('"');
+    for c in s.chars() {
+        match c {
+            '\\' => out.push_str("\\\\"),
+            '"' => out.push_str("\\\""),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            // Lua's escape for a raw byte is decimal.
+            c if (c as u32) < 0x20 || c == '\u{7f}' => {
+                out.push_str(&format!("\\{:03}", c as u32));
+            }
+            c => out.push(c),
+        }
+    }
+    out.push('"');
+    out
 }
 
 /// Find the line holding `name`'s entry, as a byte range over the whole line.
 fn order_entry(text: &str, name: &str) -> Option<(usize, usize, i64)> {
     let bare = lua_key(name);
-    let bracketed = format!("[{:?}]", name);
+    let bracketed = format!("[{}]", lua_string(name));
     let mut at = 0;
     for line in text.split_inclusive('\n') {
         let start = at;
@@ -610,7 +678,13 @@ pub fn classify(luaui_rel: &str, body: &[u8], mode: Mode) -> Verdict {
     // The config files carry the player's own settings and their keybinds. A
     // pack shipping them means to replace both wholesale, which is never
     // something an install should do on somebody's behalf. True in either mode.
-    if rel.starts_with("Config/") || rel.starts_with("Configs/") {
+    //
+    // Folded, because the filesystem folds. `config/ZK_order.lua` and
+    // `Config/ZK_order.lua` are the same file on Windows, so a case-sensitive
+    // test here is not a guard at all: the write lands on the real order list
+    // and takes the player's whole widget selection with it.
+    let folded = rel.to_ascii_lowercase();
+    if folded.starts_with("config/") || folded.starts_with("configs/") {
         return Verdict::Refuse(format!(
             "{base}: add-ons may not replace your widget settings or keybinds"
         ));
@@ -742,9 +816,25 @@ fn write_config(root: &Path, rel: &str, text: &str) -> Result<(), String> {
 
 // -------------------------------------------------------------- commands ----
 
+/// Why nothing may write `ZK_order.lua` or `ZK_data.lua` mid-game.
+///
+/// Same reason `engine_settings.rs` refuses `springsettings.cfg`: Zero-K keeps
+/// these tables in memory and serialises them back over the files on shutdown,
+/// so a write landing now is discarded and the player sees a widget that
+/// installed and then simply is not on.
+const GAME_RUNNING: &str = "Zero-K is running. It rewrites its widget config when it exits, so \
+                            changes saved now would be lost - close the game and try again.";
+
 /// Everything in the install's widget directory, ours and the player's own.
-#[tauri::command]
-pub fn zks_widgets_list(install_root: Option<String>) -> Result<Vec<InstalledWidget>, String> {
+///
+/// Off the main thread: it reads and parses every `.lua` file in the install's
+/// widget directory, and the window should keep answering while it does.
+#[tauri::command(async)]
+pub fn zks_widgets_list(
+    app: tauri::AppHandle,
+    install_root: Option<String>,
+) -> Result<Vec<InstalledWidget>, String> {
+    let owners = addon_owners(&app);
     let found = install::detect_with(install_root.as_deref())?;
     let dir = zk_path(&found.root, WIDGET_DIR);
     let order = read_or(&found.root, ORDER_FILE, empty_order)?;
@@ -775,8 +865,11 @@ pub fn zks_widgets_list(install_root: Option<String>) -> Result<Vec<InstalledWid
             Some(v) => v > 0,
             None => info.enabled,
         } || info.always_start;
+        let addon = owners.get(&format!("{WIDGET_DIR_REL}/{file}")).cloned();
         out.push(InstalledWidget {
-            ours: ours(&file),
+            // A replacing install is ours too, and only the manifest says so.
+            ours: ours(&file) || addon.is_some(),
+            addon,
             file,
             name: info.name,
             enabled,
@@ -784,6 +877,59 @@ pub fn zks_widgets_list(install_root: Option<String>) -> Result<Vec<InstalledWid
     }
     out.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
     Ok(out)
+}
+
+/// Which add-on wrote each file, by path relative to `LuaUI`.
+///
+/// Read from the manifests rather than guessed from the filename, because a
+/// replacing install keeps the original name and a namespaced prefix would
+/// claim files it did not write.
+fn addon_owners(app: &tauri::AppHandle) -> BTreeMap<String, String> {
+    let mut out = BTreeMap::new();
+    for addon in installed_addons(app) {
+        for file in addon.files {
+            out.insert(file, addon.id.clone());
+        }
+    }
+    out
+}
+
+/// Every unpacked add-on, with what it wrote.
+///
+/// An add-on installed before manifests existed has an empty file list. Its
+/// files are still removable, because [`zks_widget_remove`] falls back to the
+/// namespaced prefix, but they cannot be attributed here and so are listed as
+/// nobody's.
+fn installed_addons(app: &tauri::AppHandle) -> Vec<InstalledAddon> {
+    let Ok(base) = addons_dir(app) else {
+        return Vec::new();
+    };
+    let Ok(entries) = std::fs::read_dir(&base) else {
+        return Vec::new();
+    };
+    let mut out = Vec::new();
+    for entry in entries.flatten() {
+        let dir = entry.path();
+        if !dir.is_dir() {
+            continue;
+        }
+        let id = entry.file_name().to_string_lossy().into_owned();
+        out.push(InstalledAddon {
+            repo: read_source(&dir),
+            files: read_manifest(&dir).files,
+            id,
+        });
+    }
+    out.sort_by(|a, b| a.id.cmp(&b.id));
+    out
+}
+
+/// The add-ons the page may offer to remove.
+///
+/// Off the main thread: it reads a manifest per add-on directory.
+#[tauri::command(async)]
+pub fn zks_widget_addons(app: tauri::AppHandle) -> Vec<InstalledAddon> {
+    installed_addons(&app)
 }
 
 /// Where downloaded widget add-ons are unpacked, one directory each.
@@ -948,38 +1094,104 @@ impl AddonPreview {
     }
 }
 
-/// A directory name for a repository. `Helwor/New-Hel-K` becomes `new-hel-k`.
-pub fn id_for(repo: &Repo) -> String {
+/// One part of an id, in the charset [`addon_dir`] will accept back.
+fn slug(part: &str) -> String {
     let mut out = String::new();
-    for c in repo.name.chars() {
+    for c in part.chars() {
         if c.is_ascii_alphanumeric() {
             out.push(c.to_ascii_lowercase());
         } else if !out.ends_with('-') {
             out.push('-');
         }
     }
-    let trimmed = out.trim_matches('-').to_string();
-    if trimmed.is_empty() {
+    out.trim_matches('-').to_string()
+}
+
+/// A directory name for a repository. `Helwor/New-Hel-K` becomes
+/// `helwor-new-hel-k`.
+///
+/// The owner is part of it because the name alone is not an identity. Anyone
+/// may fork a pack and keep its name, and `Helwor/New-Hel-K` and
+/// `SomeoneElse/New-Hel-K` sharing one directory meant merely looking at the
+/// second wiped the first: [`fetch_blocking`] clears the directory before it
+/// unpacks, and the manifest that says what the first one installed lives in
+/// there. Folding both parts in is not a proof of uniqueness on its own, which
+/// is why the resolved slug is written beside the manifest and checked.
+pub fn id_for(repo: &Repo) -> String {
+    let joined = [slug(&repo.owner), slug(&repo.name)]
+        .iter()
+        .filter(|s| !s.is_empty())
+        .cloned()
+        .collect::<Vec<_>>()
+        .join("-");
+    if joined.is_empty() {
         "addon".to_string()
     } else {
-        trimmed
+        joined
     }
+}
+
+/// Which repository an unpacked add-on directory came from.
+///
+/// Written at fetch, read before the next fetch clears the directory. Two
+/// repositories that slugged to the same id would otherwise destroy each
+/// other's manifest in silence; with this they collide loudly instead.
+const SOURCE: &str = "source.json";
+
+fn read_source(dir: &Path) -> Option<String> {
+    let text = std::fs::read_to_string(dir.join(SOURCE)).ok()?;
+    serde_json::from_str::<serde_json::Value>(&text)
+        .ok()?
+        .get("repo")?
+        .as_str()
+        .map(str::to_string)
+}
+
+fn write_source(dir: &Path, slug: &str) -> Result<(), String> {
+    let text = serde_json::json!({ "repo": slug }).to_string();
+    std::fs::write(dir.join(SOURCE), text)
+        .map_err(|e| format!("could not record where this came from: {e}"))
 }
 
 /// Look at a repository and report what installing it would do.
 ///
 /// Downloads and unpacks, because the only honest way to say what a pack
 /// contains is to read it. Nothing reaches the Zero-K install here.
+/// Off the main thread, as the skin installer is: this resolves a repository
+/// over the network, downloads an archive, unpacks it and reads the whole tree
+/// back, and none of that may hold the window.
 #[tauri::command]
-pub fn zks_widget_fetch(app: tauri::AppHandle, repo: String) -> Result<AddonPreview, String> {
+pub async fn zks_widget_fetch(
+    app: tauri::AppHandle,
+    repo: String,
+) -> Result<AddonPreview, String> {
+    tauri::async_runtime::spawn_blocking(move || fetch_blocking(&app, &repo))
+        .await
+        .map_err(|e| format!("the fetch did not finish: {e}"))?
+}
+
+fn fetch_blocking(app: &tauri::AppHandle, repo: &str) -> Result<AddonPreview, String> {
     let parsed = gitsource::parse_repo(&repo)?;
     let build = gitsource::resolve(&parsed)?;
     let id = id_for(&parsed);
     let dir = addon_dir(&app, &id)?;
 
+    // Whose directory this is, before it is cleared. Anything already here
+    // belongs to a pack somebody installed, and its manifest is the only record
+    // of what that pack wrote into the game.
+    if let Some(previous) = read_source(&dir) {
+        if !previous.eq_ignore_ascii_case(&parsed.slug()) {
+            return Err(format!(
+                "{previous} is already here under the same name; remove it before adding {}",
+                parsed.slug()
+            ));
+        }
+    }
+
     // A fresh tree each time, so a file dropped upstream does not linger.
     std::fs::remove_dir_all(&dir).ok();
     std::fs::create_dir_all(&dir).map_err(|e| format!("could not make {}: {e}", dir.display()))?;
+    write_source(&dir, &parsed.slug())?;
 
     let bytes = gitsource::download(&parsed, &build.sha)?;
     gitsource::unpack_tree(&bytes, &dir)?;
@@ -1017,7 +1229,9 @@ pub fn zks_widget_fetch(app: tauri::AppHandle, repo: String) -> Result<AddonPrev
 }
 
 /// What was already fetched, without going back to the network.
-#[tauri::command]
+///
+/// Off the main thread: it still walks the unpacked tree and reads every file.
+#[tauri::command(async)]
 pub fn zks_widget_preview(app: tauri::AppHandle, addon: String) -> Result<usize, String> {
     Ok(read_addon(&addon_dir(&app, &addon)?)?.len())
 }
@@ -1031,18 +1245,132 @@ pub fn zks_widget_preview(app: tauri::AppHandle, addon: String) -> Result<usize,
 /// installed themselves if the pack changed between install and removal.
 const MANIFEST: &str = "installed.json";
 
-fn read_manifest(dir: &Path) -> Vec<String> {
+/// What one install wrote, and what it had to move aside to write it.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct Manifest {
+    /// Paths relative to `LuaUI`.
+    pub files: Vec<String>,
+    /// Files that were already on disk at one of those paths, by where they
+    /// were moved to. Also relative to `LuaUI`.
+    #[serde(default)]
+    pub backups: BTreeMap<String, String>,
+}
+
+/// The manifest was a bare list of names before there was anything else to
+/// record, and an add-on installed by that version has to keep working.
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum ManifestFile {
+    Files(Vec<String>),
+    Full(Manifest),
+}
+
+fn read_manifest(dir: &Path) -> Manifest {
     std::fs::read_to_string(dir.join(MANIFEST))
         .ok()
-        .and_then(|t| serde_json::from_str::<Vec<String>>(&t).ok())
+        .and_then(|t| serde_json::from_str::<ManifestFile>(&t).ok())
+        .map(|m| match m {
+            ManifestFile::Files(files) => Manifest { files, ..Manifest::default() },
+            ManifestFile::Full(m) => m,
+        })
         .unwrap_or_default()
 }
 
-fn write_manifest(dir: &Path, names: &[String]) -> Result<(), String> {
-    let text = serde_json::to_string_pretty(names)
+fn write_manifest(dir: &Path, manifest: &Manifest) -> Result<(), String> {
+    let text = serde_json::to_string_pretty(manifest)
         .map_err(|e| format!("could not record what was installed: {e}"))?;
     std::fs::write(dir.join(MANIFEST), text)
         .map_err(|e| format!("could not record what was installed: {e}"))
+}
+
+/// What a file already at a target is renamed to before we write over it.
+///
+/// Not an extension Zero-K loads and not one [`classify`] installs, so a
+/// backup sitting in `LuaUI/Widgets` is inert: `zks_widgets_list` only reads
+/// `.lua`, and so does the game's own widget handler.
+const BACKUP_SUFFIX: &str = ".shiro-backup";
+
+/// Move aside anything already at a planned target that we did not put there.
+///
+/// Replace mode writes original filenames on purpose, which is the only way a
+/// UI replacement pack can work at all - but it means the write lands on
+/// whatever is at that path. A player who followed a pack's README and copied
+/// it in by hand, then edited a widget, had those edits overwritten with no
+/// warning and no way back, and the consent text told them removing the pack
+/// would restore what was there. This is what makes that sentence true.
+///
+/// `previous` is what this same add-on wrote last time. Reinstalling over our
+/// own files is not somebody's work being lost, so it backs nothing up and the
+/// common case costs no disk at all.
+///
+/// An existing backup is left alone. The first one is the player's own file;
+/// a second pass would replace it with the first pack's copy.
+fn back_up_existing(
+    luaui: &Path,
+    planned: &[Planned],
+    previous: &std::collections::BTreeSet<String>,
+) -> Result<BTreeMap<String, String>, String> {
+    let mut out = BTreeMap::new();
+    for p in planned {
+        if previous.contains(&p.target) {
+            continue;
+        }
+        let target = zk_path(luaui, &p.target);
+        if !target.is_file() {
+            continue;
+        }
+        let kept = format!("{}{BACKUP_SUFFIX}", p.target);
+        let backup = zk_path(luaui, &kept);
+        if !backup.exists() {
+            std::fs::rename(&target, &backup)
+                .map_err(|e| format!("could not set {} aside: {e}", p.target))?;
+        }
+        out.insert(p.target.clone(), kept);
+    }
+    Ok(out)
+}
+
+/// Lay an add-on's planned files down under `luaui`.
+///
+/// Kept apart from the command so the order of the two steps - set aside, then
+/// write - is testable without a Zero-K install or a running app.
+fn write_planned(
+    luaui: &Path,
+    planned: &[Planned],
+    before: &Manifest,
+) -> Result<(Vec<String>, BTreeMap<String, String>), String> {
+    let previous: std::collections::BTreeSet<String> = before.files.iter().cloned().collect();
+    let mut backups = before.backups.clone();
+    backups.extend(back_up_existing(luaui, planned, &previous)?);
+
+    let mut written = Vec::new();
+    for p in planned {
+        let target = zk_path(luaui, &p.target);
+        if let Some(parent) = target.parent() {
+            std::fs::create_dir_all(parent)
+                .map_err(|e| format!("could not create {}: {e}", parent.display()))?;
+        }
+        std::fs::write(&target, &p.body)
+            .map_err(|e| format!("could not write {}: {e}", target.display()))?;
+        written.push(p.target.clone());
+    }
+    Ok((written, backups))
+}
+
+/// Put back what [`back_up_existing`] moved aside. Returns what came back.
+fn restore_backups(luaui: &Path, backups: &BTreeMap<String, String>) -> Vec<String> {
+    let mut out = Vec::new();
+    for (target, kept) in backups {
+        let backup = zk_path(luaui, kept);
+        let target_path = zk_path(luaui, target);
+        // Only into a gap. If something is at the target now it is not ours to
+        // overwrite, and the backup stays where a player can find it.
+        if backup.is_file() && !target_path.exists() && std::fs::rename(&backup, &target_path).is_ok()
+        {
+            out.push(target.clone());
+        }
+    }
+    out
 }
 
 /// Copy an add-on's widget files into the install and make them loadable.
@@ -1051,10 +1379,33 @@ fn write_manifest(dir: &Path, names: &[String]) -> Result<(), String> {
 /// the page. The frontend must not drive what gets written into the game
 /// install, and handing over the contents is the same hole as handing over the
 /// paths.
+///
+/// Refused while a game is running. Zero-K holds `ZK_order.lua` and
+/// `ZK_data.lua` in memory and writes them back when it exits, so a widget
+/// enabled now would be switched off again without a word.
+///
+/// Off the main thread: it copies a whole pack into the install. The running
+/// check is read into a plain bool first, because `tauri::State` is not `Send`
+/// and cannot cross into the blocking task.
 #[tauri::command]
-pub fn zks_widget_install(
+pub async fn zks_widget_install(
     app: tauri::AppHandle,
+    game: tauri::State<'_, crate::launch::Game>,
     addon: String,
+    mode: Option<Mode>,
+    install_root: Option<String>,
+) -> Result<Vec<String>, String> {
+    if game.is_running() {
+        return Err(GAME_RUNNING.into());
+    }
+    tauri::async_runtime::spawn_blocking(move || install_blocking(&app, &addon, mode, install_root))
+        .await
+        .map_err(|e| format!("the install did not finish: {e}"))?
+}
+
+fn install_blocking(
+    app: &tauri::AppHandle,
+    addon: &str,
     mode: Option<Mode>,
     install_root: Option<String>,
 ) -> Result<Vec<String>, String> {
@@ -1072,18 +1423,16 @@ pub fn zks_widget_install(
         )
     })?;
 
-    let mut written = Vec::new();
-    for p in &planned {
-        let target = zk_path(&luaui, &p.target);
-        if let Some(parent) = target.parent() {
-            std::fs::create_dir_all(parent)
-                .map_err(|e| format!("could not create {}: {e}", parent.display()))?;
-        }
-        std::fs::write(&target, &p.body)
-            .map_err(|e| format!("could not write {}: {e}", target.display()))?;
-        written.push(p.target.clone());
-    }
-    write_manifest(&source, &written)?;
+    // What this add-on wrote last time is ours to write over. Everything else
+    // at a target is somebody's own file and is set aside first. The old
+    // backups are carried forward, or reinstalling would forget what the first
+    // install moved and removal would never put it back.
+    let before = read_manifest(&source);
+    let (written, backups) = write_planned(&luaui, &planned, &before)?;
+    write_manifest(
+        &source,
+        &Manifest { files: written.clone(), backups },
+    )?;
 
     // Raw widgets have to be switched on at all, or none of the above loads.
     let data = read_or(&found.root, DATA_FILE, empty_data)?;
@@ -1131,7 +1480,12 @@ pub fn zks_widget_install(
 }
 
 /// Take an add-on's widgets back out. Only ever removes files we installed.
-#[tauri::command]
+///
+/// Off the main thread: it walks the install and deletes an unpacked tree. No
+/// running-game check, because it touches no config file - the order entries it
+/// leaves behind name widgets that are simply no longer there, which is what
+/// Zero-K already copes with at every start.
+#[tauri::command(async)]
 pub fn zks_widget_remove(
     app: tauri::AppHandle,
     addon: String,
@@ -1144,7 +1498,8 @@ pub fn zks_widget_remove(
 
     // What we recorded writing. An install from before manifests existed, or
     // one whose record was lost, still has the namespaced prefix to go on.
-    let mut names = read_manifest(&source);
+    let manifest = read_manifest(&source);
+    let mut names = manifest.files;
     if names.is_empty() {
         let want = format!("{PREFIX}{addon}_");
         if let Ok(entries) = std::fs::read_dir(&dir) {
@@ -1166,6 +1521,11 @@ pub fn zks_widget_remove(
         std::fs::remove_file(&path).map_err(|e| format!("could not remove {file}: {e}"))?;
         removed.push(file);
     }
+    // What was on disk before the install comes back, which is the promise the
+    // consent text makes. Zero-K's own packaged widgets need nothing done to
+    // them - they were never touched - but a file the player put there by hand
+    // only comes back because it was set aside.
+    restore_backups(&luaui, &manifest.backups);
     // The unpacked copy goes too, so a reinstall fetches rather than resurrects.
     if let Ok(dir) = addon_dir(&app, &addon) {
         std::fs::remove_dir_all(&dir).ok();
@@ -1174,9 +1534,25 @@ pub fn zks_widget_remove(
 }
 
 /// Turn one widget on or off, by the name it declares.
+///
+/// Refused while a game is running, for the reason [`GAME_RUNNING`] gives.
 #[tauri::command]
-pub fn zks_widget_set_enabled(
+pub async fn zks_widget_set_enabled(
+    game: tauri::State<'_, crate::launch::Game>,
     name: String,
+    enabled: bool,
+    install_root: Option<String>,
+) -> Result<(), String> {
+    if game.is_running() {
+        return Err(GAME_RUNNING.into());
+    }
+    tauri::async_runtime::spawn_blocking(move || set_enabled_blocking(&name, enabled, install_root))
+        .await
+        .map_err(|e| format!("the change did not finish: {e}"))?
+}
+
+fn set_enabled_blocking(
+    name: &str,
     enabled: bool,
     install_root: Option<String>,
 ) -> Result<(), String> {
@@ -1210,7 +1586,9 @@ pub struct ResetReport {
 /// **Nothing is deleted.** The widget directory is moved aside and the config
 /// files are copied to `.bak` before being taken out of the way, so a reset is
 /// recoverable by hand if it turns out the widgets were not the problem.
-#[tauri::command]
+///
+/// Off the main thread: it counts and moves the whole widget directory.
+#[tauri::command(async)]
 pub fn zks_widgets_reset(install_root: Option<String>) -> Result<ResetReport, String> {
     let found = install::detect_with(install_root.as_deref())?;
     let luaui = zk_path(&found.root, LUAUI_DIR);
@@ -1269,7 +1647,10 @@ pub fn zks_widgets_reset(install_root: Option<String>) -> Result<ResetReport, St
 }
 
 /// Whether raw widgets load, so the screen can offer the switch.
-#[tauri::command]
+///
+/// A read, so no running-game check: the screen has to be able to show the
+/// state while the game is up, and nothing here writes.
+#[tauri::command(async)]
 pub fn zks_widgets_local_enabled(install_root: Option<String>) -> Result<bool, String> {
     let found = install::detect_with(install_root.as_deref())?;
     let data = read_or(&found.root, DATA_FILE, empty_data)?;
@@ -1375,6 +1756,50 @@ local defaults = { name = "not a widget" }
     fn a_file_without_a_readable_name_is_not_installable() {
         assert!(parse_get_info("function widget:GetInfo() return {} end").is_none());
         assert!(parse_get_info("-- not a widget at all").is_none());
+    }
+
+    /// The declared name is the key `ZK_order.lua` is written under, so a
+    /// non-ASCII one has to come back byte for byte and go out in a form Lua
+    /// 5.1 can read. Lua 5.1 has no `\u` escape.
+    #[test]
+    fn a_non_ascii_name_survives_the_parse_and_the_key() {
+        let lua = "function widget:GetInfo()\n\treturn { name = \"日本語ウィジェット\", enabled = true }\nend\n";
+        let info = parse_get_info(lua).unwrap();
+        assert_eq!(info.name, "日本語ウィジェット");
+        assert!(info.enabled);
+        assert_eq!(lua_key("日本語ウィジェット"), "[\"日本語ウィジェット\"]");
+
+        let lua = "function widget:GetInfo() return { name = \"Nick’s “Widget”\" } end";
+        assert_eq!(parse_get_info(lua).unwrap().name, "Nick’s “Widget”");
+
+        // Ours to escape, in Lua's own spelling, not Rust's.
+        assert_eq!(lua_key("a\tb\"c\\d"), "[\"a\\tb\\\"c\\\\d\"]");
+        assert_eq!(lua_key("bell\u{7}"), "[\"bell\\007\"]");
+    }
+
+    /// `rfind` reports where a char starts, so `+ 1` landed mid-character and
+    /// the slice that followed panicked. All three shapes are from the wild.
+    #[test]
+    fn a_multi_byte_char_by_the_definition_does_not_panic() {
+        let a = "local msg = \"café\"\nfunction widget:GetInfo()\n\treturn { name = \"A\" }\nend\n";
+        assert_eq!(parse_get_info(a).unwrap().name, "A");
+
+        let b = "local help = \"…widget:GetInfo()\"\nfunction widget:GetInfo() return { name = \"B\" } end\n";
+        assert_eq!(parse_get_info(b).unwrap().name, "B");
+
+        let c = "function\u{a0}widget:GetInfo()\n\treturn { name = \"C\" }\nend\n";
+        assert_eq!(parse_get_info(c).unwrap().name, "C");
+    }
+
+    /// An unbalanced brace inside a string ran the depth scan off the end, and
+    /// the widget then vanished from the list entirely.
+    #[test]
+    fn an_unbalanced_brace_in_a_string_does_not_hide_the_widget() {
+        let open = "function widget:GetInfo()\n\treturn {\n\t\tname = \"Opener\",\n\t\tdesc = \"press { to open\",\n\t}\nend\n";
+        assert_eq!(parse_get_info(open).unwrap().name, "Opener");
+
+        let close = "function widget:GetInfo()\n\treturn {\n\t\tdesc = \"press } to close\",\n\t\tname = \"Closer\",\n\t}\nend\n";
+        assert_eq!(parse_get_info(close).unwrap().name, "Closer");
     }
 
     // ------------------------------------------------------------ order ----
@@ -1565,6 +1990,32 @@ local defaults = { name = "not a widget" }
         }
     }
 
+    /// The guard was case-sensitive, and the filesystem is not. A pack
+    /// spelling the directory `config/` reached Verdict::Install, and on NTFS
+    /// that write lands on the real `LuaUI/Config/ZK_order.lua`.
+    #[test]
+    fn the_config_guard_folds_case_because_the_filesystem_does() {
+        for spelling in ["config", "CONFIG", "Config", "cOnFiG", "configs", "CONFIGS"] {
+            let path = format!("{spelling}/ZK_order.lua");
+            for mode in [Mode::Namespaced, Mode::Replace] {
+                match classify(&path, b"return {}", mode) {
+                    Verdict::Refuse(why) => {
+                        assert!(why.contains("settings or keybinds"), "{path}: {why}")
+                    }
+                    other => panic!("{path} in {mode:?} reached {other:?}"),
+                }
+            }
+        }
+    }
+
+    /// And a pack's own subdirectory called config is not the game's, so it is
+    /// still installable - the guard is about the top level only.
+    #[test]
+    fn a_widgets_own_config_subdirectory_is_not_the_games() {
+        let v = classify("Widgets/MyPack/config/table.lua", b"local t = {}", Mode::Replace);
+        assert_eq!(v, Verdict::Install, "got {v:?}");
+    }
+
     #[test]
     fn an_addon_may_not_replace_the_players_settings_or_keybinds() {
         for path in ["Config/ZK_data.lua", "Config/ZK_order.lua", "Configs/zk_keys.lua"] {
@@ -1661,6 +2112,21 @@ local defaults = { name = "not a widget" }
         assert!(names.iter().all(|n| ours(n)));
     }
 
+    /// The widget list attributes a file to an add-on by looking the path up in
+    /// that add-on's manifest, so the two have to spell the same file the same
+    /// way. They are written in different places and nothing else would notice
+    /// them drifting apart: the Remove button would just stop appearing.
+    #[test]
+    fn a_manifest_path_is_what_the_list_looks_up() {
+        let files = addon_of(&[("Widgets/mark_spots.lua", ok_widget("Mark Spots"))]);
+        for mode in [Mode::Namespaced, Mode::Replace] {
+            let planned = plan_install("helk", &files, mode).unwrap();
+            let target = planned[0].target.as_str();
+            let base = target.rsplit('/').next().unwrap();
+            assert_eq!(target, format!("{WIDGET_DIR_REL}/{base}"), "{mode:?}");
+        }
+    }
+
     /// One bad file stops the whole pack. A partial install leaves something
     /// that half works and looks like Shiro broke the game.
     #[test]
@@ -1751,12 +2217,122 @@ local defaults = { name = "not a widget" }
         assert!(!ours("Widgets/unit_healthbars.lua"));
     }
 
+    fn repo(o: &str, n: &str) -> Repo {
+        Repo { owner: o.into(), name: n.into() }
+    }
+
     #[test]
     fn a_repository_name_becomes_a_directory_name() {
-        let r = |o: &str, n: &str| Repo { owner: o.into(), name: n.into() };
-        assert_eq!(id_for(&r("Helwor", "New-Hel-K")), "new-hel-k");
-        assert_eq!(id_for(&r("a", "Zero-K.Widgets")), "zero-k-widgets");
-        assert_eq!(id_for(&r("a", "___")), "addon");
+        assert_eq!(id_for(&repo("Helwor", "New-Hel-K")), "helwor-new-hel-k");
+        assert_eq!(id_for(&repo("a", "Zero-K.Widgets")), "a-zero-k-widgets");
+        assert_eq!(id_for(&repo("a", "___")), "a");
+        assert_eq!(id_for(&repo("___", "___")), "addon");
+        // Still a name addon_dir will hand back rather than refuse.
+        for id in [id_for(&repo("Hel_wor", "New.Hel K")), id_for(&repo("..", "x"))] {
+            assert!(
+                !id.is_empty() && id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-'),
+                "{id}"
+            );
+        }
+    }
+
+    /// A fork keeps the name. Two packs sharing a directory meant a look at the
+    /// second cleared the first's tree and the manifest that said what it had
+    /// written into the game, leaving files nothing could find again.
+    #[test]
+    fn two_owners_of_one_name_are_two_add_ons() {
+        assert_ne!(
+            id_for(&repo("Helwor", "New-Hel-K")),
+            id_for(&repo("SomeoneElse", "New-Hel-K")),
+        );
+    }
+
+    // ------------------------------------------ files that were there first --
+
+    fn luaui_scratch(tag: &str) -> PathBuf {
+        let dir = std::env::temp_dir().join(format!("shiro-luaui-{tag}-{}", std::process::id()));
+        std::fs::remove_dir_all(&dir).ok();
+        std::fs::create_dir_all(dir.join("Widgets")).unwrap();
+        dir
+    }
+
+    fn planned_file(target: &str, body: &str) -> Planned {
+        Planned { target: target.to_string(), body: body.as_bytes().to_vec() }
+    }
+
+    /// The consent text says removing a replacing pack puts back what it took
+    /// the place of. That is free for Zero-K's own widgets, which live in the
+    /// game archive and were never touched - and false for a file the player
+    /// copied in by hand, which the install used to write straight over.
+    #[test]
+    fn a_file_the_player_already_had_is_set_aside_and_put_back() {
+        let luaui = luaui_scratch("handmade");
+        let target = "Widgets/gui_chili_economy.lua";
+        let mine = luaui.join("Widgets").join("gui_chili_economy.lua");
+        std::fs::write(&mine, "-- my own edits\n").unwrap();
+
+        let planned = vec![planned_file(target, "-- the pack's copy\n")];
+        let (written, backups) =
+            write_planned(&luaui, &planned, &Manifest::default()).unwrap();
+        assert_eq!(written, vec![target.to_string()]);
+        assert_eq!(std::fs::read_to_string(&mine).unwrap(), "-- the pack's copy\n");
+
+        let kept = luaui.join("Widgets").join("gui_chili_economy.lua.shiro-backup");
+        assert!(kept.is_file(), "the player's file was overwritten with no copy kept");
+        assert_eq!(std::fs::read_to_string(&kept).unwrap(), "-- my own edits\n");
+
+        // Removal takes our file out and puts theirs back, which is what the
+        // screen promised.
+        std::fs::remove_file(&mine).unwrap();
+        assert_eq!(restore_backups(&luaui, &backups), vec![target.to_string()]);
+        assert_eq!(std::fs::read_to_string(&mine).unwrap(), "-- my own edits\n");
+        assert!(!kept.exists());
+        std::fs::remove_dir_all(&luaui).ok();
+    }
+
+    /// Reinstalling the same pack is not somebody's work being lost, so it
+    /// keeps no second copy - and it must not forget the first one either.
+    #[test]
+    fn reinstalling_over_our_own_files_keeps_no_extra_copies() {
+        let luaui = luaui_scratch("reinstall");
+        let target = "Widgets/gui_chili_economy.lua";
+        std::fs::write(luaui.join("Widgets").join("gui_chili_economy.lua"), "mine").unwrap();
+
+        let first = vec![planned_file(target, "v1")];
+        let (files, backups) = write_planned(&luaui, &first, &Manifest::default()).unwrap();
+
+        let second = vec![planned_file(target, "v2")];
+        let (_, again) = write_planned(&luaui, &second, &Manifest { files, backups }).unwrap();
+
+        assert_eq!(again.len(), 1, "the first backup was forgotten or doubled");
+        let kept = luaui.join("Widgets").join("gui_chili_economy.lua.shiro-backup");
+        assert_eq!(std::fs::read_to_string(&kept).unwrap(), "mine");
+        std::fs::remove_dir_all(&luaui).ok();
+    }
+
+    /// The ordinary install writes namespaced names nothing else uses, so
+    /// nothing is set aside and the install has no backups cluttering it.
+    #[test]
+    fn a_safe_install_sets_nothing_aside() {
+        let luaui = luaui_scratch("clean");
+        let planned = vec![planned_file("Widgets/shiro_helk_thing.lua", "x")];
+        let (_, backups) = write_planned(&luaui, &planned, &Manifest::default()).unwrap();
+        assert!(backups.is_empty());
+        std::fs::remove_dir_all(&luaui).ok();
+    }
+
+    /// An add-on installed before backups were recorded still removes cleanly.
+    #[test]
+    fn the_old_manifest_format_is_still_read() {
+        let dir = luaui_scratch("manifest");
+        std::fs::write(dir.join(MANIFEST), r#"["Widgets/shiro_a_x.lua"]"#).unwrap();
+        let m = read_manifest(&dir);
+        assert_eq!(m.files, vec!["Widgets/shiro_a_x.lua".to_string()]);
+        assert!(m.backups.is_empty());
+
+        write_manifest(&dir, &m).unwrap();
+        assert_eq!(read_manifest(&dir).files, m.files);
+        std::fs::remove_dir_all(&dir).ok();
     }
 
     // ------------------------------------------------- against the real thing --

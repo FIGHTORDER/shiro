@@ -187,7 +187,7 @@ function SkinRow({ skin, active, onPick, onInstall }) {
    The switch writes an entry into Zero-K's own ZK_order.lua, keyed on the name
    the widget declares rather than its filename - so the name shown here is the
    one the game uses, not the file it came from. */
-function WidgetRow({ widget, busy, onToggle }) {
+function WidgetRow({ widget, busy, onToggle, onRemove }) {
   const [hover, setHover] = React.useState(false);
   return (
     <div onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
@@ -211,6 +211,43 @@ function WidgetRow({ widget, busy, onToggle }) {
         </div>
       </button>
       {widget.ours && <Badge tone="outline">Shiro</Badge>}
+      {/* Only what Shiro wrote. A widget the player copied in themselves is
+          theirs to delete, and a button here would be reaching into a folder
+          Shiro has no record of. */}
+      {onRemove && (
+        <Button variant="ghost" size="sm" disabled={busy} onClick={onRemove}
+          aria-label={`Remove ${widget.name}`}>Remove</Button>
+      )}
+    </div>
+  );
+}
+
+/* Asking before removing, and saying what "this" is.
+
+   The unit is the add-on, not the file: a pack's widgets include each other,
+   and taking one out of the middle leaves the rest calling something that is
+   no longer there. So a Remove on any row removes the pack that row came from,
+   and this says so with the count rather than letting it be a surprise. */
+function ConfirmRemove({ widget, addon, busy, onCancel, onConfirm }) {
+  const count = addon && addon.files.length ? addon.files.length : 1;
+  const what = addon && addon.repo ? addon.repo : widget.name;
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: "var(--sp-4)",
+      padding: "var(--sp-4) var(--sp-5)", boxShadow: "var(--rule-inset)",
+      background: "var(--surface-hover)" }}>
+      <span style={{ flex: 1, minWidth: 0,
+        font: "var(--w-regular) var(--size-tiny)/1.45 var(--font-core)",
+        color: "var(--text-body)" }}>
+        Remove {what}?{" "}
+        {count > 1
+          ? `All ${count} of its files go, ${widget.name} among them.`
+          : "Its file is deleted."}{" "}
+        Anything it moved aside is put back.
+      </span>
+      <Button variant="ghost" size="sm" disabled={busy} onClick={onCancel}>Keep</Button>
+      <Button variant="secondary" size="sm" disabled={busy} onClick={onConfirm}>
+        {busy ? "Removing..." : "Remove"}
+      </Button>
     </div>
   );
 }
@@ -303,13 +340,22 @@ function AddFromSource({ onInstalled }) {
           {!blocked && replaces > 0 && (
             <>
               {/* Said plainly and before the button, because this is the part
-                  somebody has to actually agree to. */}
+                  somebody has to actually agree to.
+
+                  The second sentence used to stop at Zero-K's own copies, which
+                  is the easy half: those live in the game archive and are never
+                  touched. A widget the player copied in by hand sits at the same
+                  path the pack writes to, and it is only restorable because the
+                  install now moves it aside first. Said here because the promise
+                  is what somebody is agreeing to. */}
               <span style={{ font: "var(--w-regular) var(--size-tiny)/1.45 var(--font-core)",
                 color: "var(--text-body)" }}>
                 This replaces {replaces} of Zero-K&apos;s own widgets, including{" "}
                 {preview.replaces.slice(0, 3).join(", ")}
                 {replaces > 3 ? " and " + (replaces - 3) + " more" : ""}. Zero-K&apos;s
-                copies are not changed, so removing this pack restores them.
+                copies are not changed, and any widget you already had at one of
+                those names is kept beside it as .shiro-backup, so removing this
+                pack puts both back.
               </span>
               <Button variant="secondary" size="sm" disabled={busy}
                 onClick={() => install("replace")}>
@@ -331,26 +377,53 @@ function AddFromSource({ onInstalled }) {
 function WidgetsPanel() {
   const [state, setState] = React.useState({ loading: true });
   const [busy, setBusy] = React.useState(undefined);
+  /* Which row is asking. Cleared on every reload, so a removal that took the
+     row away cannot leave the question behind it. */
+  const [confirm, setConfirm] = React.useState(undefined);
+  /* A toggle or a removal that failed, kept apart from the error that means
+     the list could not be read at all. Zero-K refuses both while it is running,
+     which is the ordinary way to hit this, and reporting it by replacing the
+     whole panel with "nothing to show" would say something untrue. */
+  const [failed, setFailed] = React.useState(undefined);
 
   const load = React.useCallback(async () => {
     try {
       const net = await import("../net/widgets.ts");
-      const [widgets, localOn] = await Promise.all([net.widgetList(), net.localWidgetsOn()]);
-      setState({ widgets, localOn });
+      const [widgets, localOn, addons] = await Promise.all([
+        net.widgetList(), net.localWidgetsOn(), net.widgetAddons()]);
+      setState({ widgets, localOn, addons });
     } catch (e) {
       setState({ error: String((e && e.message) || e) });
     }
   }, []);
   React.useEffect(() => { load(); }, [load]);
 
+  const addonOf = w => (state.addons || []).find(a => a.id === w.addon);
+
+  const remove = async w => {
+    setBusy(w.name);
+    setFailed(undefined);
+    try {
+      const net = await import("../net/widgets.ts");
+      await net.removeWidgets(w.addon);
+      setConfirm(undefined);
+      await load();
+    } catch (e) {
+      setFailed(String((e && e.message) || e));
+    } finally {
+      setBusy(undefined);
+    }
+  };
+
   const toggle = async w => {
     setBusy(w.name);
+    setFailed(undefined);
     try {
       const net = await import("../net/widgets.ts");
       await net.setWidgetEnabled(w.name, !w.enabled);
       await load();
     } catch (e) {
-      setState(s => ({ ...s, error: String((e && e.message) || e) }));
+      setFailed(String((e && e.message) || e));
     } finally {
       setBusy(undefined);
     }
@@ -375,10 +448,22 @@ function WidgetsPanel() {
   return (
     <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
       <AddFromSource onInstalled={load} />
+      {failed && (
+        <span style={{ padding: "var(--sp-4) var(--sp-5)", boxShadow: "var(--rule-inset)",
+          font: "var(--w-regular) var(--size-tiny)/1.45 var(--font-core)",
+          color: "var(--danger)" }}>{failed}</span>
+      )}
       <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
         {state.widgets.map(w => (
-          <WidgetRow key={w.file} widget={w} busy={busy === w.name}
-            onToggle={() => toggle(w)} />
+          confirm === w.file ? (
+            <ConfirmRemove key={w.file} widget={w} addon={addonOf(w)}
+              busy={busy === w.name} onCancel={() => setConfirm(undefined)}
+              onConfirm={() => remove(w)} />
+          ) : (
+            <WidgetRow key={w.file} widget={w} busy={busy === w.name}
+              onToggle={() => toggle(w)}
+              onRemove={w.addon ? () => setConfirm(w.file) : undefined} />
+          )
         ))}
       </div>
       {/* Zero-K rewrites its own config at every start and on shutdown, so a

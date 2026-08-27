@@ -89,6 +89,15 @@ pub struct Relay {
     /// nothing pointing at it - still reading lines, still emitting them, and
     /// clearing the healthy connection when it eventually died.
     connecting: Arc<Mutex<()>>,
+    /// Bumped by every disconnect; read by a connect deciding whether to install.
+    ///
+    /// `zks_disconnect` cannot just queue behind `connecting`: `teardown` and
+    /// the registration path both await it, so a logout issued while the client
+    /// was still dialling would sit there for up to `CONNECT_TIMEOUT`. It
+    /// leaves a mark instead, under the same `conn` lock a connect installs
+    /// under, and the connect drops the socket it just opened rather than
+    /// installing one nobody is listening to any more.
+    cancel: AtomicU64,
 }
 
 #[tauri::command]
@@ -103,10 +112,16 @@ pub async fn zks_connect(
     let _turn = relay.connecting.lock().await;
     let id = CONN_SEQ.fetch_add(1, Ordering::SeqCst);
 
-    // Never leave a previous socket running underneath a new one.
-    if let Some(prev) = relay.conn.lock().await.take() {
-        prev.shutdown();
-    }
+    /* Never leave a previous socket running underneath a new one. The cancel
+       count is read here, under the same lock a disconnect bumps it under, so
+       this call only ever answers for disconnects issued after it began. */
+    let generation = {
+        let mut slot = relay.conn.lock().await;
+        if let Some(prev) = slot.take() {
+            prev.shutdown();
+        }
+        relay.cancel.load(Ordering::SeqCst)
+    };
 
     app.emit(STATUS_EVENT, Status::Connecting).ok();
 
@@ -153,6 +168,20 @@ pub async fn zks_connect(
        is left believing it holds a socket that is already gone, with no
        `Disconnected` to reconnect from and a login sitting on the spinner. */
     let mut slot_guard = relay.conn.lock().await;
+
+    /* A disconnect issued while this was dialling found the slot empty and had
+       nothing to shut down. It bumped the count instead, under this lock, so
+       the answer is here and it cannot change while the guard is held. Without
+       the check the socket it could not find is installed a moment later and
+       announced as `Connected` - orphaned, since whoever asked to disconnect
+       has already dropped its listeners, and kept alive by TCP keepalive until
+       the process exits. */
+    if relay.cancel.load(Ordering::SeqCst) != generation {
+        writer.abort();
+        // Dropping the unread half closes the socket the server just accepted.
+        drop(read_half);
+        return Err("connect cancelled".to_string());
+    }
 
     let reader = tokio::spawn(async move {
         let mut lines = BufReader::new(read_half).lines();
@@ -208,7 +237,13 @@ pub async fn zks_send(relay: State<'_, Relay>, line: String) -> Result<(), Strin
 
 #[tauri::command]
 pub async fn zks_disconnect(relay: State<'_, Relay>) -> Result<(), String> {
-    if let Some(conn) = relay.conn.lock().await.take() {
+    let mut slot = relay.conn.lock().await;
+    /* Recorded whether or not there is anything in the slot. An empty slot is
+       not the same as nothing to do: a connect still inside `TcpStream::connect`
+       has emptied it and is about to fill it again, and this is the only thing
+       that tells it not to. */
+    relay.cancel.fetch_add(1, Ordering::SeqCst);
+    if let Some(conn) = slot.take() {
         conn.shutdown();
     }
     Ok(())

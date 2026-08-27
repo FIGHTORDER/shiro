@@ -3,7 +3,7 @@
  *
  * `src/protocol/settings.ts` is generated and carries the menu: two tabs, their
  * presets, and for most options the literal springsettings.cfg keys they write.
- * What a generator cannot carry across is the Lua - fourteen settings upstream
+ * What a generator cannot carry across is the Lua - the settings upstream
  * applies with a function rather than a table. Those are ported here by hand,
  * and `computedSettingsAreCovered()` fails the test suite if upstream grows one
  * we have not ported, because a settings screen whose switches quietly do
@@ -29,27 +29,16 @@ export type SpringSettings = Record<string, string>;
 export interface Environment {
   /** The screen the game will run on; the interface scale default follows it. */
   screen: { width: number; height: number };
-  /**
-   * Whether the last engine run was NOT on an Nvidia card, which is the only
-   * thing "ATI/Intel Compatibility: Automatic" turns on. Upstream reads this out
-   * of the engine's own infolog.txt; see `notNvidiaFromInfolog`.
-   */
-  notNvidia: boolean;
   /** springsettings.cfg as it stands. Two formulas read a value back out. */
   current: SpringSettings;
 }
 
-/* Upstream keeps the ATI/Intel overrides in Configuration.lua rather than in
-   the menu, so unlike everything else here they are transcribed, not generated.
-   github.com/ZeroK-RTS/Chobby - configuration.lua, AtiIntelSettingsOverride. */
-const ATI_INTEL_OVERRIDE: Record<string, number> = {
-  AdvSky: 0,
-  VSync: 1,
-  FSAA: 0,
-  MSAALevel: 0,
-  SmoothLines: 0,
-  SmoothPoints: 0,
-};
+/* Settings the generated menu still carries that Shiro does not offer.
+   ATI/Intel Compatibility forced six graphics keys on non-Nvidia cards to work
+   around drivers nobody runs any more, and its only effect now is to hold a
+   player's anti-aliasing down. Dropped here because the generated file is
+   rewritten by gen-settings and would not keep an edit. */
+const REMOVED = new Set(["AtiIntelCompatibility_2"]);
 
 /** The six settings whose whole effect is a line in lups.cfg. */
 const LUPS = new Set([
@@ -85,7 +74,12 @@ export function resolveRef(ref: string, env: Environment): number | undefined {
 
 /** Every setting in the menu, in the order upstream declares them. */
 export function allSettings(): Setting[] {
-  return SETTINGS_TABS.flatMap(t => t.settings);
+  return SETTINGS_TABS.flatMap(t => settingsIn(t));
+}
+
+/** The settings one tab offers, which is what the screen draws. */
+export function settingsIn(tab: { settings: Setting[] }): Setting[] {
+  return tab.settings.filter(s => !REMOVED.has(s.name));
 }
 
 function num(v: SettingValue | undefined, fallback: number): number {
@@ -162,15 +156,6 @@ const COMPUTE: Record<string, Compute> = {
   CommandAlpha: (_value, _env, chosen) => cmdColorValues(chosen),
   QueueIconAlpha: (_value, _env, chosen) => cmdColorValues(chosen),
 
-  // "Automatic" is the default, and on a non-Nvidia card it forces the same
-  // six keys "On" does. "Off" writes nothing, so whatever Anti Aliasing and
-  // Fancy Sky chose upstream of it stands.
-  AtiIntelCompatibility_2: (value, env) => {
-    if (value === "On") return { ...ATI_INTEL_OVERRIDE };
-    if (value === "Automatic" && env.notNvidia) return { ...ATI_INTEL_OVERRIDE };
-    return {};
-  },
-
   // The Lups family writes lups.cfg, not springsettings.cfg. Listed so they
   // count as ported rather than forgotten - see lupsSubstitutions.
   ShaderDetail: () => ({}),
@@ -183,7 +168,7 @@ const COMPUTE: Record<string, Compute> = {
 
 /** Names upstream applies with Lua that nothing here implements. */
 export function computedSettingsAreCovered(): string[] {
-  return COMPUTED.filter(name => !(name in COMPUTE));
+  return COMPUTED.filter(name => !REMOVED.has(name) && !(name in COMPUTE));
 }
 
 // -------------------------------------------------------------- defaults ----
@@ -192,6 +177,7 @@ export function computedSettingsAreCovered(): string[] {
 export function defaultChoices(env: Environment): Chosen {
   const out: Chosen = {};
   for (const [k, v] of Object.entries(SETTINGS_DEFAULT)) {
+    if (REMOVED.has(k)) continue;
     if (typeof v === "object" && v && "ref" in v) {
       const r = resolveRef(v.ref, env);
       if (r !== undefined) out[k] = r;
@@ -204,6 +190,7 @@ export function defaultChoices(env: Environment): Chosen {
 export function applyPreset(chosen: Chosen, preset: SettingsPreset, env: Environment): Chosen {
   const out = { ...chosen };
   for (const [k, v] of Object.entries(preset.values)) {
+    if (REMOVED.has(k)) continue;
     if (typeof v === "object" && v && "ref" in v) {
       const r = resolveRef((v as { ref: string }).ref, env);
       if (r !== undefined) out[k] = r;
@@ -218,8 +205,7 @@ export function applyPreset(chosen: Chosen, preset: SettingsPreset, env: Environ
  * The springsettings.cfg keys a set of choices writes.
  *
  * Order is upstream's declaration order and it matters: Camera Pan Speed
- * overwrites the middle-click speed the slider above it set, and the ATI/Intel
- * override is declared last precisely so it wins over Anti Aliasing.
+ * overwrites the middle-click speed the slider above it set.
  */
 export function springSettingsFor(
   chosen: Chosen,
@@ -263,19 +249,6 @@ export function springSettingsFor(
     if (compute) write(compute(value, env, chosen));
   }
 
-  /* The compatibility override owns its six keys on this hardware, and Anti
-     Aliasing and Fancy Sky write some of the same ones. Settings are applied in
-     the order upstream declares them, so whichever came later won - and with
-     Apply writing only the diff, changing Anti Aliasing alone wrote its values
-     over an override that was still selected and still meant to be in effect.
-     Re-stated last, but only over keys this write is already touching: a
-     setting nobody changed still does not get rewritten. */
-  const override = COMPUTE.AtiIntelCompatibility_2(
-    chosen.AtiIntelCompatibility_2 ?? "Off", env, chosen,
-  );
-  for (const [key, value] of Object.entries(override)) {
-    if (key in out) out[key] = formatValue(value);
-  }
   return out;
 }
 
@@ -390,7 +363,6 @@ export function inferChoices(
   for (const setting of allSettings()) {
     if (setting.kind !== "options") continue;
     if (LUPS.has(setting.name)) continue;                // read from lups.cfg
-    if (setting.name === "AtiIntelCompatibility_2") continue;  // see below
 
     /* Score each option on the keys the file actually carries. Demanding all of
        them would be wrong: a real springsettings.cfg is missing keys all the
@@ -416,10 +388,6 @@ export function inferChoices(
     if (best) chosen[setting.name] = best.name;
     else if (anyKeyPresent) custom.push(setting.name);
   }
-
-  /* The overrides ATI/Intel compatibility applies are the same six keys Anti
-     Aliasing and Fancy Sky write, so its state cannot be read back out of the
-     file. It stays at Zero-K's default. */
 
   if (has("interfaceScale")) chosen.InterfaceScale = n("interfaceScale");
   if (has("ScrollWheelSpeed")) {
@@ -484,21 +452,4 @@ export function lupsChoices(lupsCfg: string): Chosen {
     : refract ? "Refraction" : reflect ? "Reflection" : "Off";
 
   return out;
-}
-
-// -------------------------------------------------------------- infolog ----
-
-/**
- * Upstream's GPU check, ported: scan the engine's infolog for "NVIDIA" and give
- * up once the log reaches PostInit, by which point the driver banner is behind
- * us. A log we cannot read is treated as Nvidia - same as upstream, and the
- * conservative answer, since it leaves the compatibility overrides off.
- */
-export function notNvidiaFromInfolog(infolog: string | null): boolean {
-  if (infolog == null) return false;
-  for (const line of infolog.split("\n")) {
-    if (line.includes("PostInit")) return true;
-    if (line.includes("NVIDIA")) return false;
-  }
-  return true;
 }

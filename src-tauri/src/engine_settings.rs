@@ -121,8 +121,10 @@ pub fn zks_write_engine_settings(
         Err(e) => return Err(format!("could not read {}: {e}", path.display())),
     };
 
-    std::fs::write(&path, apply(&existing, &changes))
-        .map_err(|e| format!("could not write {}: {e}", path.display()))
+    /* Atomically, because this is a read-modify-write of the whole file: a
+       crash during a plain truncating write would lose every setting, not just
+       the ones being saved. */
+    crate::game_files::write_atomic(&path, &apply(&existing, &changes))
 }
 
 #[cfg(test)]

@@ -268,7 +268,10 @@ export default function QueueScreen({ queued, onQueue, onFake, queues, joined, e
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--sp-3)" }}>
           <span className="lab">YOUR MATCHMAKER RATING</span>
           <span style={{ font: "var(--text-num-lg)", color: "var(--text-hi)", fontVariantNumeric: "tabular-nums" }}>
-            {elo != null ? elo : 1766}
+            {/* 1766 is the fixture's rating and belongs to the demo. Live, the
+                honest answer until our own User record arrives is not a number
+                at all, so say nothing rather than somebody else's. */}
+            {live ? (Number.isFinite(elo) ? elo : "-") : 1766}
           </span>
         </div>
         {bannedSeconds ? (

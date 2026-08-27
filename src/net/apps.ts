@@ -27,6 +27,8 @@ export interface CatalogueApp {
 }
 
 export interface AppStatus {
+  /** Why this app cannot be used on this machine, worked out per machine. */
+  unavailable?: string;
   id: string;
   installed: boolean;
   installedVersion?: string;

@@ -4,7 +4,7 @@ import {
   ENGINE_FIELDS, readEngineSettings, writeEngineSettings,
   loadGameSettings, saveGameSettings,
 } from "../net/engineSettings.ts";
-import { applyPreset, resolveRef, changedSettingNames } from "../net/gameSettings.ts";
+import { applyPreset, resolveRef, changedSettingNames, settingsIn } from "../net/gameSettings.ts";
 import { SETTINGS_TABS } from "../protocol/settings.ts";
 
 /* Screen 9 was deferred in the handoff, so this is built from the same
@@ -356,7 +356,7 @@ function GameSettingsSection({ installRoot, disabled }) {
       )}
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--sp-5)" }}>
-        {active.settings.map(setting => (
+        {settingsIn(active).map(setting => (
           <SettingControl key={setting.name} setting={setting} disabled={disabled}
             env={loaded.env} value={chosen[setting.name]}
             custom={loaded.custom.includes(setting.name)

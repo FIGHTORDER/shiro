@@ -95,38 +95,6 @@ const EMPTY = {
   notices: [] as string[],
 };
 
-/**
- * Fields of `User` that mean "no longer" when they are absent.
- *
- * `User` is broadcast as a whole record, not a patch: the server rebuilds it on
- * every change. So the merge rule that is right for `BattleHeader` - an absent
- * key means unchanged, because the server omits what did not change - is wrong
- * here in one direction. These four are the ones that can go from set to unset,
- * and `NullValueHandling.Ignore` drops them entirely when they do:
- *
- * - `BattleID`   leaving a room
- * - `AwaySince`  coming back
- * - `InGameSince` the game ending
- *
- * `PartyID` used to be in this list and is not a field: the server declares it
- * `[JsonIgnore]`, so it never arrives and there was nothing here to clear.
- * Party membership comes from `OnPartyStatus`, which the party store keeps.
- *
- * Merged the general way, none of them ever cleared: somebody who left a battle
- * stayed listed in it, and somebody who came back stayed greyed out as away,
- * until they disconnected entirely.
- */
-const USER_CLEARED_WHEN_ABSENT = ["BattleID", "AwaySince", "InGameSince"] as const;
-
-/** Merge a `User` broadcast, honouring the fields above. */
-export function mergeUser(base: T.User | undefined, patch: T.User): T.User {
-  const merged = mergePatch(base, patch) as T.User & Record<string, unknown>;
-  for (const field of USER_CLEARED_WHEN_ABSENT) {
-    if (patch[field] === undefined) delete merged[field];
-  }
-  return merged;
-}
-
 const MAX_CHAT = 500;
 
 export const useLobby = create<LobbyState>((set, get) => ({
@@ -204,9 +172,27 @@ export const useLobby = create<LobbyState>((set, get) => ({
           break;
         }
 
+        /* Kept whole, not merged. `User` is not a patch: the server rebuilds
+           the record on every change and sends all of it, so the rule that is
+           right for `BattleHeader` - an absent key means unchanged - reads
+           backwards here. An absent key means the field is no longer set, and
+           `NullValueHandling.Ignore` is what drops it. Only the nullable
+           fields can go missing at all; the rest are value types and always
+           arrive, so taking the record whole loses nothing.
+
+           This used to merge and then delete three names - BattleID,
+           AwaySince, InGameSince - the same rule applied to the three fields
+           somebody had noticed. Every other nullable one latched: leave a clan
+           or drop a faction and the old tag stayed on screen until you
+           disconnected, and each new optional field would have joined them.
+
+           `PartyID` was once on that list and is not a field at all: the
+           server declares it `[JsonIgnore]`. Party membership comes from
+           `OnPartyStatus`, which the party store keeps, so nothing here
+           carries it and nothing here can blank it. */
         case "User": {
           const u = m.data as T.User;
-          if (u.Name) mutUsers()[u.Name] = mergeUser(users[u.Name], u);
+          if (u.Name) mutUsers()[u.Name] = u;
           break;
         }
 

@@ -304,14 +304,14 @@ pub fn detect() -> Result<Install, String> {
 }
 
 /// Platform subfolder ZK files engines under.
+///
+/// Deferred to `engine` rather than worked out again here. This decides where
+/// detection looks and `engine::engine_dir` decides where a managed install
+/// writes, and while there were two of these they agreed only on win64 and
+/// linux64 - so anywhere else the engine Shiro had just installed did not
+/// exist as far as detection was concerned.
 fn engine_platform() -> &'static str {
-    if cfg!(windows) {
-        "win64"
-    } else if cfg!(target_os = "macos") {
-        "osx64"
-    } else {
-        "linux64"
-    }
+    crate::engine::platform()
 }
 
 fn engine_exe() -> &'static str {
@@ -551,6 +551,21 @@ mod tests {
     fn engine_lookup_reports_the_version_rather_than_a_bare_not_found() {
         let err = find_engine(Path::new("/nonexistent/Zero-K"), "2025.06.21").unwrap_err();
         assert!(err.contains("2025.06.21"), "{err}");
+    }
+
+    /// Detection has to look where a managed install writes. Two copies of the
+    /// platform name drifted apart, and off win64/linux64 an engine Shiro had
+    /// just downloaded was reported missing.
+    #[test]
+    fn an_engine_installed_by_us_is_where_detection_looks() {
+        let root = temp("managed-engine-is-found");
+        let dir = crate::engine::engine_dir(&root, "2025.06.21");
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(dir.join(engine_exe()), b"an engine as far as detection is concerned")
+            .unwrap();
+        assert!(has_engine(&root), "the engine we just installed is invisible");
+        assert_eq!(find_engine(&root, "2025.06.21").unwrap(), dir.join(engine_exe()));
+        let _ = std::fs::remove_dir_all(&root);
     }
 
     #[test]

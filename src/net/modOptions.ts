@@ -91,11 +91,23 @@ export function isDefault(key: string, value: string): boolean {
  * back out as 9001 - above the maximum the same table declares. Rounding
  * properly and clamping afterwards gives the same answer everywhere else and
  * stops the field editing itself when you tab through it.
+ *
+ * The range has to hold for the string, not only for the number behind it.
+ * `formatNumber` takes its places from the step alone, so a min below half a
+ * step prints as something outside the range: `hpmult` is min 0.000001 with
+ * step 0.05, and anything typed under 0.025 came out as "0" - a 0x health
+ * multiplier on the wire. When the text falls outside, answer with the nearest
+ * on-step value that is inside, which is what the field does with every other
+ * typed value anyway.
  */
 export function clampNumber(value: number, option: ModOption): string {
   const { min = 0, max = 0, step = 1 } = option;
-  const stepped = Math.round(Math.min(max, Math.max(min, value)) / step) * step;
-  return formatNumber(Math.min(max, Math.max(min, stepped)), step);
+  const stepped = Math.round(value / step) * step;
+  const text = formatNumber(Math.min(max, Math.max(min, stepped)), step);
+  const n = Number(text);
+  if (n < min) return formatNumber(Math.min(max, Math.ceil(min / step) * step), step);
+  if (n > max) return formatNumber(Math.max(min, Math.floor(max / step) * step), step);
+  return text;
 }
 
 /**

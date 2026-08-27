@@ -116,8 +116,9 @@ pub fn write(root: &Path, m: &Match) -> Result<(), String> {
         std::fs::create_dir_all(parent)
             .map_err(|e| format!("could not create {}: {e}", parent.display()))?;
     }
-    std::fs::write(&file, render(m))
-        .map_err(|e| format!("could not write {}: {e}", file.display()))
+    /* Written on every launch, and read by the game moments later: a half file
+       is a Lua parse error in the loading screen rather than a roster. */
+    crate::game_files::write_atomic(&file, &render(m))
 }
 
 /// Remove it, so nothing inherits the last match's roster.

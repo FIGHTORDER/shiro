@@ -1138,6 +1138,39 @@ check("installing asks the backend rather than fetching in the page",
   await waitFor("installed", () => sentSince(beforeInstall, /^install springen$/)));
 await shot("live-06-apps");
 
+console.log("widgets");
+await clickText(/^Widgets$/);
+check("the widgets in the install are listed, whoever put them there",
+  await waitFor("widgets", () => seeing(/Hel-K/) && seeing(/My Own Thing/)));
+/* Removal is offered for what Shiro wrote and for nothing else. A button on a
+   widget the player copied in by hand would be offering to delete a file Shiro
+   has no record of and cannot put back. */
+const removable = () => page.evaluate(() => [...document.querySelectorAll("button")]
+  .filter(b => /^Remove /.test(b.getAttribute("aria-label") || ""))
+  .map(b => b.getAttribute("aria-label")));
+check("only what Shiro installed can be removed",
+  JSON.stringify(await removable()) === JSON.stringify(["Remove Hel-K"]));
+
+await shot("live-06-widgets");
+await clickText(/^Remove Hel-K$/);
+/* The unit is the pack, not the row. A widget out of the middle of a pack
+   leaves the rest of it calling something that is gone, so the count is said
+   before anything is deleted rather than discovered afterwards. */
+check("removing says which pack goes and how much of it",
+  await waitFor("confirm", () => seeing(/Remove Helwor\/New-Hel-K\?/)
+    && seeing(/All 2 of its files go/)));
+await shot("live-07-widget-remove");
+await clickText(/^Keep$/);
+check("keeping puts the row back",
+  await waitFor("kept", async () => (await seeing(/Hel-K/))
+    && !(await seeing(/All 2 of its files go/))));
+
+await clickText(/^Remove Hel-K$/);
+await clickText(/^Remove$/);
+check("removing takes the pack out and leaves the player's own widget",
+  await waitFor("removed", async () => (await seeing(/My Own Thing/))
+    && !(await seeing(/Hel-K/))));
+
 console.log("friends");
 /* Record every distinct state the ratings panel passes through while this
    screen mounts, not just the one it settles on.

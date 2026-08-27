@@ -109,6 +109,33 @@ function labelOf(kind: RoomKind, name: string): string {
 }
 
 /**
+ * How far back a replayed line is looked for.
+ *
+ * The replay is the channel's last twenty or so; a little more than that is
+ * enough to find any of them and cheap enough to do per `Say`.
+ */
+const REPLAY_LOOKBACK = 60;
+
+/**
+ * Is this line already in the scrollback?
+ *
+ * Only asked inside a channel's settle window, where the answer means the
+ * server is replaying a backlog we already hold. `Time` is the server's own
+ * stamp and is carried through unchanged, so an exact match on speaker, words
+ * and stamp is the replay. A line with no stamp is not matched: without it
+ * there is nothing to tell a replay from somebody saying "gg" twice.
+ */
+function alreadySaid(room: Room, say: T.Say): boolean {
+  if (!say.Time) return false;
+  const from = Math.max(0, room.messages.length - REPLAY_LOOKBACK);
+  for (let i = room.messages.length - 1; i >= from; i--) {
+    const m = room.messages[i];
+    if (m.time === say.Time && m.user === say.User && m.text === say.Text) return true;
+  }
+  return false;
+}
+
+/**
  * Which room a `Say` belongs to.
  *
  * `Place=User` is a private message and is echoed to both parties, so the
@@ -428,6 +455,15 @@ export const useChat = create<ChatState>((set, get) => ({
             const dest = routeSay(d, me);
             if (!dest) break;
             const room = ensure(dest.kind, dest.name);
+            const backlog = room.kind === "channel" && now - room.openedAt < BACKLOG_SETTLE_MS;
+
+            /* A reconnect re-joins every channel and the server replays each
+               one's backlog, so inside the settle window the same twenty lines
+               arrive on top of the twenty already in the scrollback. Same
+               speaker, same words, same server timestamp is that replay and
+               not a person repeating themselves to the second. */
+            if (backlog && alreadySaid(room, d)) break;
+
             push(room, {
               time: d.Time,
               user: d.User,
@@ -438,7 +474,6 @@ export const useChat = create<ChatState>((set, get) => ({
             });
 
             const mine = Boolean(me && d.User === me);
-            const backlog = room.kind === "channel" && now - room.openedAt < BACKLOG_SETTLE_MS;
             if (!mine && !backlog && room.id !== state.active) {
               room.unread += 1;
               /* `Ring` as well as the text, not instead of it: the server does
@@ -531,6 +566,20 @@ export const useChat = create<ChatState>((set, get) => ({
      silent - messages went nowhere and none arrived. Asking again is cheap and
      idempotent; the server answers with a JoinChannelResponse either way. */
   rejoinChannels: () => {
+    /* The settle window starts again here. A tab that has been open all
+       evening has an `openedAt` hours old, so without this the replay that
+       answers each of these joins lands outside the window: every tab lit up
+       with twenty unread, and any replayed line that named you rang the
+       taskbar and fired an OS notification for a conversation you had already
+       had. */
+    const now = Date.now();
+    set(state => {
+      const rooms = { ...state.rooms };
+      for (const room of Object.values(rooms)) {
+        if (room.kind === "channel") rooms[room.id] = { ...room, openedAt: now };
+      }
+      return { rooms };
+    });
     for (const room of Object.values(get().rooms)) {
       if (room.kind === "channel") tx("JoinChannel", { ChannelName: room.name });
     }

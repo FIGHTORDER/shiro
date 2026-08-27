@@ -1,8 +1,9 @@
 import React from "react";
 
 import { Dialog, Button, Checkbox, EmptyState } from "../ds/shiro.js";
-import { mapTerrain, worldAspect } from "../net/mapterrain.ts";
+import { asTerrainFailure, mapTerrain, worldAspect } from "../net/mapterrain.ts";
 import Map3D from "./Map3D.jsx";
+import { floodedAt } from "./mapwater.ts";
 
 /* The 3D view, in a window of its own.
  *
@@ -10,22 +11,25 @@ import Map3D from "./Map3D.jsx";
  * and a shape you cannot turn is just a second picture. */
 
 /**
- * How much of the map sits under a waterline, as a sentence.
+ * The panel to show instead of the map, from the kind of failure it was.
  *
- * The slider's own position already shows where the line is; the number worth
- * reading is what that does to the map. `undefined` until the heightmap has
- * been measured, which is one frame after the dialog opens.
+ * Only `missing` is entitled to say anything about the map itself. An
+ * unreachable site is a fact about the connection, and saying "Zero-K has not
+ * published a heightmap" there is a confident claim about a map nobody
+ * managed to ask about.
  */
-function floodedAt(profile, water) {
-  if (!profile || !profile.total) return undefined;
-  const cut = Math.min(100, Math.max(0, Math.round(water * 100)));
-  let under = 0;
-  for (let b = 0; b < cut; b++) under += profile.buckets[b];
-  const pct = (under / profile.total) * 100;
-  if (pct <= 0) return "nothing under water";
-  if (pct >= 99.5) return "all under water";
-  // Under a percent is still worth distinguishing from none at all.
-  return (pct < 1 ? "<1" : Math.round(pct)) + "% under water";
+function failurePanel(failure) {
+  const asset = failure.asset === "minimap" ? "minimap" : "heightmap";
+  if (failure.kind === "missing") {
+    return { title: "No 3D view for this map.", body: `Zero-K has not published a ${asset} for it.` };
+  }
+  if (failure.kind === "network") {
+    return {
+      title: "Could not reach zero-k.info.",
+      body: "The map images did not arrive. This is the connection, not the map.",
+    };
+  }
+  return { title: "No 3D view for this map.", body: failure.message };
 }
 
 function Slider({ label, value, min, max, step, onChange, hint, readout }) {
@@ -50,7 +54,7 @@ function Slider({ label, value, min, max, step, onChange, hint, readout }) {
 export default function Map3DDialog({ map, open, onClose }) {
   const name = map?.name;
   const [terrain, setTerrain] = React.useState(null);
-  const [error, setError] = React.useState(null);
+  const [failure, setFailure] = React.useState(null);
   const [water, setWater] = React.useState(0.28);
   const [showWater, setShowWater] = React.useState(false);
   const [profile, setProfile] = React.useState(undefined);
@@ -59,10 +63,15 @@ export default function Map3DDialog({ map, open, onClose }) {
     if (!open || !name) return undefined;
     let live = true;
     setTerrain(null);
-    setError(null);
+    setFailure(null);
+    /* The measurement belongs to the map that was on screen a moment ago, and
+       nothing else clears it: the dialog stays mounted between maps, so the
+       waterline hint would keep quoting the old map's flooded percentage for
+       the whole fetch, or forever if the new one fails. */
+    setProfile(undefined);
     mapTerrain(name).then(
       t => { if (live) setTerrain(t); },
-      e => { if (live) setError(String(e?.message ?? e)); },
+      e => { if (live) setFailure(asTerrainFailure(e)); },
     );
     return () => { live = false; };
   }, [open, name]);
@@ -77,13 +86,11 @@ export default function Map3DDialog({ map, open, onClose }) {
         <div style={{ position: "relative", width: "100%", aspectRatio: "16 / 10",
           background: "var(--surface-sunken)", border: "1px solid var(--w-12)",
           overflow: "hidden" }}>
-          {error
+          {failure
             ? <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center",
                 padding: "var(--sp-5)" }}>
-                <EmptyState icon="image" title="No 3D view for this map."
-                  body={/heightmap/.test(error)
-                    ? "Zero-K has not published a heightmap for it."
-                    : error} />
+                <EmptyState icon="image" title={failurePanel(failure).title}
+                  body={failurePanel(failure).body} />
               </div>
             : terrain
               ? <Map3D heightmap={terrain.heightmap} minimap={terrain.minimap}

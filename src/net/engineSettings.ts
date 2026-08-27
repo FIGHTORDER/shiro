@@ -12,8 +12,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { inTauri } from "./connection";
 import {
-  inferChoices, changedSpringSettings, changedSettingNames, notNvidiaFromInfolog,
-  lupsTemplate, lupsSubstitutions, cmdcolorSubstitutions, isLupsSetting,
+  inferChoices, changedSpringSettings, changedSettingNames, lupsTemplate, lupsSubstitutions, cmdcolorSubstitutions, isLupsSetting,
   springSettingsFor, defaultChoices,
   type Chosen, type Environment,
 } from "./gameSettings.ts";
@@ -64,11 +63,6 @@ export async function writeEngineSettings(
    regenerated whole from a template rather than patched, so they get their own
    commands; see src-tauri/src/game_files.rs. */
 
-export async function readInfolog(installRoot?: string): Promise<string | null> {
-  if (!inTauri()) return null;
-  return invoke<string | null>("zks_read_infolog", { installRoot });
-}
-
 async function readLups(installRoot?: string): Promise<string | null> {
   if (!inTauri()) return null;
   return invoke<string | null>("zks_read_lups", { installRoot });
@@ -91,10 +85,9 @@ export interface LoadedGameSettings {
  * will open on; upstream reads it from the engine for the same purpose.
  */
 export async function loadGameSettings(installRoot?: string): Promise<LoadedGameSettings> {
-  const [current, lups, infolog] = await Promise.all([
+  const [current, lups] = await Promise.all([
     readEngineSettings(installRoot),
     readLups(installRoot),
-    readInfolog(installRoot),
   ]);
   /* Device pixels, not CSS pixels. `screen.width` is what the browser reports
      after Windows' display scaling, so a 4K screen at 200% says 1920 - and the
@@ -107,7 +100,6 @@ export async function loadGameSettings(installRoot?: string): Promise<LoadedGame
       width: Math.round((globalThis.screen?.width || 1920) * dpr),
       height: Math.round((globalThis.screen?.height || 1080) * dpr),
     },
-    notNvidia: notNvidiaFromInfolog(infolog),
     current,
   };
   const { chosen, custom } = inferChoices(current, lups, env);

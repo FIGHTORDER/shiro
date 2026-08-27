@@ -14,7 +14,7 @@ import assert from "node:assert/strict";
 
 import D from "../data.js";
 import {
-  KINDS, minimapRatio, normaliseMapName, RATING_MAX, ratingOf, ratingRanker, sidesOf, sizeOf, suitedTo, thumbAspect,
+  forgetCatalogue, KINDS, mapCatalogue, minimapRatio, normaliseMapName, RATING_MAX, ratingOf, ratingRanker, sidesOf, sizeOf, suitedTo, thumbAspect,
 } from "./zkcatalogue.ts";
 import type { CatalogueMap } from "./zkcatalogue.ts";
 
@@ -177,4 +177,57 @@ test("a map the catalogue has no dimensions for has no ratio either", () => {
   assert.equal(thumbAspect(undefined), undefined);
   assert.equal(thumbAspect({ width: 0, height: 16 }), undefined);
   assert.equal(thumbAspect({ width: 16, height: undefined }), undefined);
+});
+
+/**
+ * Run one `mapCatalogue` call as if it were inside the app, against a stub that
+ * either answers or throws. The same shape `ais.test.ts` uses: `inTauri` looks
+ * for `window.__TAURI_INTERNALS__` and `invoke` calls straight through it.
+ */
+async function catalogueReading(invoke: () => Promise<unknown>) {
+  const global = globalThis as { window?: unknown };
+  const before = global.window;
+  global.window = { __TAURI_INTERNALS__: { invoke } };
+  try {
+    return await mapCatalogue();
+  } finally {
+    if (before === undefined) delete global.window;
+    else global.window = before;
+  }
+}
+
+test("a catalogue that failed once is not the answer for the rest of the session", async () => {
+  /* The failure used to be memoised: the catch wrapped the whole memoised
+     promise, so one hiccup at the moment Maps was first opened left every map
+     picker and minimap lookup finding nothing until Shiro was restarted. */
+  forgetCatalogue();
+  try {
+    const dead = await catalogueReading(async () => { throw new Error("offline"); });
+    assert.equal(dead.size, 0, "a failed fetch still has to answer with nothing");
+
+    const good = await catalogueReading(async () => [
+      { name: "Comet_Catcher_Redux", resourceId: 1, is1v1: true, isTeams: false, isFfa: false,
+        isChickens: false, isSpecial: false, isAssymetrical: false },
+    ]);
+    assert.equal(good.size, 1, "the failure was remembered instead of retried");
+    assert.ok(good.has(normaliseMapName("Comet Catcher Redux")));
+  } finally {
+    forgetCatalogue();
+  }
+});
+
+test("a catalogue that answered is fetched once and kept", async () => {
+  forgetCatalogue();
+  try {
+    let calls = 0;
+    const entry = [
+      { name: "Comet_Catcher_Redux", resourceId: 1, is1v1: true, isTeams: false, isFfa: false,
+        isChickens: false, isSpecial: false, isAssymetrical: false },
+    ];
+    await catalogueReading(async () => { calls += 1; return entry; });
+    await catalogueReading(async () => { calls += 1; return entry; });
+    assert.equal(calls, 1, "the whole point of the memo is one fetch a session");
+  } finally {
+    forgetCatalogue();
+  }
 });

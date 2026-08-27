@@ -365,11 +365,34 @@ pub struct Content {
 
 static JOB_SEQ: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(1);
 
+/// How many finished logs to keep.
+const LOG_KEEP: usize = 12;
+
+/// The id of job `seq`.
+///
+/// Zero padded because the log store is keyed on this string: unpadded,
+/// `dl-10` sorts before `dl-2`, so pruning drops the newest entries and the
+/// "most recent" log is whichever id happens to sort greatest.
+fn job_id(seq: u64) -> String {
+    format!("dl-{seq:06}")
+}
+
 fn next_job_id() -> String {
-    format!(
-        "dl-{}",
-        JOB_SEQ.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
-    )
+    job_id(JOB_SEQ.fetch_add(1, std::sync::atomic::Ordering::Relaxed))
+}
+
+/// Drop everything past the [`LOG_KEEP`] most recent, so a long session does
+/// not accumulate megabytes of download chatter.
+fn prune_logs(logs: &mut std::collections::BTreeMap<String, String>) {
+    while logs.len() > LOG_KEEP {
+        let Some(oldest) = logs.keys().next().cloned() else { break };
+        logs.remove(&oldest);
+    }
+}
+
+/// The log of the most recent job.
+fn latest_log(logs: &std::collections::BTreeMap<String, String>) -> Option<String> {
+    logs.values().next_back().cloned()
 }
 
 /// Drain one pipe, decoding as it goes.
@@ -828,14 +851,7 @@ fn spawn_job(app: &tauri::AppHandle, job: &Job, state: &Content2) -> Result<(), 
         if let Ok(mut logs) = state_w.logs.lock() {
             if let Some(text) = state_w.tail_of(&tail) {
                 logs.insert(id.clone(), text);
-                /* A handful, so a long session does not accumulate megabytes of
-                   download chatter. */
-                if logs.len() > 12 {
-                    let oldest: Vec<String> = logs.keys().take(logs.len() - 12).cloned().collect();
-                    for k in oldest {
-                        logs.remove(&k);
-                    }
-                }
+                prune_logs(&mut logs);
             }
         }
 
@@ -1001,7 +1017,7 @@ pub fn zks_content_log(content: tauri::State<'_, Content>, id: Option<String>) -
     let logs = self_lock(&content.logs)?;
     let text = match id {
         Some(id) => logs.get(&id).cloned(),
-        None => logs.values().next_back().cloned(),
+        None => latest_log(&logs),
     };
     Ok(text.unwrap_or_else(|| "Nothing recorded yet.".into()))
 }
@@ -1080,8 +1096,23 @@ pub struct Preflight {
     pub writable: bool,
 }
 
+/// Async the way `zks_managed_state` is. This runs on every battle join, and
+/// the body detects the install, resolves the engine and parses the archive
+/// caches - megabytes of `ArchiveCache*.lua`, then a stat per archive listed.
+/// Declared without `async` it ran inline on the thread that draws the window.
 #[tauri::command]
-pub fn zks_content_preflight(
+pub async fn zks_content_preflight(
+    engine: String,
+    game: Option<String>,
+    map: Option<String>,
+    install_root: Option<String>,
+) -> Result<Preflight, String> {
+    tauri::async_runtime::spawn_blocking(move || preflight_blocking(engine, game, map, install_root))
+        .await
+        .map_err(|e| format!("the preflight did not finish: {e}"))?
+}
+
+fn preflight_blocking(
     engine: String,
     game: Option<String>,
     map: Option<String>,
@@ -1277,6 +1308,41 @@ mod tests {
             StartFailed::Cancelled.report(),
             (Outcome::Killed, "Download cancelled.".to_string())
         );
+    }
+
+    /// The log store is a `BTreeMap` keyed on the id, so the id has to sort the
+    /// way the job numbers do. Unpadded it did not: "dl-10" < "dl-2".
+    #[test]
+    fn job_ids_sort_in_the_order_they_were_issued() {
+        let ids: Vec<String> = (1..=25).map(job_id).collect();
+        let mut sorted = ids.clone();
+        sorted.sort();
+        assert_eq!(ids, sorted, "ids do not sort by job number");
+    }
+
+    fn logs_of(seqs: impl IntoIterator<Item = u64>) -> std::collections::BTreeMap<String, String> {
+        seqs.into_iter().map(|n| (job_id(n), format!("log {n}"))).collect()
+    }
+
+    /// Pruning used to drop the lexicographically smallest keys, which past ten
+    /// jobs are the newest ones: "dl-10" went and "dl-3" stayed forever.
+    #[test]
+    fn pruning_drops_the_oldest_logs_not_the_newest() {
+        let mut logs = logs_of(1..=30);
+        prune_logs(&mut logs);
+        assert_eq!(logs.len(), LOG_KEEP);
+        let kept: Vec<String> = logs.keys().cloned().collect();
+        assert_eq!(kept, (19..=30).map(job_id).collect::<Vec<_>>());
+    }
+
+    /// `zks_content_log` with no id promises the most recent. It returned the
+    /// log of job 9 for every job number from 9 to 89.
+    #[test]
+    fn the_log_with_no_id_is_the_most_recent_one() {
+        let logs = logs_of(1..=12);
+        assert_eq!(latest_log(&logs).as_deref(), Some("log 12"));
+        assert_eq!(latest_log(&logs_of([9, 10])).as_deref(), Some("log 10"));
+        assert_eq!(latest_log(&logs_of([])), None);
     }
 
     #[test]

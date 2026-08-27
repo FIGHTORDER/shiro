@@ -25,6 +25,24 @@ export interface SiteAction {
   arg: string;
 }
 
+/**
+ * Verbs nobody else may trigger on your behalf.
+ *
+ * `logout` has no honest use in a link somebody sends you - there is no reason
+ * to publish "click here to end your session" - so it is dropped rather than
+ * confirmed. A prompt for something with no legitimate use only teaches people
+ * to click through prompts.
+ *
+ * Verbs that are merely consequential rather than destructive - adding a friend,
+ * telling the host to change map - are confirmed by the app instead, so they
+ * keep working when somebody genuinely means to share one.
+ */
+const DESTRUCTIVE = ["logout"];
+
+function isDestructive(command: string): boolean {
+  return DESTRUCTIVE.includes(command.toLowerCase());
+}
+
 export interface SiteCommand {
   /** The navigation target, possibly empty when the command is all actions. */
   path: string;
@@ -151,7 +169,17 @@ export const useSite = create<SiteState>((set, get) => ({
 
   offer: raw => {
     const trimmed = raw.trim();
-    if (trimmed) set({ pending: parseSiteCommand(trimmed) });
+    if (!trimmed) return;
+    /* `offer` is the untrusted door. The server's own `SiteToLobbyCommand`
+       lands in `pending` through applyBatch above and never comes this way, so
+       everything arriving here was written by somebody else: a line in chat, or
+       a page that navigated the browser to a `zk://` URL.
+
+       Stripping happens here rather than at either call site because there are
+       two of them and only one used to filter. A link followed from a browser
+       reached this slot unfiltered and could end the session. */
+    const cmd = parseSiteCommand(trimmed);
+    set({ pending: { ...cmd, actions: cmd.actions.filter(a => !isDestructive(a.command)) } });
   },
 
   take: () => {

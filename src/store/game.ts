@@ -90,6 +90,10 @@ async function restoreAfterGame(): Promise<void> {
   }
 }
 
+/* How long to wait for `ConnectSpring` before saying so. The handoff is
+   normally immediate; this is only here so a silent server cannot pin the UI. */
+const START_TIMEOUT_MS = 20_000;
+
 export const useGame = create<GameState>((set, get) => ({
   phase: { kind: "idle" },
 
@@ -130,8 +134,32 @@ export const useGame = create<GameState>((set, get) => ({
 
   requestStart: (battleID, password) => {
     set({ phase: { kind: "launching" } });
-    void import("../net/session.ts").then(({ send }) =>
-      send("RequestConnectSpring", { BattleID: battleID, Password: password }));
+    /* The launch is driven by `ConnectSpring` arriving, not by this call
+       returning, so nothing downstream notices when the answer never comes: a
+       relay with no connection rejects the send outright, and a battle that has
+       already ended is simply never answered. Either way the phase used to stay
+       "launching" for the rest of the session, behind a modal with no way out.
+
+       Both are handled here rather than in the dialog, because the dialog can
+       only offer a way out - it cannot tell that anything is wrong.
+
+       `giveUp` fires only from "launching": a ConnectSpring that arrived, a
+       cancel, or a second launch has already moved the phase on, and a late
+       timeout from the attempt before it must not clobber that. */
+    const giveUp = (reason: string) => {
+      if (get().phase.kind === "launching") set({ phase: { kind: "failed", reason } });
+    };
+    void import("../net/session.ts")
+      .then(({ send }) => send("RequestConnectSpring",
+        { BattleID: battleID, Password: password }))
+      .catch(e => giveUp(String(e?.message ?? e)));
+    /* And a send that succeeds but is never answered. Long enough not to fire
+       on an ordinary slow handoff, short enough that nobody reaches for Task
+       Manager. */
+    globalThis.setTimeout(
+      () => giveUp("The server did not answer the request to start. The battle "
+        + "may have ended, or the connection dropped."),
+      START_TIMEOUT_MS);
   },
 
   /**
@@ -185,7 +213,12 @@ export const useGame = create<GameState>((set, get) => ({
       unsub();
 
       if (job.state !== "done") {
-        set({ phase: { kind: "failed", reason: job.reason ?? "Could not get the content." } });
+        /* Only if the player is still waiting on this. Cancel sets the phase to
+           idle and then the job settles as not-done a moment later, which used
+           to raise a failure over a screen they had already moved on from. */
+        if (get().phase.kind === "downloading") {
+          set({ phase: { kind: "failed", reason: job.reason ?? "Could not get the content." } });
+        }
         return;
       }
       set({ phase: { kind: "launching", title } });

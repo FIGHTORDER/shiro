@@ -19,7 +19,10 @@ import type { AppStatus, CatalogueApp } from "../net/apps.ts";
 export type State = "available" | "installed" | "update" | "unavailable" | "installing";
 
 export function appState(app: CatalogueApp, status?: AppStatus): State {
-  if (app.unavailable) return "unavailable";
+  /* Either source. The catalogue's is a constant the build carries; the
+     status's is worked out for this machine, which is the only one that knows
+     a Windows .exe cannot run here. */
+  if (app.unavailable || status?.unavailable) return "unavailable";
   if (!status?.installed) return "available";
   /* The catalogue is compiled into Shiro, so "is there a newer one" is a
      comparison against this build's own catalogue rather than a request to
@@ -43,7 +46,7 @@ export const META: Record<State, (app: CatalogueApp, status?: AppStatus) => stri
   installed: (_app, status) => status?.installedVersion || "Installed",
   update: (app, status) =>
     `${status?.installedVersion || "version unknown"} → ${app.version}`,
-  unavailable: app => app.unavailable || "Unavailable",
+  unavailable: (app, status) => status?.unavailable || app.unavailable || "Unavailable",
 };
 
 export const ACTION: Partial<Record<State, string>> = {

@@ -235,6 +235,10 @@ jobs:
           find . -type f \( -name '*.deb' -o -name '*.rpm' -o -name '*.AppImage' -o -name '*.sig' \) \
             -printf '%f  %s bytes\n'
 
+      # Only the AppImage's signature used to be collected, so latest.json named
+      # one Linux platform and a deb install was handed an AppImage to install as
+      # a package. The two package signatures are listed here and are simply
+      # absent if the bundler does not produce them.
       - uses: actions/upload-artifact@v4
         with:
           name: linux
@@ -243,6 +247,8 @@ jobs:
             src-tauri/target/release/bundle/rpm/*.rpm
             src-tauri/target/release/bundle/appimage/*.AppImage
             src-tauri/target/release/bundle/appimage/*.sig
+            src-tauri/target/release/bundle/deb/*.sig
+            src-tauri/target/release/bundle/rpm/*.sig
           if-no-files-found: error
           retention-days: 30
 
@@ -295,6 +301,11 @@ jobs:
             case "$name" in
               *.exe)      platform=windows-x86_64 ;;
               *.AppImage) platform=linux-x86_64 ;;
+              # The plugin looks these up before falling back to linux-x86_64,
+              # and installs a package with install_deb / install_rpm rather
+              # than putting an AppImage through the AppImage path.
+              *.deb)      platform=linux-x86_64-deb ;;
+              *.rpm)      platform=linux-x86_64-rpm ;;
               *)          echo "::warning::no platform known for $name; skipping"; continue ;;
             esac
             echo "signed: $name -> $platform"
@@ -303,6 +314,17 @@ jobs:
               --arg p "$platform" '{($p): {signature: $s, url: $u}}')
             platforms=$(printf '%s\n%s\n' "$platforms" "$entry" | jq -s 'add')
           done < <(find dist -type f -name '*.sig' | sort)
+
+          # A package we ship but cannot update is worse than one we do not ship:
+          # the updater offers it, downloads it, and fails at install. Whether
+          # the bundler signs .deb and .rpm at all cannot be answered by a run
+          # without the key, so this reports rather than assumes.
+          for kind in deb rpm; do
+            if find dist -type f -name "*.$kind" | grep -q .                && ! echo "$platforms" | jq -e --arg k "linux-x86_64-$kind" 'has($k)' >/dev/null; then
+              echo "::warning::Publishing .$kind with no linux-x86_64-$kind entry."
+              echo "::warning::Those installs are offered the AppImage and fail on it."
+            fi
+          done
 
           if [ "$(echo "$platforms" | jq 'length')" -eq 0 ]; then
             echo "::warning::No signatures - TAURI_SIGNING_PRIVATE_KEY is probably unset."

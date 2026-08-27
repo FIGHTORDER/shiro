@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { springSettingsFor, defaultChoices } from "./gameSettings.ts";
 
-const env = { screen: { width: 2560, height: 1440 }, notNvidia: false, current: {} };
+const env = { screen: { width: 2560, height: 1440 }, current: {} };
 
 test("Zero-K's defaults turn vsync off", () => {
   const out = springSettingsFor(defaultChoices(env), env);

@@ -719,10 +719,17 @@ export function roomModel(
 
   const spectators: RoomPlayerModel[] = [];
   const byAlly = new Map<number, RoomPlayerModel[]>();
+  /* Clamped to the last column that exists, because only allies below the cap
+     are ever read back out below. `!balance 20` hands out ally numbers past
+     it, and anybody sitting up there used to be counted in the player total
+     and then drawn in neither a team nor the spectators - in the room, absent
+     from it. Sharing the last column is wrong about which side they are on;
+     leaving them off the screen is wrong about whether they are there. */
   const place = (ally: number, p: RoomPlayerModel) => {
-    const list = byAlly.get(ally);
+    const at = Math.min(Math.max(ally, 0), MAX_ALLY_TEAMS - 1);
+    const list = byAlly.get(at);
     if (list) list.push(p);
-    else byAlly.set(ally, [p]);
+    else byAlly.set(at, [p]);
   };
 
   const waitingOn: string[] = [];

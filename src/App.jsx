@@ -36,7 +36,7 @@ import { inTauri } from "./net/connection";
 import { login, register, teardown, send, say, reconnectNow } from "./net/session";
 import { useLobby } from "./store/lobby";
 import { useRoom } from "./store/room";
-import { useContent, prefetchForBattle } from "./store/content";
+import { useContent, prefetchForBattle, clearPrefetchMemory } from "./store/content";
 import { useGame } from "./store/game";
 import { useChat, BATTLE_ROOM, selectTabs } from "./store/chat";
 import { useMatchmaker, secondsLeft } from "./store/matchmaker";
@@ -51,7 +51,7 @@ import { profileUrl } from "./net/zkweb.ts";
 import { managedState, managedRoot, installEngine, removeManaged, onEngine,
   loadScreenState, setLoadScreen } from "./net/managed.ts";
 import { seedDefaultSettings } from "./net/engineSettings.ts";
-import { useSite, channelOf, isExternalUrl } from "./store/site";
+import { useSite, channelOf, isExternalUrl, parseSiteCommand } from "./store/site";
 /* Imported for its side effect: the module registers a slice that flags the
    window and posts a notification when something is waiting on an answer.
    Nothing here reads from it, so without this import it would never load. */
@@ -67,6 +67,44 @@ import {
    on a rating tile reads as a player who is terrible rather than as an answer
    we do not have. */
 const rounded = n => (typeof n === "number" && n ? Math.round(n) : undefined);
+
+/* What a `zk://` link written in chat is allowed to do.
+   The website's own commands arrive on the socket and are the server talking to
+   us; a link in a channel is whoever is in the channel talking to us, and until
+   now both reached the same unrestricted switch. Navigation is harmless - it
+   moves our own view - but three actions act as us: `logout` ends the session,
+   `add_friend` sends a relation change, and `select_map` says `!map x` to the
+   room's host under our name.
+
+   `logout` is dropped outright, because no link has a reason to end somebody's
+   session. The other two are asked about rather than dropped, because "add me:
+   zk://@add_friend:bob" is a real thing people post. */
+const ZK_CHAT_DENIED = ["logout"];
+const ZK_CHAT_CONFIRM = ["add_friend", "select_map"];
+const zkChatRule = command => {
+  const c = command.toLowerCase();
+  if (ZK_CHAT_DENIED.includes(c)) return "denied";
+  return ZK_CHAT_CONFIRM.includes(c) ? "confirm" : "allowed";
+};
+
+/* Back into the grammar store/site.ts parses, so a filtered link still goes
+   through the one handler rather than a second copy of it. */
+const zkRaw = (path, actions) =>
+  `zk://${path}${actions.map(a => `@${a.command}${a.arg ? `:${a.arg}` : ""}`).join("")}`;
+
+/* A missing game and a missing map are two pr-downloader jobs, and the phase
+   carries both in `jobIds`. Cancelling only `jobId` left the second one running
+   with the dialog gone and nothing on screen attached to it. */
+const cancelDownload = phase => {
+  for (const id of phase.jobIds ?? [phase.jobId]) void useContent.getState().cancel(id);
+};
+
+const describeZkAction = a => {
+  const c = a.command.toLowerCase();
+  if (c === "add_friend") return `Add ${a.arg} to your friends.`;
+  if (c === "select_map") return `Set the map to ${a.arg}.`;
+  return `${a.command} ${a.arg}`.trim();
+};
 
 /* Click-through: login -> battle list -> battle room -> (launch) -> debriefing.
    The ready-check is a shell-level overlay because it interrupts any screen.
@@ -256,6 +294,23 @@ export default function App() {
   const chatRooms = useChat(s => s.rooms);
   const chatOrder = useChat(s => s.order);
   const chatActive = useChat(s => s.active);
+  const activeRoom = chatRooms[chatActive];
+  /* Alphabetical, and case-insensitively so: the server hands the roster over
+     in join order, which is arrival order to the server and no order at all to
+     a reader looking for one name in two hundred. `localeCompare` rather than
+     `<` because Zero-K names are not all ASCII.
+
+     Memoised, and up here with the other hooks rather than down with the chat
+     screen, because it is not free: the elapsed-time ticker re-renders App
+     twice a second for the whole session, and unmemoised this re-mapped and
+     locale-sorted the entire #zk roster on every one of those ticks, whether or
+     not the chat screen was even on screen. */
+  const chatUsers = React.useMemo(() => (live
+    ? (activeRoom
+      ? activeRoom.users.map(n => userToChip(liveUsers[n], n))
+        .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }))
+      : [])
+    : D.channelUsers), [live, activeRoom, liveUsers]);
 
   const phase = useGame(s => s.phase);
   const contentJobs = useContent(s => s.jobs);
@@ -413,7 +468,9 @@ export default function App() {
     // change, no XP and no awards, so the screen has nothing to tell them. And
     // anyone who would rather go straight back to the battle list can turn it
     // off in settings.
-    if (!newest || newest.spectator || !settings.autoOpenDebriefing) return;
+    // The flag lives on MatchContext, not on the record. Read off the record it
+    // was always undefined, so this exception never once applied.
+    if (!newest || newest.context?.spectator || !settings.autoOpenDebriefing) return;
     setView("debrief");
   }, [newest && newest.serverBattleId]);
 
@@ -493,21 +550,36 @@ export default function App() {
      The catalogue is memoised for the session in net/zkcatalogue.ts, so this
      is one request however often the screen is opened - and nothing else needs
      the whole list, which is why it is not fetched at login. */
+  /* A failed fetch used to latch for the session: the failure path set `[]`,
+     which is truthy, so the guard below never let it try again and the screen
+     stayed empty until a restart. Tracked in a ref rather than in state, and
+     keyed on `view` alone, because keying on `mapList` would re-enter the
+     effect the moment the failure path set it and spin. Opening Maps again is
+     what retries. */
+  const mapsLoaded = React.useRef(false);
   React.useEffect(() => {
-    if (view !== "maps" || mapList) return;
+    if (view !== "maps" || mapsLoaded.current) return;
     let live = true;
     mapCatalogue().then(
-      c => { if (live) setMapList([...c.values()]); },
+      c => { if (live) { mapsLoaded.current = true; setMapList([...c.values()]); } },
       () => { if (live) setMapList([]); },
     );
     return () => { live = false; };
-  }, [view, mapList]);
+  }, [view]);
 
   /* A `zk://` link somebody clicked in chat. It goes into the same pending slot
      the website's commands use, so a link in chat, a button on zero-k.info and
      a link followed from a browser all end up in the one handler below rather
-     than three that have to be kept agreeing with each other. */
-  const openZk = React.useCallback(raw => { useSite.getState().offer(raw); }, []);
+     than three that have to be kept agreeing with each other. This one is
+     filtered on the way in, because anybody can write it - see ZK_CHAT_DENIED. */
+  const [zkAsk, setZkAsk] = React.useState(null);
+  const openZk = React.useCallback(raw => {
+    const { path, actions } = parseSiteCommand(raw);
+    const kept = actions.filter(a => zkChatRule(a.command) !== "denied");
+    const gated = kept.filter(a => zkChatRule(a.command) === "confirm");
+    if (!gated.length) { useSite.getState().offer(zkRaw(path, kept)); return; }
+    setZkAsk({ raw: zkRaw(path, kept), actions: gated });
+  }, []);
 
   /* Who is being reported, if anyone. Shell-level rather than per-screen: the
      button is on two screens and the dialog is the same one. */
@@ -536,7 +608,17 @@ export default function App() {
 
     for (const { command: action, arg } of command.actions) {
       switch (action) {
-        case "join_battle":
+        case "join_battle": {
+          /* A battle id, which is what the server's own FriendJoinedBattleLine
+             posts. Looked up as a player name it matched nobody, so the links
+             the server itself sends did nothing at all. */
+          const id = Number.parseInt(arg, 10);
+          if (Number.isInteger(id) && id > 0) {
+            useRoom.getState().join(id);
+            setView("battles");
+          }
+          break;
+        }
         case "join_player": {
           // The argument is a player, not a battle: join whatever they are in.
           const target = useLobby.getState().users[arg];
@@ -600,6 +682,10 @@ export default function App() {
     useParty.getState().reset();
     useFriends.getState().reset();
     useHistory.getState().reset();
+    /* Downloads are session state too: the jobs list and the set of battles we
+       have already prefetched for both outlived a logout. */
+    useContent.getState().reset();
+    clearPrefetchMemory();
     useSettings.getState().forgetPassword();
     setLoggedIn(false);
     setView("battles");
@@ -744,17 +830,9 @@ export default function App() {
   const chatTabs = live
     ? selectTabs({ rooms: chatRooms, order: chatOrder })
     : D.channels;
-  const activeRoom = chatRooms[chatActive];
-  /* Alphabetical, and case-insensitively so: the server hands the roster over
-     in join order, which is arrival order to the server and no order at all to
-     a reader looking for one name in two hundred. `localeCompare` rather than
-     `<` because Zero-K names are not all ASCII. */
-  const chatUsers = live
-    ? (activeRoom
-      ? activeRoom.users.map(n => userToChip(liveUsers[n], n))
-        .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }))
-      : [])
-    : D.channelUsers;
+  /* `activeRoom` and `chatUsers` are up with the store selectors, because the
+     roster sort has to be memoised and hooks cannot live below the login
+     return. */
 
   // ----------------------------------------------------------- matchmaker ---
   /* The name titles the row and the description explains it. They used to be
@@ -782,7 +860,11 @@ export default function App() {
     <BattleRoomScreen room={roomView}
       download={activeDownload}
       onZk={openZk}
-      chat={battleChat ? chatLines(battleChat.messages, liveUsers, ignored) : []}
+      /* Demo mode has no chat store, and `[]` is truthy, so passing it there
+         shut off BattleRoomScreen's own `room.chat` fixture. */
+      chat={live
+        ? (battleChat ? chatLines(battleChat.messages, liveUsers, ignored) : [])
+        : undefined}
       onLeave={() => { if (live) useRoom.getState().leave(); setRoom(null); setView("battles"); }}
       onSay={text => void say(text, 1)}
       onTeam={ally => setBattleStatus({ AllyNumber: ally, IsSpectator: false })}
@@ -902,7 +984,7 @@ export default function App() {
       joined={live ? mmJoined : undefined}
       joinedTime={live ? mmJoinedTime : undefined}
       bannedSeconds={live ? mmBanned : undefined}
-      elo={live && me && liveUsers[me] ? Math.round(liveUsers[me].EffectiveMmElo) : undefined}
+      elo={live ? rounded(liveUsers[me]?.EffectiveMmElo) : undefined}
       party={live ? partyMembers.map(n => userToChip(liveUsers[n], n)) : D.channelUsers.slice(0, 2)}
       onInvite={live
         ? name => {
@@ -1115,19 +1197,26 @@ export default function App() {
           || phase.kind === "downloading"}
         title={phase.kind === "downloading" ? "Downloading" : "Launching"}
         width={380}
+        onClose={() => useGame.setState({ phase: { kind: "idle" } })}
         footer={phase.kind === "downloading" ? (
           <>
             <Button variant="ghost" onClick={() => {
-              useContent.getState().cancel(phase.jobId);
+              cancelDownload(phase);
               useGame.setState({ phase: { kind: "idle" } });
             }}>Cancel</Button>
             <Button variant="secondary" onClick={() => {
               const c = useGame.getState().last;
-              useContent.getState().cancel(phase.jobId);
+              cancelDownload(phase);
               if (c) void useGame.getState().launch(c);
             }}>Launch anyway</Button>
           </>
-        ) : undefined}>
+        ) : (
+          /* Every other phase gets a way out too. This modal covers the whole
+             window, including the app's own title bar buttons, so a phase with
+             no exit is a locked client rather than an inconvenience. */
+          <Button variant="ghost"
+            onClick={() => useGame.setState({ phase: { kind: "idle" } })}>Cancel</Button>
+        )}>
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--sp-5)" }}>
           {phase.kind === "preflight" ? (
             <>
@@ -1208,6 +1297,29 @@ export default function App() {
             {inviteSecondsLeft(partyInvite, Date.now())}s
           </span>
         </div>
+      </Dialog>
+
+      {/* A link in chat asking for something that acts as us. The server's own
+          commands do not come through here. */}
+      <Dialog open={Boolean(zkAsk)} title="Link from chat" width={380}
+        onClose={() => setZkAsk(null)}
+        footer={<>
+          <Button variant="ghost" onClick={() => setZkAsk(null)}>Cancel</Button>
+          <Button variant="primary" onClick={() => {
+            const ask = zkAsk;
+            setZkAsk(null);
+            if (ask) useSite.getState().offer(ask.raw);
+          }}>Allow</Button>
+        </>}>
+        <span style={{ font: "var(--text-ui)", color: "var(--text-body)" }}>
+          That link wants to do this as you:
+        </span>
+        <ul style={{ margin: "8px 0 0", paddingLeft: 18, font: "var(--text-ui)",
+          color: "var(--text-hi)" }}>
+          {(zkAsk ? zkAsk.actions : []).map((a, i) => (
+            <li key={`${a.command}:${a.arg}:${i}`}>{describeZkAction(a)}</li>
+          ))}
+        </ul>
       </Dialog>
 
       {/* The server has something to say that is not chat: a mute, a ban, an

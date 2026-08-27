@@ -38,6 +38,18 @@
     emitGame: status => emit("zks://game", status),
     /** Set by a test to intercept a command instead of the default reply. */
     onSend: null,
+    /* One widget from a pack Shiro installed and one the player put there
+       themselves. Only the first is Shiro's to remove. */
+    widgets: [
+      { file: "shiro_helwor-new-hel-k_hel_k.lua", name: "Hel-K", enabled: true,
+        ours: true, addon: "helwor-new-hel-k" },
+      { file: "gui_my_own_thing.lua", name: "My Own Thing", enabled: false, ours: false },
+    ],
+    widgetAddons: [
+      { id: "helwor-new-hel-k", repo: "Helwor/New-Hel-K",
+        files: ["Widgets/shiro_helwor-new-hel-k_hel_k.lua",
+                "Widgets/shiro_helwor-new-hel-k_hel_k_util.lua"] },
+    ],
     /** Pull the socket out from under the client. */
     drop: reason => emit("zks://status", { kind: "disconnected", reason: reason || "reset by peer" }),
     /* What the peer does when the client dials. "ok" accepts and talks; "hang
@@ -617,6 +629,26 @@
             script: "[GAME]\n{\nHostIP=0.0.0.0;\nHostPort=0;\nIsHost=0;\nMyPlayerName="
               + args.player + ";\nMyPasswd=preview;\n}\n",
           };
+        }
+        /* A Zero-K install with two widgets in it: one a pack Shiro installed,
+           one the player's own. The difference is the whole point of the panel,
+           so both have to be there for it to be worth driving. */
+        case "zks_widgets_list":
+          return state.widgets;
+        case "zks_widgets_local_enabled":
+          return true;
+        case "zks_widget_addons":
+          return state.widgetAddons;
+        case "zks_widget_remove": {
+          const gone = state.widgetAddons.find(a => a.id === args.addon);
+          state.widgetAddons = state.widgetAddons.filter(a => a.id !== args.addon);
+          state.widgets = state.widgets.filter(w => w.addon !== args.addon);
+          return gone ? gone.files : [];
+        }
+        case "zks_widget_set_enabled": {
+          const w = state.widgets.find(x => x.name === args.name);
+          if (w) w.enabled = args.enabled;
+          return;
         }
         case "zks_launch_spring":
           state.launched = args.req;

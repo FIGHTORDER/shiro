@@ -131,6 +131,52 @@ test("a number never leaves the range its own table declares", () => {
   }
 });
 
+test("the string that goes out is in range too, not just the number behind it", () => {
+  /* `hpmult` is the one option whose min sits below half its step: min
+     0.000001, step 0.05. Rounding 0.01 to the step lands on zero, the clamp
+     lifts it back to 0.000001, and then formatNumber - whose places come from
+     the step alone - prints "0.00" and strips it to "0". A 0x health
+     multiplier went out on the wire for anything typed under 0.025. */
+  const hp = option("hpmult");
+  assert.equal(clampNumber(0.01, hp), "0.05");
+  assert.equal(clampNumber(0.024, hp), "0.05");
+  assert.equal(clampNumber(0, hp), "0.05");
+  assert.equal(clampNumber(-3, hp), "0.05");
+  assert.equal(clampNumber(0.03, hp), "0.05", "the ordinary rounding is unchanged");
+  assert.equal(clampNumber(1, hp), "1");
+
+  // A min that is already on the step keeps rounding to it, not past it.
+  const terra = option("terracostmult");       // 0.01..100, step 0.01
+  assert.equal(clampNumber(0, terra), "0.01");
+  assert.equal(clampNumber(0.004, terra), "0.01");
+  const speed = option("minspeed");            // 0.1..2, step 0.1
+  assert.equal(clampNumber(0, speed), "0.1");
+  assert.equal(clampNumber(0.14, speed), "0.1");
+
+  // And an option whose min really is zero still reaches zero.
+  const metal = option("metalmult");           // 0..100, step 0.05
+  assert.equal(clampNumber(0.01, metal), "0");
+  assert.equal(clampNumber(-1, metal), "0");
+});
+
+test("no number option can be typed out of its own range", () => {
+  // The generalisation of the chicken_maxtech case above, over the whole table.
+  for (const o of MODOPTIONS) {
+    if (o.kind !== "number") continue;
+    const { min, max, step } = o as { min: number; max: number; step: number };
+    const probes = [
+      min, max, min - 1, max + 1, min - 1e6, max + 1e6, 0, 0.01, -0.01,
+      min + step / 4, min + step / 2, max - step / 4, (min + max) / 2,
+    ];
+    for (const v of probes) {
+      const text = clampNumber(v, o);
+      const n = Number(text);
+      assert.ok(Number.isFinite(n), `${o.key}: ${v} -> "${text}"`);
+      assert.ok(n >= min && n <= max, `${o.key}: ${v} -> "${text}", outside ${min}..${max}`);
+    }
+  }
+});
+
 test("encode refuses what it cannot make sense of", () => {
   const num = MODOPTIONS.find(o => o.kind === "number")!;
   assert.equal(encode(num, "not a number"), undefined);
