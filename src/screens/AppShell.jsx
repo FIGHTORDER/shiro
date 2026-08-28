@@ -12,6 +12,14 @@ export const NAV = [
   { id: "friends", icon: "users", label: "Friends" },
   { id: "profile", icon: "user", label: "Profile" },
   { id: "debrief", icon: "trophy", label: "Last match" },
+  /* Only when a campaign is installed, which is the one item here that comes
+     and goes. Add-ons argues the other way about its own kinds - a list that
+     appears once it fills up looks like it changed shape - and the difference
+     is that this is a place rather than a list: a tab that opens on nothing is
+     a dead end, and the only way to get a first campaign is Add-ons anyway.
+     Last but one, so appearing shifts one icon rather than five, and so it
+     sits beside the screen it is installed from. */
+  { id: "campaigns", icon: "book-open", label: "Campaigns", whenInstalled: true },
   { id: "apps", icon: "package", label: "Add-ons" }
 ];
 
@@ -44,12 +52,16 @@ export function TitleBar({ version = "0.1.0", updateReady, inbox }) {
   );
 }
 
-export function NavRail({ view, onView, inRoom }) {
+export function NavRail({ view, onView, inRoom, hasCampaigns }) {
+  /* Kept visible while it is the screen being looked at, so removing the last
+     campaign from Add-ons does not pull the rail out from under somebody who
+     is standing on it. App.jsx moves them off; until it does, the item stays. */
+  const items = NAV.filter(n => !n.whenInstalled || hasCampaigns || view === n.id);
   return (
     <nav style={{ width: "var(--shell-nav)", flex: "0 0 auto", display: "flex", flexDirection: "column",
       alignItems: "center", gap: "var(--sp-2)", padding: "var(--sp-4) 0",
       borderRight: "1px solid var(--w-12)", background: "var(--surface-sunken)" }}>
-      {NAV.map(n => (
+      {items.map(n => (
         <div key={n.id} style={{ position: "relative", width: "100%", display: "flex", justifyContent: "center" }}>
           {/* --text-hi, not the ink ramp: the marker is the same ink as the
               item it marks, and only the semantic layer follows a skin. */}
@@ -105,7 +117,7 @@ export function StatusBar({ connection = "online", users, engine, game, onReconn
 }
 
 export default function AppShell({ view, onView, inRoom, connection, users, engine, game, onReconnect, attempt, children, overlay,
-  version, updateReady, inbox, skin }) {
+  version, updateReady, inbox, skin, hasCampaigns }) {
   /* Read off the document rather than passed in: the value arrives with the
      skin's stylesheet, which for a downloaded skin lands after this renders. */
   const [wantsPetals, setWantsPetals] = React.useState(false);
@@ -135,7 +147,7 @@ export default function AppShell({ view, onView, inRoom, connection, users, engi
       {wantsPetals && <Petals />}
       <TitleBar version={version} updateReady={updateReady} inbox={inbox} />
       <div style={{ flex: 1, display: "flex", minHeight: 0 }}>
-        <NavRail view={view} onView={onView} inRoom={inRoom} />
+        <NavRail view={view} onView={onView} inRoom={inRoom} hasCampaigns={hasCampaigns} />
         <main style={{ flex: 1, minWidth: 0, minHeight: 0, display: "flex" }}>{children}</main>
       </div>
       <StatusBar connection={connection} users={users} engine={engine} game={game} onReconnect={onReconnect} attempt={attempt} />

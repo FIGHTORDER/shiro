@@ -304,6 +304,177 @@ function UiSkinsPanel() {
   );
 }
 
+/* One campaign, installed or not.
+
+   Unlike a skin, a campaign has content behind it that the player works
+   through, so the row carries how far they have got. That number is the reason
+   removing one asks nothing: progress is kept on disk and a reinstall finds it
+   again, so a mis-click costs a download rather than an evening. */
+function CampaignRow({ campaign, installed, busy, onInstall, onRemove }) {
+  const [hover, setHover] = React.useState(false);
+  const done = installed ? installed.missions.filter(m => m.done).length : 0;
+  const total = installed ? installed.missions.length : undefined;
+  return (
+    <div onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
+      style={{ display: "flex", alignItems: "center", gap: "var(--sp-5)",
+        padding: "var(--sp-4) var(--sp-5)", minWidth: 0,
+        background: hover ? "var(--surface-hover)" : "transparent",
+        boxShadow: "var(--rule-inset)", transition: "var(--transition-hover)" }}>
+      <Icon name="book-open" size={18} style={{ flex: "0 0 auto", color: "var(--text-low)" }} />
+      <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 3 }}>
+        <span style={{ font: "var(--w-semibold) var(--size-base)/1.2 var(--font-core)",
+          color: "var(--text-hi)" }}>{campaign.name}</span>
+        <span style={{ font: "var(--w-regular) var(--size-tiny)/1.35 var(--font-core)",
+          color: "var(--text-low)", overflow: "hidden", textOverflow: "ellipsis",
+          whiteSpace: "nowrap" }}>
+          {campaign.summary || campaign.description
+            || (campaign.author ? `By ${campaign.author}` : "")}
+        </span>
+      </div>
+
+      {total !== undefined && (
+        <span style={{ flex: "0 0 auto",
+          font: "var(--w-regular) var(--size-tiny)/1.35 var(--font-mono)",
+          color: "var(--text-low)", fontVariantNumeric: "tabular-nums" }}>
+          {done}/{total}
+        </span>
+      )}
+
+      {installed
+        ? <Button variant="ghost" size="sm" disabled={busy} onClick={onRemove}
+            aria-label={`Remove ${campaign.name}`}>{busy ? "Removing..." : "Remove"}</Button>
+        : <Button variant="secondary" size="sm" disabled={busy} onClick={onInstall}
+            aria-label={`Install ${campaign.name}`}>
+            {busy ? "Installing..." : "Install"}
+          </Button>}
+    </div>
+  );
+}
+
+/* Campaigns: install them here, play them on the Campaigns screen.
+
+   The split is deliberate and it is what makes the nav item work. A tab that
+   only appears once you own a campaign cannot also be where you get your
+   first one, so getting them stays here with the rest of the add-ons and the
+   tab is purely for playing.
+
+   Two sources again, and today one of them is empty: the catalogue ships with
+   Shiro and has nothing published in it yet, so the file picker is the only
+   route that works - which is exactly the route an author needs for the
+   campaign they just built. */
+function CampaignsPanel({ onChanged }) {
+  const [state, setState] = React.useState({ loading: true });
+  const [busy, setBusy] = React.useState(undefined);
+  const [failed, setFailed] = React.useState(undefined);
+  const file = React.useRef(null);
+
+  const load = React.useCallback(async () => {
+    try {
+      const net = await import("../net/campaigns.ts");
+      const [catalogue, installed] = await Promise.all([
+        net.campaignCatalogue(), net.campaignList()]);
+      setState({ catalogue, installed });
+      onChanged?.(installed);
+    } catch (e) {
+      setState({ error: String((e && e.message) || e) });
+    }
+  }, [onChanged]);
+  React.useEffect(() => { load(); }, [load]);
+
+  const act = async (id, remove) => {
+    setBusy(id);
+    setFailed(undefined);
+    try {
+      const net = await import("../net/campaigns.ts");
+      if (remove) await net.removeCampaign(id);
+      else await net.installCampaign(id);
+      await load();
+    } catch (e) {
+      setFailed(String((e && e.message) || e));
+    } finally {
+      setBusy(undefined);
+    }
+  };
+
+  const pick = async event => {
+    const chosen = event.target.files && event.target.files[0];
+    /* Cleared straight away so choosing the same file twice still fires. A
+       second attempt at a campaign that failed to install is the likeliest
+       thing anybody does next. */
+    event.target.value = "";
+    if (!chosen) return;
+    setBusy("file");
+    setFailed(undefined);
+    try {
+      const net = await import("../net/campaigns.ts");
+      await net.uploadCampaign(chosen);
+      await load();
+    } catch (e) {
+      setFailed(String((e && e.message) || e));
+    } finally {
+      setBusy(undefined);
+    }
+  };
+
+  if (state.loading) return <NotePanel body="Looking for installed campaigns..." />;
+  if (state.error) {
+    return <NotePanel icon="alert-triangle" title="Nothing to show yet." body={state.error} />;
+  }
+
+  const installed = state.installed || [];
+  const catalogue = state.catalogue || [];
+  const have = id => installed.find(c => c.id === id);
+  /* Anything installed that the catalogue does not know about - which today is
+     everything, since a campaign can only arrive from a file. */
+  const own = installed.filter(c => !catalogue.some(x => x.id === c.id));
+
+  return (
+    <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+      {failed && (
+        <span role="alert" style={{ padding: "var(--sp-4) var(--sp-5)",
+          boxShadow: "var(--rule-inset)",
+          font: "var(--w-regular) var(--size-tiny)/1.45 var(--font-core)",
+          color: "var(--danger)" }}>{failed}</span>
+      )}
+
+      <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
+        {catalogue.map(c => (
+          <CampaignRow key={c.id} campaign={c} installed={have(c.id)}
+            busy={busy === c.id}
+            onInstall={() => act(c.id, false)} onRemove={() => act(c.id, true)} />
+        ))}
+        {own.map(c => (
+          <CampaignRow key={c.id} campaign={c} installed={c} busy={busy === c.id}
+            onRemove={() => act(c.id, true)} />
+        ))}
+
+        {catalogue.length === 0 && installed.length === 0 && (
+          <div style={{ padding: "var(--sp-6)" }}>
+            <EmptyState icon="book-open" title="No campaigns published yet."
+              body="Shiro ships the list of campaigns it knows about, and there are none in it so far. A campaign file you already have will install from the button below." />
+          </div>
+        )}
+      </div>
+
+      <div style={{ display: "flex", alignItems: "center", gap: "var(--sp-4)",
+        padding: "var(--sp-4) var(--sp-5)", boxShadow: "var(--rule-inset)" }}>
+        <span style={{ flex: 1, minWidth: 0,
+          font: "var(--w-regular) var(--size-tiny)/1.4 var(--font-core)",
+          color: "var(--text-low)" }}>
+          Campaigns are missions built in Splaunch. They run offline against your
+          own Zero-K and install nothing into the game.
+        </span>
+        <input ref={file} type="file" accept=".shirocamp,application/zip"
+          onChange={pick} style={{ display: "none" }} />
+        <Button variant="secondary" size="sm" disabled={busy === "file"}
+          onClick={() => file.current && file.current.click()}>
+          {busy === "file" ? "Installing..." : "Install from file"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 /* One widget in the Zero-K install, with the switch that turns it on.
 
    The switch writes an entry into Zero-K's own ZK_order.lua, keyed on the name
@@ -621,7 +792,8 @@ function NotYet() {
 }
 
 export default function AppsScreen({ apps = [], statuses = [], onLaunch, onInstall,
-  onUninstall, installing, error, skins = [], skin, onSkin, onSkinInstall }) {
+  onUninstall, installing, error, skins = [], skin, onSkin, onSkinInstall,
+  onCampaigns }) {
   const [kind, setKind] = React.useState("apps");
   const [sel, setSel] = React.useState(undefined);
   const [confirming, setConfirming] = React.useState(undefined);
@@ -679,7 +851,8 @@ export default function AppsScreen({ apps = [], statuses = [], onLaunch, onInsta
 
         {kind === "widgets" && <WidgetsPanel />}
         {kind === "uiskins" && <UiSkinsPanel />}
-        {!["apps", "skins", "widgets", "uiskins"].includes(kind) && <NotYet />}
+        {kind === "campaign" && <CampaignsPanel onChanged={onCampaigns} />}
+        {!["apps", "skins", "widgets", "uiskins", "campaign"].includes(kind) && <NotYet />}
 
         {kind === "apps" && apps.length === 0 && (
           <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>

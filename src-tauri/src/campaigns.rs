@@ -414,6 +414,37 @@ pub fn zks_campaign_install_file(
     Ok(status(&campaign, &[], |_| None))
 }
 
+/// Install a campaign the player picked in the window.
+///
+/// Base64 rather than a path, because Shiro has no file-dialog plugin and a
+/// webview `<input type="file">` hands over contents rather than a location.
+/// Base64 costs a third in size where a byte array over the IPC bridge costs
+/// five times that, which for a campaign of a few kilobytes is the difference
+/// between free and free.
+///
+/// No hash to check: the player chose this file off their own disk, and they
+/// are not being protected from themselves. The catalogue path is the one that
+/// fetches, and that one is pinned.
+#[tauri::command(async)]
+pub fn zks_campaign_install_upload(
+    app: tauri::AppHandle,
+    data: String,
+) -> Result<InstalledCampaign, String> {
+    use base64::Engine as _;
+    if data.len() as u64 > MAX_CAMPAIGN * 2 {
+        return Err("that file is far too large to be a campaign".into());
+    }
+    let bytes = base64::engine::general_purpose::STANDARD
+        .decode(data.as_bytes())
+        .map_err(|_| "that file did not arrive intact".to_string())?;
+    if bytes.len() as u64 > MAX_CAMPAIGN {
+        return Err("that file is far too large to be a campaign".into());
+    }
+    let dir = campaigns_dir(&app)?;
+    let campaign = install_bytes(&dir, &bytes)?;
+    Ok(status(&campaign, &[], |_| None))
+}
+
 /// Download one from the catalogue.
 #[tauri::command(async)]
 pub fn zks_campaign_install(app: tauri::AppHandle, id: String) -> Result<(), String> {

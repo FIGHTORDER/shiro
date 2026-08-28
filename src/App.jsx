@@ -16,6 +16,7 @@ import DebriefingScreen from "./screens/DebriefingScreen.jsx";
 import FriendsScreen from "./screens/FriendsScreen.jsx";
 import ProfileScreen from "./screens/ProfileScreen.jsx";
 import AppsScreen from "./screens/AppsScreen.jsx";
+import CampaignScreen from "./screens/CampaignScreen.jsx";
 import SettingsScreen from "./screens/SettingsScreen.jsx";
 import DownloadsScreen from "./screens/DownloadsScreen.jsx";
 import HostBattleDialog from "./screens/HostBattleDialog.jsx";
@@ -47,6 +48,7 @@ import { useUpdate } from "./store/update.ts";
 import { appVersion } from "./net/update.ts";
 import { catalogue, statuses as appStatuses, launchApp, installApp, uninstallApp } from "./net/apps.ts";
 import { openExternal } from "./net/external.ts";
+import { campaignList, playMission, finishMission } from "./net/campaigns.ts";
 import { profileUrl } from "./net/zkweb.ts";
 import { managedState, managedRoot, installEngine, removeManaged, onEngine,
   loadScreenState, setLoadScreen } from "./net/managed.ts";
@@ -161,6 +163,20 @@ export default function App() {
     appStatuses(appsRoot).then(setAppStatusList, () => setAppStatusList([]));
   }, [appsRoot]);
   React.useEffect(() => { refreshApps(); }, [refreshApps]);
+
+  /* Campaigns, which are missions somebody built in Splaunch.
+
+     Loaded here rather than in the screen because the nav item depends on it:
+     the Campaigns tab only exists once one is installed, and the rail is drawn
+     before any screen is. Empty in a browser tab, where there is no install to
+     read and nothing to launch. */
+  const [campaigns, setCampaigns] = React.useState([]);
+  const [campaignBusy, setCampaignBusy] = React.useState(undefined);
+  const [campaignError, setCampaignError] = React.useState(undefined);
+  const refreshCampaigns = React.useCallback(() => {
+    campaignList(settings.installRoot).then(setCampaigns, () => setCampaigns([]));
+  }, [settings.installRoot]);
+  React.useEffect(() => { refreshCampaigns(); }, [refreshCampaigns]);
 
   /* The version the binary reports, not one written into the UI - CI stamps it
      at build time, so a literal here would be a number that was true once. */
@@ -717,6 +733,14 @@ export default function App() {
     }
   };
 
+  /* Removing the last campaign takes its nav item away, and standing on a
+     screen whose way back has just gone is worse than being moved. Add-ons
+     rather than Battles: it is where the removal happened and where another
+     campaign would come from. */
+  React.useEffect(() => {
+    if (view === "campaigns" && campaigns.length === 0) setView("apps");
+  }, [view, campaigns.length]);
+
   const shell = {
     version: appVer,
     skin: settings.skin,
@@ -906,8 +930,30 @@ export default function App() {
       onChatHeight={h => useSettings.getState().set({ roomChatHeight: h })}
       onStart={startRoom} />
   );
+  else if (view === "campaigns") body = (
+    <CampaignScreen campaigns={campaigns} gameVersion={shell.game}
+      busy={campaignBusy} error={campaignError}
+      onPlay={(campaignId, missionId) => {
+        setCampaignError(undefined);
+        setCampaignBusy(missionId);
+        /* Logged out is a fine way to play these: a mission runs offline
+           against the local install and the server never hears about it. The
+           name is only what the script calls the player. */
+        playMission(campaignId, missionId, me || "Player", settings.installRoot)
+          .catch(e => setCampaignError(String(e?.message ?? e)))
+          .finally(() => setCampaignBusy(undefined));
+      }}
+      onFinish={(campaignId, missionId, done) => {
+        setCampaignError(undefined);
+        setCampaignBusy(missionId);
+        finishMission(campaignId, missionId, done)
+          .then(refreshCampaigns, e => setCampaignError(String(e?.message ?? e)))
+          .finally(() => setCampaignBusy(undefined));
+      }} />
+  );
   else if (view === "apps") body = (
     <AppsScreen apps={appCatalogue} statuses={appStatusList} error={appError}
+      onCampaigns={setCampaigns}
       installing={installing}
       skins={allSkins} skin={settings.skin}
       onSkin={id => useSettings.getState().set({ skin: id })}
@@ -1409,6 +1455,7 @@ export default function App() {
 
   return (
     <AppShell view={view} inRoom={Boolean(liveRoom || room)} {...shell}
+      hasCampaigns={campaigns.length > 0}
       /* Battles, pressed from the debriefing while still in a room, means the
          room - that is where the match came from and where the next one starts.
          Only from there: once you are in the room, Battles means the list

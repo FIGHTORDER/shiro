@@ -128,10 +128,14 @@ pub const CATALOGUE: &[CatalogueApp] = &[
         description: "Scenario editor for the Spring and Recoil RTS engines",
         kind: AppKind::Executable,
         download: Some(
-            "https://github.com/FIGHTORDER/Splaunch/releases/download/dev/Splaunch_1.0.0_x64.zip",
+            "https://github.com/FIGHTORDER/Splaunch/releases/download/dev/Splaunch_1.0.1_x64.zip",
         ),
-        sha256: Some("36507b3c7d288d77df9e9e668db2b8c3557d3872062a19f7ff581a676bfd5f43"),
-        version: Some("1.0.0"),
+        // Checked twice, as Springen's is below: against the `.sha256` the
+        // release publishes beside the asset, and against the bytes actually
+        // fetched. A hash taken only from our own download proves the download
+        // rather than the release.
+        sha256: Some("f3c7dfd2fa3ee8ef37c858db1251f0e4d6235fc3ce5bf345510be01027fe40c9"),
+        version: Some("1.0.1"),
         run: Some("Splaunch.exe"),
         unavailable: None,
         bundled: None,
@@ -143,14 +147,14 @@ pub const CATALOGUE: &[CatalogueApp] = &[
         description: "Node-based map generator tool for Zero-K",
         kind: AppKind::Executable,
         download: Some(
-            "https://github.com/FIGHTORDER/Springen/releases/download/dev/Springen_1.0.0_x64.zip",
+            "https://github.com/FIGHTORDER/Springen/releases/download/dev/Springen_1.0.1_x64.zip",
         ),
         // Checked against the `.sha256` the release publishes beside the asset,
         // not only against our own download: a hash taken from bytes we fetched
         // proves the file did not change in transit, and proves nothing about
         // whether it is the file CI built.
-        sha256: Some("2c4756c0f3f961ddc0bb2f56eb88aff9064312055cc94f134feb19916ba9131c"),
-        version: Some("1.0.0"),
+        sha256: Some("2534822e5f423fc114cf86b5d40d414b04c2c066627fd8397c084bdc5ed9025b"),
+        version: Some("1.0.1"),
         run: Some("springen-app.exe"),
         unavailable: None,
         bundled: None,

@@ -119,6 +119,7 @@ pub fn run() {
             campaigns::zks_campaign_list,
             campaigns::zks_campaign_install,
             campaigns::zks_campaign_install_file,
+            campaigns::zks_campaign_install_upload,
             campaigns::zks_campaign_remove,
             campaigns::zks_campaign_play,
             campaigns::zks_campaign_finish,
