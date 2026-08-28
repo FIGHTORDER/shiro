@@ -267,7 +267,7 @@ pub fn zks_launch_spring(
     }
 
     let override_root = game.root.lock().ok().and_then(|r| r.clone());
-    let (mut child, root) = match start(&req, override_root.as_deref()) {
+    let (child, root) = match start(&req, override_root.as_deref()) {
         Ok(started) => started,
         Err(e) => {
             if let Ok(mut r) = game.running.lock() {
@@ -278,12 +278,26 @@ pub fn zks_launch_spring(
         }
     };
 
+    Ok(supervise(app, game.running.clone(), child, root))
+}
+
+/// Watch a running engine until it exits, and put the lobby back.
+///
+/// Shared by a battle and by a campaign mission, because after the spawn there
+/// is no difference between them: either way the engine owns the screen, the
+/// in-game Lobby button is worth watching for, and the loading screen's match
+/// file stops being true the moment it ends.
+fn supervise(
+    app: AppHandle,
+    running: Arc<Mutex<bool>>,
+    mut child: std::process::Child,
+    root: PathBuf,
+) -> u32 {
     let pid = child.id();
     let _ = app.emit(GAME_EVENT, GameStatus::Launched { pid });
 
-    // Supervise off-thread: the engine owns the screen for the length of a
-    // match, and the lobby has to come back by itself when it exits.
-    let running = game.running.clone();
+    // Off-thread: the engine owns the screen for the length of a match, and the
+    // lobby has to come back by itself when it exits.
     std::thread::spawn(move || {
         /* Whatever the in-game Lobby button left behind last time counts as
            already seen, so the first thing this match does is not raise the
@@ -316,7 +330,105 @@ pub fn zks_launch_spring(
         let _ = app.emit(GAME_EVENT, GameStatus::Exited { code });
     });
 
-    Ok(pid)
+    pid
+}
+
+/// Start the engine on a script written by something other than a battle.
+///
+/// The campaign loader's way in. It writes its own script, because a mission is
+/// a whole start script rather than the eight-line connect script a hosted
+/// battle needs, and everything from the spawn onwards is shared.
+///
+/// `engine` empty means whichever engine is installed. A campaign has no
+/// business pinning one: the version is not the author's to choose, and a
+/// mission compiled a year ago should run on today's engine.
+pub fn launch_written_script(
+    app: AppHandle,
+    game: &State<'_, Game>,
+    script: &Path,
+    engine: &str,
+) -> Result<u32, String> {
+    {
+        let mut running = game
+            .running
+            .lock()
+            .map_err(|_| "game state poisoned".to_string())?;
+        if *running {
+            return Err("A game is already running.".into());
+        }
+        *running = true;
+    }
+
+    let override_root = game.root.lock().ok().and_then(|r| r.clone());
+    let started = (|| -> Result<(std::process::Child, PathBuf), String> {
+        let install = install::detect_with(override_root.as_deref())?;
+        let version = if engine.trim().is_empty() {
+            newest_engine(&install.root).ok_or_else(|| {
+                format!(
+                    "Zero-K is installed at {} but no engine is. Start a game once in the \
+                     official lobby to download one, then try again.",
+                    install.root.display()
+                )
+            })?
+        } else {
+            engine.trim().to_string()
+        };
+        let exe = install::find_engine(&install.root, &version)?;
+        let plan = spawn_plan(&exe, &install.root, script);
+        let mut cmd = Command::new(&plan.exe);
+        cmd.current_dir(&plan.cwd).args(&plan.args);
+        for (k, v) in &plan.env {
+            cmd.env(k, v);
+        }
+        let child = cmd
+            .spawn()
+            .map_err(|e| format!("could not start the engine: {e}"))?;
+        Ok((child, install.root))
+    })();
+
+    let (child, root) = match started {
+        Ok(started) => started,
+        Err(e) => {
+            if let Ok(mut r) = game.running.lock() {
+                *r = false;
+            }
+            let _ = app.emit(GAME_EVENT, GameStatus::Failed { reason: e.clone() });
+            return Err(e);
+        }
+    };
+    Ok(supervise(app, game.running.clone(), child, root))
+}
+
+/// The newest engine installed, by number rather than by string.
+///
+/// Sorted as text, "105.1.1" beats "2025.06.21", which picks an engine from
+/// before Zero-K used dates and fails at the spawn.
+pub fn newest_engine(root: &Path) -> Option<String> {
+    let dir = root.join("engine").join(crate::engine::platform());
+    let mut found: Vec<(Vec<u64>, String)> = std::fs::read_dir(dir)
+        .ok()?
+        .flatten()
+        .filter(|e| e.path().is_dir())
+        .filter_map(|e| e.file_name().to_str().map(str::to_owned))
+        .map(|name| {
+            let key = name
+                .split(|c: char| !c.is_ascii_digit())
+                .filter(|p| !p.is_empty())
+                .filter_map(|p| p.parse().ok())
+                .collect();
+            (key, name)
+        })
+        .collect();
+    found.sort();
+    found.pop().map(|(_, name)| name)
+}
+
+/// Where a campaign mission's script is written.
+///
+/// Beside the connect script and for the same reason: a Steam install under
+/// `Program Files` is not writable by a per-user process.
+pub fn mission_script_path() -> PathBuf {
+    script_dir().join("campaign_mission.txt")
 }
 
 /// Tell the loading screen what it is loading, or clear what a launch left.

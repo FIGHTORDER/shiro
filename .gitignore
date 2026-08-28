@@ -6,3 +6,6 @@ src-tauri/target
 # Fetched at build time from the release the catalogue pins - see
 # src-tauri/resources/sprofiler/README.md.
 src-tauri/resources/sprofiler/*.exe
+
+# Release assets for the game UI skins, rebuilt by tools/gen-uiskins.mjs --pack
+dist-uiskins/

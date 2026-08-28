@@ -169,6 +169,141 @@ function SkinRow({ skin, active, onPick, onInstall }) {
   );
 }
 
+/* The in-game half of a Shiro skin.
+
+   Shaped like SkinRow next door because it is the same idea one layer down,
+   but it has the app rows' states rather than none: this one is downloaded
+   into the Zero-K install, so it can be absent, arriving, or already there.
+   The swatch is the matching Shiro skin's, since that is what it pairs with. */
+function UiSkinRow({ skin, installed, installedVersion, busy, onInstall, onRemove }) {
+  const [hover, setHover] = React.useState(false);
+  const swatch = SWATCH[skin.matches] || SWATCH.slate;
+  return (
+    <div onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
+      style={{
+        position: "relative", display: "flex", alignItems: "center", gap: "var(--sp-5)",
+        padding: "var(--sp-4) var(--sp-5)", minWidth: 0,
+        background: hover ? "var(--surface-hover)" : "transparent",
+        boxShadow: "var(--rule-inset)", transition: "var(--transition-hover)",
+      }}>
+      <span aria-hidden="true"
+        style={{ width: 28, height: 28, flex: "0 0 auto", display: "inline-flex",
+          border: "1px solid var(--w-12)", background: swatch.paper }}>
+        <span style={{ width: 14, background: swatch.ink }} />
+      </span>
+      <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 3 }}>
+        <span style={{ font: "var(--w-semibold) var(--size-base)/1.2 var(--font-core)",
+          color: "var(--text-hi)" }}>{skin.name}</span>
+        <span style={{ font: "var(--w-regular) var(--size-tiny)/1.35 var(--font-core)",
+          color: "var(--text-low)", overflow: "hidden", textOverflow: "ellipsis",
+          whiteSpace: "nowrap" }}>{skin.summary}</span>
+      </div>
+
+      {/* The version is only worth the room once there is a copy on disk. */}
+      {installed && installedVersion && (
+        <span style={{ flex: "0 0 auto",
+          font: "var(--w-regular) var(--size-tiny)/1.35 var(--font-mono)",
+          color: "var(--text-low)" }}>{installedVersion}</span>
+      )}
+
+      {/* Nothing published means no button: an Install here would only fail,
+          and the reason is better said than found out. */}
+      {skin.unavailable
+        ? <Badge tone="outline">{skin.unavailable}</Badge>
+        : installed
+          ? <Button variant="ghost" size="sm" disabled={busy} onClick={onRemove}
+              aria-label={`Remove ${skin.name}`}>{busy ? "Removing..." : "Remove"}</Button>
+          : <Button variant="secondary" size="sm" disabled={busy} onClick={onInstall}
+              aria-label={`Install ${skin.name}`}>
+              {busy ? "Installing..." : "Install"}
+            </Button>}
+    </div>
+  );
+}
+
+/* Chili skins for Zero-K's own interface.
+
+   Two sources, joined here: the catalogue ships with Shiro, and what is
+   actually on disk is read from the Zero-K install. Selecting one afterwards
+   is the game's business, which is the one thing this panel has to say out
+   loud, so it says it once at the bottom rather than on every row. */
+function UiSkinsPanel() {
+  const [state, setState] = React.useState({ loading: true });
+  const [busy, setBusy] = React.useState(undefined);
+  /* An install or a removal that failed, kept apart from the list: losing the
+     rows to report one row's problem would say something untrue. */
+  const [failed, setFailed] = React.useState(undefined);
+
+  const load = React.useCallback(async () => {
+    try {
+      const net = await import("../net/uiskins.ts");
+      const [skins, statuses] = await Promise.all([
+        net.uiSkinCatalogue(), net.uiSkinStatus()]);
+      setState({ skins, statuses });
+    } catch (e) {
+      setState({ error: String((e && e.message) || e) });
+    }
+  }, []);
+  React.useEffect(() => { load(); }, [load]);
+
+  const act = async (skin, remove) => {
+    setBusy(skin.id);
+    setFailed(undefined);
+    try {
+      const net = await import("../net/uiskins.ts");
+      if (remove) await net.removeUiSkin(skin.id);
+      else await net.installUiSkin(skin.id);
+      await load();
+    } catch (e) {
+      setFailed(String((e && e.message) || e));
+    } finally {
+      setBusy(undefined);
+    }
+  };
+
+  if (state.loading) return <NotePanel body="Reading your Zero-K install..." />;
+  if (state.error) {
+    return <NotePanel icon="alert-triangle" title="Nothing to show yet." body={state.error} />;
+  }
+  /* Empty in a browser tab, where there is no install to put anything in. */
+  if (!state.skins || state.skins.length === 0) {
+    return (
+      <NotePanel icon="monitor" title="Game UI skins need the desktop app."
+        body="These are installed into your Zero-K files, which a browser tab cannot reach." />
+    );
+  }
+
+  const statusOf = id => (state.statuses || []).find(s => s.id === id);
+
+  return (
+    <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+      {failed && (
+        <span style={{ padding: "var(--sp-4) var(--sp-5)", boxShadow: "var(--rule-inset)",
+          font: "var(--w-regular) var(--size-tiny)/1.45 var(--font-core)",
+          color: "var(--danger)" }}>{failed}</span>
+      )}
+      <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
+        {state.skins.map(sk => {
+          const st = statusOf(sk.id);
+          return (
+            <UiSkinRow key={sk.id} skin={sk} installed={!!(st && st.installed)}
+              installedVersion={st && st.installedVersion}
+              busy={busy === sk.id}
+              onInstall={() => act(sk, false)}
+              onRemove={() => act(sk, true)} />
+          );
+        })}
+      </div>
+      <span style={{ padding: "var(--sp-4) var(--sp-5)", boxShadow: "var(--rule-inset)",
+        font: "var(--w-regular) var(--size-tiny)/1.4 var(--font-core)", color: "var(--text-low)" }}>
+        These skin Zero-K itself, not Shiro. Installing one puts it in your Zero-K
+        files; you pick it in Zero-K&apos;s own settings, and the game needs a LuaUI
+        reload or a restart before the new one shows.
+      </span>
+    </div>
+  );
+}
+
 /* One widget in the Zero-K install, with the switch that turns it on.
 
    The switch writes an entry into Zero-K's own ZK_order.lua, keyed on the name
@@ -543,7 +678,8 @@ export default function AppsScreen({ apps = [], statuses = [], onLaunch, onInsta
         )}
 
         {kind === "widgets" && <WidgetsPanel />}
-        {kind !== "apps" && kind !== "skins" && kind !== "widgets" && <NotYet />}
+        {kind === "uiskins" && <UiSkinsPanel />}
+        {!["apps", "skins", "widgets", "uiskins"].includes(kind) && <NotYet />}
 
         {kind === "apps" && apps.length === 0 && (
           <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>

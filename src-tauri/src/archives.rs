@@ -27,7 +27,7 @@
 //!   here", and the caller treats that as needing a download. That is the safe
 //!   direction: at worst we re-check something already present.
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
@@ -51,13 +51,17 @@ static MEMO: Mutex<Option<HashMap<PathBuf, (Vec<Stamp>, Instant, Installed)>>> =
 /// display name a battle would use.
 #[derive(Debug, Default, Clone)]
 pub struct Installed {
-    names: HashSet<String>,
+    /// Folded name to the archive's own, because both are needed and for
+    /// different things. Answering "does this player have this map" wants the
+    /// folded one; putting a name into a start script wants the archive's,
+    /// exactly as the engine indexes it.
+    names: HashMap<String, String>,
 }
 
 impl Installed {
     pub fn has(&self, name: &str) -> bool {
         let key = fold(name);
-        !key.is_empty() && self.names.contains(&key)
+        !key.is_empty() && self.names.contains_key(&key)
     }
 
     pub fn len(&self) -> usize {
@@ -68,10 +72,38 @@ impl Installed {
         self.names.is_empty()
     }
 
+    /// The archive's own name, for one named loosely.
+    ///
+    /// A campaign carries the map name its author saw, and the archive on disk
+    /// carries a version the author had no reason to write down: "Comet Catcher
+    /// Redux" against "Comet Catcher Redux v3.1". `Mapname` in a start script
+    /// has to be the second or the engine stops with an error about the map,
+    /// which reads like the map is missing when it is not.
+    ///
+    /// A prefix counts only when one archive matches it. Two versions of a map
+    /// installed side by side is ordinary, and starting the wrong one silently
+    /// is worse than saying nothing matched. The same rule finds the game:
+    /// "Zero-K" resolves to whichever Zero-K is here.
+    pub fn resolve(&self, name: &str) -> Option<String> {
+        let key = fold(name);
+        if key.is_empty() {
+            return None;
+        }
+        if let Some(exact) = self.names.get(&key) {
+            return Some(exact.clone());
+        }
+        let mut near = self.names.iter().filter(|(k, _)| k.starts_with(&key));
+        let (_, first) = near.next()?;
+        if near.next().is_some() {
+            return None;
+        }
+        Some(first.clone())
+    }
+
     fn insert(&mut self, name: &str) {
         let key = fold(name);
         if !key.is_empty() {
-            self.names.insert(key);
+            self.names.insert(key, name.to_string());
         }
     }
 }
@@ -281,6 +313,38 @@ pub fn installed(root: &Path) -> Installed {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_name_without_its_version_resolves_to_the_archive_that_has_one() {
+        let mut installed = Installed::default();
+        installed.insert("Comet Catcher Redux v3.1");
+        assert_eq!(
+            installed.resolve("Comet Catcher Redux").as_deref(),
+            Some("Comet Catcher Redux v3.1")
+        );
+        // And the same rule answers "which Zero-K is this".
+        installed.insert("Zero-K v1.14.8.0");
+        assert_eq!(installed.resolve("Zero-K").as_deref(), Some("Zero-K v1.14.8.0"));
+    }
+
+    #[test]
+    fn two_versions_of_a_map_refuse_to_answer_to_the_bare_name() {
+        let mut installed = Installed::default();
+        installed.insert("Tabula v6.1");
+        installed.insert("Tabula v6.2");
+        assert_eq!(installed.resolve("Tabula"), None);
+        // Named exactly, there is no ambiguity to refuse.
+        assert_eq!(installed.resolve("Tabula v6.2").as_deref(), Some("Tabula v6.2"));
+    }
+
+    #[test]
+    fn resolving_keeps_the_archives_own_spelling() {
+        // `has` folds case and whitespace; what goes into a script must not.
+        let mut installed = Installed::default();
+        installed.insert("Icy Crater v4");
+        assert!(installed.has("icy  crater V4"));
+        assert_eq!(installed.resolve("icy  crater V4").as_deref(), Some("Icy Crater v4"));
+    }
 
     #[test]
     fn a_field_lookup_does_not_match_the_tail_of_a_longer_key() {

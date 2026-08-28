@@ -2,6 +2,7 @@ use tauri::Manager;
 
 mod ais;
 mod archives;
+mod campaigns;
 mod content;
 mod engine;
 mod engine_settings;
@@ -17,6 +18,7 @@ mod sidecar;
 mod gitsource;
 mod skins;
 mod widgets;
+mod uiskins;
 mod apps;
 mod zkcontent;
 mod zkweb;
@@ -109,6 +111,17 @@ pub fn run() {
             skins::zks_skin_remove,
             skins::zks_skin_load,
             widgets::zks_widgets_list,
+            uiskins::zks_uiskin_catalogue,
+            uiskins::zks_uiskin_status,
+            uiskins::zks_uiskin_install,
+            uiskins::zks_uiskin_remove,
+            campaigns::zks_campaign_catalogue,
+            campaigns::zks_campaign_list,
+            campaigns::zks_campaign_install,
+            campaigns::zks_campaign_install_file,
+            campaigns::zks_campaign_remove,
+            campaigns::zks_campaign_play,
+            campaigns::zks_campaign_finish,
             widgets::zks_widget_addons,
             widgets::zks_widget_install,
             widgets::zks_widget_remove,
