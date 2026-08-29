@@ -146,34 +146,4 @@ function MenuItem({ label, icon, danger, onSelect, onClose }) {
   );
 }
 
-/**
- * The standard set, so every list offers the same actions in the same order.
- *
- * `me` gets a shorter menu: befriending or reporting yourself is not a thing,
- * and offering it is the kind of detail that makes a menu feel unconsidered.
- */
-export function playerMenuItems({ user, me, friends, ignores, actions }) {
-  if (!user || user.bot) return [];
-  const name = user.name;
-  const self = name === me;
-  const isFriend = friends?.includes(name);
-  const isIgnored = ignores?.includes(name);
-
-  return [
-    !self && actions.message
-      && { label: "Message", icon: "message-square", onSelect: () => actions.message(name) },
-    actions.profile
-      && { label: "Profile", icon: "user", onSelect: () => actions.profile(name) },
-    !self && { divider: true },
-    !self && actions.friend && (isFriend
-      ? { label: "Remove friend", icon: "user-minus", onSelect: () => actions.unfriend(name) }
-      : { label: "Add friend", icon: "user-plus", onSelect: () => actions.friend(name) }),
-    !self && actions.ignore && (isIgnored
-      ? { label: "Unignore", icon: "volume-2", onSelect: () => actions.unignore(name) }
-      : { label: "Ignore", icon: "volume-x", onSelect: () => actions.ignore(name) }),
-    !self && actions.report
-      && { label: "Report...", icon: "flag", danger: true, onSelect: () => actions.report(name) },
-  ].filter(Boolean);
-}
-
 export default PlayerMenu;

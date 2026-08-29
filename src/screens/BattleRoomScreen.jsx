@@ -1,5 +1,6 @@
 import React from "react";
-import { usePlayerMenu, playerMenuItems } from "./PlayerMenu.jsx";
+import { usePlayerMenu } from "./PlayerMenu.jsx";
+import { playerMenuItems } from "./playerMenuItems.ts";
 import { Button, Badge, Tag, PlayerRow, ChatLine, MapImage, Input,
   IconButton, Icon, UserChip, Meter, Tooltip } from "../ds/shiro.js";
 import { useStickyScroll } from "../hooks/useStickyScroll.js";
@@ -294,6 +295,7 @@ export default function BattleRoomScreen({ room, onLeave, onStart, chat, onSay,
   const playerMenu = usePlayerMenu(user => playerMenuItems({
     user, me: players?.me, friends: players?.friends, ignores: players?.ignores,
     actions: players?.actions ?? {},
+    canManage: players?.canManage,
   }));
   /* Width and height for the 3D footprint. Undefined for a map the catalogue
      does not list, which Map3D handles by reading the picture's own shape. */

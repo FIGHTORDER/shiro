@@ -982,7 +982,13 @@ export default function App() {
           ignore: name => useFriends.getState().ignore(name),
           unignore: name => useFriends.getState().unignore(name),
           report: name => setReporting(name),
+          kick: name => useRoom.getState().kick(name),
+          removeBot: name => useRoom.getState().removeBot(name),
         },
+        /* The same rule the room's options use, because the server applies the
+           same one: the founder, or an admin. Both actions existed in the store
+           and neither had a way in. */
+        canManage: canEditOptions(roomView?.founder, me, Boolean(liveUsers[me]?.IsAdmin)),
       } : undefined}
       onEditOptions={() => setEditingOptions(true)}
       /* The server's rule, read backwards: only the founder may set options,
