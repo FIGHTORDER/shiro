@@ -50,7 +50,11 @@
     "category": "Game",
     "shortDescription": "A lobby client for Zero-K",
     "resources": [
-      "resources/sprofiler/*"
+      "resources/sprofiler/*",
+      "resources/steam/steam_api64.dll"
+    ],
+    "externalBin": [
+      "binaries/shiro-steam"
     ]
   },
   "plugins": {

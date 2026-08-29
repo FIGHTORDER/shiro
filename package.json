@@ -26,7 +26,9 @@
     "typecheck": "tsc --noEmit",
     "check:names": "node tools/check-names.mjs",
     "fetch:apps": "node tools/fetch-bundled-apps.mjs",
-    "test:demo": "node tools/e2e/demo.mjs"
+    "test:demo": "node tools/e2e/demo.mjs",
+    "build:steam": "node tools/build-steam-helper.mjs",
+    "check:steam": "node tools/build-steam-helper.mjs --check"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.1.1",

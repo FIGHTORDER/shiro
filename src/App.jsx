@@ -49,6 +49,7 @@ import { appVersion } from "./net/update.ts";
 import { catalogue, statuses as appStatuses, launchApp, installApp, uninstallApp } from "./net/apps.ts";
 import { openExternal } from "./net/external.ts";
 import { campaignList, playMission, finishMission } from "./net/campaigns.ts";
+import { steamAvailable, steamTicket } from "./net/steam.ts";
 import { profileUrl } from "./net/zkweb.ts";
 import { managedState, managedRoot, installEngine, removeManaged, onEngine,
   loadScreenState, setLoadScreen } from "./net/managed.ts";
@@ -59,7 +60,7 @@ import { useSite, channelOf, isExternalUrl, parseSiteCommand } from "./store/sit
    Nothing here reads from it, so without this import it would never load. */
 import "./store/notify";
 import { useHistory, buildDebriefView } from "./store/history";
-import { AutohostModeLabel } from "./protocol/enums";
+import { AutohostModeLabel, LoginResponse_Code } from "./protocol/enums";
 import {
   battleList, statusBarKind, describeFailure, roomModel, chatLines, userToChip, newsList,
 } from "./store/adapters";
@@ -163,6 +164,19 @@ export default function App() {
     appStatuses(appsRoot).then(setAppStatusList, () => setAppStatusList([]));
   }, [appsRoot]);
   React.useEffect(() => { refreshApps(); }, [refreshApps]);
+
+  /* Steam sign-in. `steamReady` only says the helper is on disk, which is
+     cheap; whether Steam is running and the account owns Zero-K is not asked
+     until somebody presses the button, because asking announces Zero-K as
+     running. */
+  const [steamReady, setSteamReady] = React.useState(false);
+  const [steamNote, setSteamNote] = React.useState(undefined);
+  /* Set when the server said the Steam account is not linked yet. The next
+     ordinary login carries a ticket so the server links the two, and that is
+     deliberately not done on every login: linking is a change to somebody's
+     account and should follow from them asking for it. */
+  const [linkSteam, setLinkSteam] = React.useState(false);
+  React.useEffect(() => { steamAvailable().then(setSteamReady, () => setSteamReady(false)); }, []);
 
   /* Campaigns, which are missions somebody built in Splaunch.
 
@@ -528,14 +542,62 @@ export default function App() {
       /* The outcome login settled on, not whatever the store says now: a
          refusal is followed by the server dropping the connection, and reading
          afterwards reported the drop instead of the refusal. */
-      const c = await login({ name, password }, host || undefined, port || undefined);
+      /* A fresh ticket, not the one the button used: they are single use and
+         minutes old by the time somebody has typed a password. */
+      let ticket;
+      if (linkSteam) {
+        try { ticket = await steamTicket(); } catch { /* link next time */ }
+      }
+      const c = await login({ name, password, steamTicket: ticket },
+        host || undefined, port || undefined);
       if (c.kind !== "online") throw new Error(describeFailure(c));
+      setLinkSteam(false);
+      setSteamNote(ticket ? "Steam is linked. Next time, the Steam button is enough." : undefined);
     } catch (e) {
       // A rejected login goes back to the form; nothing is loading any more.
       setLoadingIn(false);
       throw e;
     }
     setLoggedIn(true);
+  }, [live, linkSteam]);
+
+  /* Signing in with Steam alone.
+
+     The ticket goes up with no name and no password: the server finds the
+     account by the `steamid` its own call to Steam returns. Code 7 is
+     `SteamNotLinkedAndLoginMissing`, whose own text is "send ZK login or
+     register" - so that is not a failure to report but an instruction to
+     follow, and it turns into the linking prompt rather than an error. */
+  const handleSteamLogin = React.useCallback(async () => {
+    setSteamNote(undefined);
+    if (!live) {
+      setSteamNote("Steam sign-in needs the desktop app.");
+      return;
+    }
+    setLoadingIn(true);
+    try {
+      const ticket = await steamTicket();
+      const { host, port } = useSettings.getState();
+      const c = await login({ name: "", password: "", steamTicket: ticket },
+        host || undefined, port || undefined);
+      /* Left up on success, as the password path leaves it: being accepted is
+         not being usable, and the effect below clears it once the directory
+         the server floods down has actually landed. */
+      if (c.kind === "online") { setLoggedIn(true); return; }
+      setLoadingIn(false);
+      if (c.code === LoginResponse_Code.SteamNotLinkedAndLoginMissing) {
+        setLinkSteam(true);
+        setSteamNote("That Steam account is not linked to a Zero-K account yet. "
+          + "Log in once with your Zero-K name and password and Shiro will link them.");
+        return;
+      }
+      setSteamNote(describeFailure(c));
+    } catch (e) {
+      // Steam not running, Zero-K not owned, or the helper gone. Its own
+      // sentence is better than one invented here.
+      setLoadingIn(false);
+      setSteamNote(String(e?.message ?? e));
+    }
   }, [live]);
 
   /* The dialog stays up past the LoginResponse. Being accepted is not the same
@@ -767,6 +829,7 @@ export default function App() {
       <AppShell view={view} onView={setView} {...shell}>
         <ErrorBoundary>
           <LoginScreen onLogin={handleLogin} live={live}
+            onSteam={handleSteamLogin} steamReady={steamReady} steamNote={steamNote}
             onRegister={() => setRegistering(true)}
             defaultName={settings.name} defaultPassword={settings.password}
             defaultRemember={settings.remember} skin={settings.skin} />

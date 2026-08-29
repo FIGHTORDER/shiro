@@ -1,6 +1,7 @@
 node_modules
 dist
 src-tauri/target
+steam-helper/target
 *.local
 
 # Fetched at build time from the release the catalogue pins - see
@@ -9,3 +10,8 @@ src-tauri/resources/sprofiler/*.exe
 
 # Release assets for the game UI skins, rebuilt by tools/gen-uiskins.mjs --pack
 dist-uiskins/
+
+# Built by tools/build-steam-helper.mjs. A prebuilt executable is not
+# reviewable, and Valve's redistributable is not ours to check in.
+src-tauri/binaries/
+src-tauri/resources/steam/

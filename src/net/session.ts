@@ -109,6 +109,18 @@ export function send<K extends CommandName>(cmd: K, data: MessageMap[K]): Promis
 export interface Credentials {
   name: string;
   password: string;
+  /**
+   * A Steam auth ticket, hex encoded, when signing in with Steam.
+   *
+   * Two shapes, both from `LoginChecker`. With a name and password beside it,
+   * it links the Steam account to that Zero-K account on the spot. On its own,
+   * with the name left empty, it signs in an account already linked.
+   *
+   * A credential: fetched at the moment of use and never stored. `saved()`
+   * deliberately does not persist it, and it would be useless if it did - a
+   * ticket is single use and expires in minutes.
+   */
+  steamTicket?: string;
 }
 
 /**
@@ -280,9 +292,17 @@ export async function login(
     // The server sends Welcome unprompted on connect; that is our cue to log in.
     if (m.cmd === "Welcome") {
       useLobby.getState().setConnection({ kind: "loggingIn" });
+      /* Steam on its own sends neither a name nor a password, and that is not
+         an omission: the server looks the account up by the `steamid` its own
+         call to Steam returns, and an empty `Name` is what makes it answer
+         `SteamNotLinkedAndLoginMissing` rather than `InvalidName` when there is
+         nothing linked yet. Sending a hash of an empty password instead would
+         turn "not linked" into "wrong password". */
+      const steamOnly = Boolean(creds.steamTicket) && !creds.name;
       void sendLine(serialize("Login", {
-        Name: creds.name,
-        PasswordHash: hash,
+        Name: steamOnly ? undefined : creds.name,
+        PasswordHash: steamOnly ? undefined : hash,
+        SteamAuthToken: creds.steamTicket,
         UserID: NO_HARDWARE_USER_ID,
         InstallID: installId,
         ClientType: CLIENT_TYPE_ZKLOBBY,

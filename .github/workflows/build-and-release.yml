@@ -103,6 +103,18 @@ jobs:
       - name: Types
         run: npm run typecheck
 
+      # Before the Rust tests, not before the build: `tauri-build` runs in a
+      # build script, so it validates `externalBin` on any cargo invocation,
+      # `cargo test` included. Without this the tests fail with "resource path
+      # ... doesn't exist" and never reach a compiler.
+      #
+      # The helper is not committed - a prebuilt executable is not reviewable,
+      # and Valve's redistributable is not ours to check in - so it is built
+      # here. Windows only: `tauri.linux.conf.json` clears `externalBin` there,
+      # the same way it already clears the Sprofiler resource.
+      - name: Build the Steam helper
+        run: npm run build:steam
+
       - name: Rust tests
         working-directory: src-tauri
         run: cargo test

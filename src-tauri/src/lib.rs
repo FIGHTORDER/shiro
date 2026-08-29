@@ -17,6 +17,7 @@ mod relay;
 mod sidecar;
 mod gitsource;
 mod skins;
+mod steam;
 mod widgets;
 mod uiskins;
 mod apps;
@@ -123,6 +124,8 @@ pub fn run() {
             campaigns::zks_campaign_remove,
             campaigns::zks_campaign_play,
             campaigns::zks_campaign_finish,
+            steam::zks_steam_available,
+            steam::zks_steam_ticket,
             widgets::zks_widget_addons,
             widgets::zks_widget_install,
             widgets::zks_widget_remove,

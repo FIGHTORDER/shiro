@@ -10,7 +10,7 @@ import { skinAssets } from "../net/skins.ts";
    onLogin(name, password, remember) may be async and may reject; the rejection
    message is shown against the password field. It is never retried automatically - the
    server logs failed attempts by IP and bans repeat offenders. */
-export default function LoginScreen({ onLogin, onRegister, live, defaultName, defaultPassword, defaultRemember, skin }) {
+export default function LoginScreen({ onLogin, onRegister, onSteam, steamReady, steamNote, live, defaultName, defaultPassword, defaultRemember, skin }) {
   /* The plate a downloaded skin brought, if any. Looked up after mount as well
      as on the skin changing, because a downloaded skin's files land a tick
      after the attribute does. */
@@ -109,12 +109,35 @@ export default function LoginScreen({ onLogin, onRegister, live, defaultName, de
             screen is for, and at ghost weight it read as decoration - it was
             reported missing by somebody looking straight at it. */}
         <Button variant="secondary" size="sm" block onClick={onRegister}>Create an account</Button>
+
+        {/* Only where it can work: the helper that mints a ticket ships with
+            the desktop build, so a browser tab and a machine without it never
+            see a button that could only fail. */}
+        {steamReady && (
+          <Button variant="secondary" size="sm" block loading={busy} onClick={onSteam}>
+            Sign in with Steam
+          </Button>
+        )}
+
+        {/* What the Steam attempt said, when it said something. Kept apart from
+            the form's own error: "your Steam account is not linked yet" is an
+            instruction to use the form, not a complaint about it. */}
+        {steamNote && (
+          <div role="status" style={{ display: "flex", gap: "var(--sp-4)", padding: "var(--sp-5)",
+            background: "var(--surface-sunken)", border: "1px solid var(--w-12)" }}>
+            <Icon name="info" size={14} style={{ color: "var(--text-hi)", marginTop: 2 }} />
+            <span style={{ font: "var(--w-regular) var(--size-tiny)/1.5 var(--font-core)",
+              color: "var(--text-body)" }}>{steamNote}</span>
+          </div>
+        )}
         <div style={{ display: "flex", gap: "var(--sp-4)", padding: "var(--sp-5)",
           background: "var(--surface-sunken)", border: "1px solid var(--w-06)" }}>
           <Icon name="info" size={14} style={{ color: "var(--text-low)", marginTop: 2 }} />
           <span style={{ font: "var(--w-regular) var(--size-tiny)/1.5 var(--font-core)", color: "var(--text-low)" }}>
-            Steam accounts need a lobby password. Set one on zero-k.info, then log in here.
-            Account names are case-sensitive. Shiro talks only to zero-k.info.
+            {steamReady
+              ? "Signing in with Steam works once your Steam account is linked to a Zero-K account. If it is not, log in once with your Zero-K name and password and Shiro will link them."
+              : "Steam accounts need a lobby password. Set one on zero-k.info, then log in here."}
+            {" "}Account names are case-sensitive. Shiro talks only to zero-k.info.
             Staying logged in saves your password on this computer.
           </span>
         </div>

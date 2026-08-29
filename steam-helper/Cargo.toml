@@ -1,0 +1,29 @@
+# The Steam half of signing in, kept out of Shiro's own binary on purpose.
+#
+# `steamworks` links `steam_api64.dll` at load time, so a binary that calls it
+# will not start at all when that DLL is missing - no window, no error, just
+# exit code 0xC0000135. That is an unacceptable failure mode for a launcher,
+# and it is a likely one: `steam_api64.dll` is among the most false-flagged
+# files on Windows, because cracked games replace it, so antivirus quarantines
+# it routinely.
+#
+# Isolating it here means Shiro starts normally whatever happened to the DLL,
+# and the worst case is that Steam sign-in is unavailable and says so.
+#
+# It also keeps the window in which Steam believes Zero-K is running down to
+# about a second, rather than for as long as the launcher is open.
+[package]
+name = "shiro-steam"
+version = "1.0.0"
+edition = "2021"
+description = "Mints a Zero-K Steam auth ticket for Shiro"
+
+[dependencies]
+steamworks = "0.13"
+
+[profile.release]
+strip = true
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
