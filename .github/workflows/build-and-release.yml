@@ -218,6 +218,12 @@ jobs:
       - name: Types
         run: npm run typecheck
 
+      # Linux ships the helper too now, and `tauri-build` validates
+      # `externalBin` from a build script, so this has to come before any cargo
+      # invocation rather than before the bundle.
+      - name: Build the Steam helper
+        run: npm run build:steam
+
       - name: Rust tests
         working-directory: src-tauri
         run: cargo test
@@ -240,6 +246,36 @@ jobs:
             echo "No signing key - building the packages only."
             npm run tauri -- build
           fi
+
+      # linuxdeploy bundles the Wayland client libraries and AppRun puts them
+      # ahead of the system's, so the host's Mesa talks Wayland protocol through
+      # a client library from Ubuntu 22.04 and the EGL handshake fails:
+      # "Could not create default EGL display: EGL_BAD_PARAMETER. Aborting..."
+      # The app then dies before drawing anything, on any current Wayland
+      # desktop. Reproduced and bisected under WSLg; tools/fix-appimage.sh has
+      # the evidence and says why the cut is exactly this wide.
+      #
+      # Repacking invalidates the signature Tauri just made, so the script
+      # deletes it and the next step makes a new one. Order matters.
+      - name: Take the Wayland libraries back out of the AppImage
+        run: bash tools/fix-appimage.sh
+
+      # Only when there is a key. Without one the build carries no updater
+      # artifacts at all, so there is no signature to replace.
+      - name: Re-sign the AppImage
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -z "${TAURI_SIGNING_PRIVATE_KEY:-}" ]; then
+            echo "No signing key - nothing to re-sign."
+            exit 0
+          fi
+          appimage=$(find src-tauri/target/release/bundle/appimage -maxdepth 1 -name '*.AppImage' | head -1)
+          npm run tauri -- signer sign "$appimage"
+          test -f "$appimage.sig" || { echo "re-signing produced no .sig" >&2; exit 1; }
+          echo "re-signed $(basename "$appimage")"
 
       - name: Collect the packages
         run: |

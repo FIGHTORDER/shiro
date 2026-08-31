@@ -61,17 +61,30 @@ fn helper() -> Option<PathBuf> {
     path.is_file().then_some(path)
 }
 
-/// The directory holding `steam_api64.dll`, if it shipped.
+/// Steam's own library, as each platform names it.
+const STEAM_LIB: &str = if cfg!(windows) { "steam_api64.dll" } else { "libsteam_api.so" };
+
+/// The variable that platform's loader searches for it.
 ///
-/// The helper imports that DLL at load time, so it has to be findable before
-/// the helper's own code runs - too late for anything the helper could do
-/// about it. Windows searches `PATH`, so the parent puts the directory there
-/// for the child rather than the bundler having to land a DLL beside an
-/// executable it does not own the placement of.
+/// Windows resolves a load-time import from `PATH`; the ELF loader uses
+/// `LD_LIBRARY_PATH` and ignores `PATH` entirely, so setting the wrong one is
+/// the same as setting none.
+const LOADER_PATH: &str = if cfg!(windows) { "PATH" } else { "LD_LIBRARY_PATH" };
+
+/// The separator that variable takes.
+const PATH_SEP: char = if cfg!(windows) { ';' } else { ':' };
+
+/// The directory holding Steam's library, if it shipped.
+///
+/// The helper imports it at load time, so it has to be findable before the
+/// helper's own code runs - too late for anything the helper could do about it.
+/// The parent puts the directory on the loader's search path for the child,
+/// rather than the bundler having to land a library beside an executable whose
+/// placement it does not own.
 fn dll_dir(app: &tauri::AppHandle) -> Option<PathBuf> {
     use tauri::Manager;
     let dir = app.path().resource_dir().ok()?.join("resources").join("steam");
-    dir.join("steam_api64.dll").is_file().then_some(dir)
+    dir.join(STEAM_LIB).is_file().then_some(dir)
 }
 
 /// Whether signing in with Steam is worth offering on this machine.
@@ -114,8 +127,13 @@ pub fn zks_steam_ticket(app: tauri::AppHandle) -> Result<String, String> {
     /* Prepended rather than replacing: the child still needs the system
        directories to find everything else it links. */
     if let Some(dir) = dll_dir(&app) {
-        let existing = std::env::var("PATH").unwrap_or_default();
-        cmd.env("PATH", format!("{};{existing}", dir.display()));
+        let existing = std::env::var(LOADER_PATH).unwrap_or_default();
+        let mut value = dir.as_os_str().to_os_string();
+        if !existing.is_empty() {
+            value.push(PATH_SEP.to_string());
+            value.push(&existing);
+        }
+        cmd.env(LOADER_PATH, value);
     }
 
     let mut child = cmd

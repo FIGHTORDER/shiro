@@ -43,6 +43,11 @@ function triple() {
   return line.slice("host:".length).trim();
 }
 
+/** What Steam's library is called, and where the crate keeps it, per platform. */
+const STEAM_LIB = process.platform === "win32"
+  ? { dir: "win64", name: "steam_api64.dll" }
+  : { dir: "linux64", name: "libsteam_api.so" };
+
 /** Valve's redistributable, inside whichever steamworks-sys we build against. */
 function bundledDll() {
   const home = process.env.CARGO_HOME || join(process.env.USERPROFILE || process.env.HOME, ".cargo");
@@ -53,8 +58,8 @@ function bundledDll() {
     if (!statSync(dir).isDirectory()) continue;
     const crate = readdirSync(dir).find(d => d.startsWith("steamworks-sys-"));
     if (!crate) continue;
-    const dll = join(dir, crate, "lib", "steam", "redistributable_bin", "win64", "steam_api64.dll");
-    if (existsSync(dll)) return dll;
+    const lib = join(dir, crate, "lib", "steam", "redistributable_bin", STEAM_LIB.dir, STEAM_LIB.name);
+    if (existsSync(lib)) return lib;
   }
   return undefined;
 }
@@ -62,7 +67,7 @@ function bundledDll() {
 const host = triple();
 const exeName = `shiro-steam-${host}${host.includes("windows") ? ".exe" : ""}`;
 const staged = join(BINARIES, exeName);
-const stagedDll = join(STEAM_RES, "steam_api64.dll");
+const stagedDll = join(STEAM_RES, STEAM_LIB.name);
 
 if (check) {
   const missing = [staged, stagedDll].filter(p => !existsSync(p));
@@ -95,5 +100,5 @@ if (dll) {
   copyFileSync(dll, stagedDll);
   console.log(`  ${stagedDll}`);
 } else {
-  console.warn("  no steam_api64.dll found in steamworks-sys; Steam sign-in will be unavailable");
+  console.warn(`  no ${STEAM_LIB.name} found in steamworks-sys; Steam sign-in will be unavailable`);
 }
