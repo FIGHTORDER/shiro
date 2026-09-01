@@ -13,6 +13,8 @@ export const NAV = [
   { id: "friends", icon: "users", label: "Friends" },
   { id: "profile", icon: "user", label: "Profile" },
   { id: "debrief", icon: "trophy", label: "Last match" },
+  /* Beside Last match, because both are about games that are over. */
+  { id: "replays", icon: "play", label: "Replays" },
   /* Only when a campaign is installed, which is the one item here that comes
      and goes. Add-ons argues the other way about its own kinds - a list that
      appears once it fills up looks like it changed shape - and the difference

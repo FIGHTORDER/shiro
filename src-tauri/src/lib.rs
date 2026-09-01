@@ -14,6 +14,7 @@ mod loadscreen;
 mod managed;
 mod mapview;
 mod relay;
+mod replays;
 mod sidecar;
 mod gitsource;
 mod skins;
@@ -21,6 +22,7 @@ mod steam;
 mod widgets;
 mod uiskins;
 mod apps;
+mod zkbattles;
 mod zkcontent;
 mod zkweb;
 
@@ -95,6 +97,12 @@ pub fn run() {
             content::zks_content_preflight,
             content::zks_content_log,
             ais::zks_list_ais,
+            replays::zks_list_replays,
+            replays::zks_replay_stats,
+            replays::zks_watch_replay,
+            zkbattles::zks_search_battles,
+            zkbattles::zks_lookup_players,
+            zkbattles::zks_download_replay,
             zkcontent::zks_find_maps,
             zkcontent::zks_game_modes,
             zkcontent::zks_map_catalogue,

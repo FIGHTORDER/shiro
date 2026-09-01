@@ -18,6 +18,7 @@ import ProfileScreen from "./screens/ProfileScreen.jsx";
 import AppsScreen from "./screens/AppsScreen.jsx";
 import CampaignScreen from "./screens/CampaignScreen.jsx";
 import CodexScreen from "./screens/CodexScreen.jsx";
+import Replays from "./screens/ReplaysScreen.jsx";
 import SettingsScreen from "./screens/SettingsScreen.jsx";
 import DownloadsScreen from "./screens/DownloadsScreen.jsx";
 import HostBattleDialog from "./screens/HostBattleDialog.jsx";
@@ -1001,6 +1002,7 @@ export default function App() {
       onStart={startRoom} />
   );
   else if (view === "codex") body = <CodexScreen gameVersion={shell.game} />;
+  else if (view === "replays") body = <Replays me={live ? me : "demo"} installRoot={settings.installRoot} />;
   else if (view === "campaigns") body = (
     <CampaignScreen campaigns={campaigns} gameVersion={shell.game}
       busy={campaignBusy} error={campaignError}
