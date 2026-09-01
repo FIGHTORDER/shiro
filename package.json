@@ -10,7 +10,7 @@
     "tauri": "tauri",
     "tauri:dev": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/tauri.ps1 dev",
     "tauri:build": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/tauri.ps1 build",
-    "test": "node tools/gen-icons.mjs --check && node tools/gen-loadscreen-art.mjs --check && node --test \"src/**/*.test.ts\"",
+    "test": "node tools/gen-icons.mjs --check && node tools/gen-loadscreen-art.mjs --check && node tools/gen-unitpics.mjs --check && node --test \"src/**/*.test.ts\"",
     "gen:protocol": "node tools/gen-protocol.mjs",
     "test:e2e": "node tools/e2e/live.mjs",
     "gen:fonts": "node tools/fetch-fonts.mjs",

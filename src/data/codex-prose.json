@@ -1,0 +1,1715 @@
+{
+ "formatVersion": 1,
+ "source": "https://zero-k.info/mediawiki/",
+ "licence": "CC BY-SA",
+ "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+ "prose": {
+  "cloakraid": {
+   "title": "Glaive",
+   "summary": "The Glaive is a light raider bot from the Cloakbot Factory.",
+   "description": "Light and cheap, the Glaive makes short work of enemy skirmishers, artillery and economy, but should avoid and outmanouver riot units and defenses, where it is not as strong. Damaged Glaives regenerate when out of combat.",
+   "tactics": [
+    "The Glaive is one of the cheapest raiders and has excellent speed and damage output, but at the cost of poor health and range. Ideal use is close in on targets with a swarm of Glaives quickly and from multiple directions to compensate for low range, and overwhelm targets with the Glaive's excellent damage output before return fire can do too much damage. Use of Glaives allows the Cloaking Bot factory to play very aggressively and makes it one of the best factories for raiding.",
+    "Glaives are very fragile and will customarily be turned to confetti by most accurate units in a single shot, but they are also small, fast and nimble, which in conjunction with the weaving behaviour of Fight Move AI makes it excellent at dodging the slow projectiles of assault units. This - along with its low cost and savage attack power, also makes it an effective counter to slow firing-heavy units that would otherwise be a problem for Knights. The Glaive can also be very effective against Stinger towers, which are slow firing and can only kill one or two Glaives at a time.",
+    "Standoff engagements between opposing raiders where both sides take small amounts of damage but lose no units often favour Glaives, since their auto-regeneration will repair any damage quickly. However, Glaives are very fragile and usually suffer massive attrition in combat. Their short range also allows other raiders to kite them without taking damage, which makes Glaives bad at chasing down enemy raiders.",
+    "Glaives are therefore best used aggressively to threaten any expansions, or to mob enemy units where there are no Riot units or defences present."
+   ]
+  },
+  "cloakskirm": {
+   "title": "Ronin",
+   "summary": "The Ronin is a skirmisher bot (direct-fire) from the Cloakbot Factory.",
+   "description": "The Ronin's low damage, low speed unguided rockets are redeemed by their range. They are most effective in a line formation, firing at maximum range and kiting the enemy. When reloading, their movement speed is reduced to 66% (dropping it to 55.4 elmo/s)",
+   "tactics": [
+    "Compared to most other skirmishers the Ronin has less range, but is very cheap and inflicts more damage for its cost. Furthermore, unlike most skirmishers the Ronin's projectile travels horizontally rather than arcing, so they cannot fire past each other effectively. Therefore, good positioning is essential for Ronins to fire uninterrupted, and to avoid losing many Ronins at once to area-of-effect attacks."
+   ]
+  },
+  "factorycloak": {
+   "title": "Cloakbot Factory",
+   "summary": "The Cloakbot Factory is a factory that produces cloaked mobile bots.",
+   "description": "Emphasizing guile over brute force, the Cloakbot Factory makes good use of stealth, mobility and EMP weapons to strike at the enemy's weak points. The Cloakbot Factory builds:",
+   "tactics": [
+    "Compared to units from other factories, Cloakbots tend to be faster and cheaper, but have lower health and range. The specialist Imp, Scythe, Phantom, Gremlin and Iris units are cloaked (or in the latter case provide a cloaking field), allowing for more stealthy strategies. Cloakbots should use their mobility and stealth to attack only where and when they have the advantage.",
+    "Owing to its lack of tough, high-weight units, Cloakbots tends to become weaker as a factory used on its own in the late-game. Nevertheless, in combination with the raw strength of a different factory like Amphibious Bots, Heavy Tanks or Striders, the utility and subtlety of the Cloakbots remains very powerful."
+   ]
+  },
+  "cloakriot": {
+   "title": "Reaver",
+   "summary": "The Reaver is a riot bot from the Cloakbot Factory.",
+   "description": "The Reaver's devastating heavy Energy Machine Gun is effective versus most enemy units, in particular raiders. It performs poorly versus static defense, so do not use it as an assault unit. Counter by staying out of their range, as they are slow. Reavers quickly regenerate damage when out of combat.",
+   "tactics": [
+    "The Reaver is a fearsome combatant at close quarters, but suffers from low range and speed. As such, they are best employed in combination with another unit (like the Glaive or Ronin) which can deal with any opposing long-range attackers. Alternatively, an Iris or multiple Charons will let your Reavers close the distance before the opposition can react."
+   ]
+  },
+  "cloakheavyraid": {
+   "title": "Scythe",
+   "summary": "The Scythe is a cloaked raider bot from the Cloakbot Factory.",
+   "description": "The Scythe isn't particularly tough in a stand-up fight, but its cloaking device lets it slip past enemy defenses to stab at the enemy's economy. Damaged Scythes can quickly regenerate when out of combat.",
+   "tactics": [
+    "The true strength of the Scythe lies in hit-and-run attacks, using its cloak to escape enemies, and its passive regeneration to prepare for the next assault. Scout out poorly defended metal extractors and economy buildings, then move in for the kill. Depending on chassis type and weapon modules, 2-3 Scythes will typically defeat a low-level Commander, which can cripple the opponent's early expansion. In some situations, such as some campaign missions, Scythes can even be useful for destroying enemy superweapons like a Big Bertha or Trinity.",
+    "To counter enemy Scythes, try using the Terraform tool to create some walls or ditches around your base's perimeter that are too high or too deep for the Scythes to cross without assistance, bury your energy sources (beware of the reach of scythes, sometimes it's more efficient to put up a wall around), place defences in hard to reach spots. Make sure that you don't leave any openings within your defensive lines that are wide enough for the Scythes to sneakily squeeze in-between. Keep riots near any high-value units (such as a Merlin) in case the Scythes try to assassinate them.",
+    "The cheapest way to counter Scythes late game is active screening (which you probably want to do regardless of their presence at the field). Units like Dirtbags and Fleas can be made in mass to cover any open areas and discourage any stealth activities."
+   ]
+  },
+  "cloakcon": {
+   "title": "Conjurer",
+   "summary": "The Conjurer is a cloaked construction bot from the Cloakbot Factory.",
+   "description": "The Conjurer packs a short-ranged jammer and a cloaking device for stealthy expansion and base maintenance.",
+   "tactics": [
+    "The Conjurer is cloaked except while building, and also has a small jamming field, making it difficult to find. However, a Conjurer which is found by the enemy has no other defense (besides constructing a turret, which is likely to be too slow). Make sure that your Conjurers are hiding if enemy units are close.",
+    "Conjurers can be used to cheaply identify and spot enemy units while remaining cloaked, much to the benefit of your precision artillery units like Phantoms, Lances, and Impalers.",
+    "Conjurers can also be used as less efficient replacement for Iris, providing a small area cloak. They can be tricky to use alongside combat units, as with normal settings you won't be able to select them together. In order to remedy that, you can change the selection priority of the Conjurers you activated area cloak on to 3, letting them be selected with the rest of the combat units."
+   ]
+  },
+  "shieldcon": {
+   "title": "Convict",
+   "summary": "The Convict is a shielded construction bot from the Shieldbot Factory.",
+   "description": "The Convict is a fairly standard construction bot with a twist: a light shield to defend itself and support allied shieldbots.",
+   "tactics": [
+    "Besides its primary duty as a constructor, the Convict's shield has many uses in combat. From protecting your Bandits in early raids, to building Lotuses inside the range of enemy Pickets, to recharging the shields of allied combat units, the utility of the Convict is exceptional. It's also a reasonably efficient constructor for its cost."
+   ]
+  },
+  "cloakassault": {
+   "title": "Knight",
+   "summary": "The Knight is a lightning assault bot from the Cloakbot Factory.",
+   "description": "Slowly and steadily, groups of Knights can shrug off heavy fire as they make their way towards enemy fortifications, until they can field their short-range lightning cannon, which damages and stuns entrenched foes. Counter with anything that can reliably kite it, making sure that you don't get paralyzed (in which case you are as good as dead.)",
+   "tactics": [
+    "Even by the standards of assault units, the Knight is slow and ponderous, and has merely decent health for its cost. The redeeming feature of the Knight is its lightning gun, which instantly hits (allowing it to serve in somewhat of a riot role against high-weight raiders such as the Blitz or Pyro), and stuns enemies so they cannot retreat or fire back (which also allows friendly units that fire slow easily-dodgeable projectiles, such as Ronins, Thugs, or Hermits, to reliably land hits on the stunned enemies), reducing the impact of the Knight's shortcomings.",
+    "Since the Knight is too slow and short-ranged to be of any use against enemy skirmishers, try supporting them with fast raiders like Glaives, or try hiding them under the veil of an Iris."
+   ]
+  },
+  "cloakarty": {
+   "title": "Sling",
+   "summary": "The Sling is a light artillery bot from the Cloakbot Factory.",
+   "description": "The Sling has a long range plasma cannon that allows indirect fire over obstacles, and outranges static defenses up to heavy laser towers. Slings are ineffective against most mobile units and should be guarded in order to prevent raiders and other fast units from closing range.",
+   "tactics": [
+    "Slings are by far the cheapest artillery in the game, which is both a strength and a weakness. On the one hand, this means you may need lots of them to accomplish the same task as a single Impaler or Lance. On the other hand, Slings are far better suited to combating light static defences like Pickets, against which the relatively fragile Cloakbots are vulnerable and where heavier artillery units would be overkill. Building a few Slings for this task is often a good idea - being low cost allows them to be used with more granularity and earlier in the game than most other artillery. Since their projectiles are slow and do not have a significant area of effect, Slings are poor against mobile units except in large-scale engagements. Make sure to protect your Slings against raids since they are flimsy and weak at short range combat.",
+    "While Slings are not effective against most mobile units due to the low velocity of their projectile, they can still hit large targets such as shields or slow moving groups of enemy skirmishers. This makes them a useful soft counter to small quantities of shield bot units, particularly the relatively fragile and dangerous Felon. However, when encountered in larger groups linked Shield bot regeneration will be too high to overcome and the Slings will likely become ineffective.",
+    "A common employment of Slings is to station one or two within your own front line defences to prevent opponents from building defences and metal extractors of their own nearby.",
+    "Slings have excellent damage per cost compared to other artillery but have relatively low range so will take losses from heavier artillery such as Emissary or Firewalker as the game progresses and unit density increases. Slings will likely need protection so they can remain near the frontline, or support from other, longer range artillery to act as suppression fire."
+   ]
+  },
+  "staticmex": {
+   "title": "Metal Extractor",
+   "summary": "The Metal Extractor is an economy structure that produces metal.",
+   "description": "The metal extractor (mex for easy reference) is the primary means of getting Metal. If you have excess energy, metal extractors placed near energy sources will automatically use it to extract more metal using Overdrive.",
+   "tactics": [
+    "Build Metal Extractors early and build them often; they are the only reliable and scalable source of Metal in the game. Surrounding them with power generators will increase their yield. They can be most efficiently placed using the Area Mex Command.",
+    "Placing a Solar Collector near each Metal Extractor you build is an easy way to start benefiting from Overdrive. Two solar collectors (4 ) near a single metal extractor is enough to boost a 2 Metal extractor to 3 Metal. There are diminishing returns on how well energy can overdrive an extractor, requiring 16 Energy to be built to increase that single metal extractor to 4 .",
+    "If you connect multiple extractors and energy structures together, the energy produced in that grid will automatically flow to the extractor that would benefit the most, maximizing metal production."
+   ]
+  },
+  "energysolar": {
+   "title": "Solar Collector",
+   "summary": "The Solar Collector is a basic, early-game source of energy in Zero-K.",
+   "description": "Solar Collectors are the least cost-efficient of the energy structures, but they are also the most reliable and sturdy. When attacked, Solar Collectors (solars ) will curl up into an armored form for 8 seconds, reducing incoming damage and offering excellent protection against raiders.",
+   "tactics": [
+    "Solar Collectors are a safe and stable source of Energy in the early game. Build chains of solars between your mexes to set up Overdrive.",
+    "The Wind/Tidal Generator can be better than the Solar Collector in terms of power produced (see http://zero-k.info/Forum/Post/220234#220234 for the math), though the Solar Collector is far sturdier and can take far more punishment."
+   ]
+  },
+  "cloaksnipe": {
+   "title": "Phantom",
+   "summary": "The Phantom is a cloaked skirmish/anti-heavy artillery bot from the Cloakbot Factory.",
+   "description": "The Phantom's energy rifle inflicts heavy damage to a single target. It can fire while cloaked; however the shaped explosion of its projectile betrays the direction from which a shot was made. It requires quite a bit of energy to keep cloaked, especially when moving. The best way to locate a Phantom is by sweeping the area with many cheap units.",
+   "tactics": [
+    "The Phantom has low damage-per-second compared to its cost, but since it remains cloaked even while firing it can deliver its damage very safely. Try to kill enemies with a single attack (from more than one Phantom, if necessary) to deny your opponent the opportunity to repair their unit. The enemy can still decloak and kill your Phantom by bringing a unit nearby (such as a Flea or Glaive), so make sure you have forces ready to protect your Phantoms' retreat if necessary.",
+    "Since Phantoms have a low rate of fire and high damage per shot, you might want to set them to hold fire mode (or return fire mode) if you want to conserve their shots for use against enemy striders and assault units. Moreover, setting them to hold fire against unidentified radar targets should help ensure that their shots hit more often (since targeting unidentified radar targets imposes accuracy penalties in general), though do keep in mind that, when used in conjunction with attack move orders, it might also result in the Phantoms stopping in front of unidentified targets."
+   ]
+  },
+  "gunshipkrow": {
+   "title": "Krow",
+   "summary": "The Krow is a flying fortress from the Gunship Plant.",
+   "description": "The Krow may be expensive and ponderous, but its incredible armor allows it to fly into all but the thickest anti-air defenses and engage enemies with its three laser cannons. Best of all, it can drop a large spread of carpet bombs that devastates anything under it.",
+   "tactics": [
+    "Like most striders, the key to using Krows effectively is to not only attack frequently with them, but also to keep them alive whenever possible. As durable as Krows are, they're expensive to build, and thus, expensive to replace in the event that they're shot down, so be sure to set up a fallback point for your Krows to automatically retreat to when their health drops below a certain point. (Setting them to retreat when under 65% health is recommended if the game progresses to the point where striders are more common.)",
+    "If your opponent is unprepared and does not have sufficient anti-air available, a Krow will simply end the game. Its manual-fire Cluster Bombs will make short work of whatever part of the enemy army or infrastructure is most precious to them. (Even other striders are sure to take heavy damage from a Krow's cluster bombs.) However, if your opponent is prepared, and has built significant amounts of anti-air, your Krow becomes, at best, a large flying paperweight, and at worst, a donation of metal, since it has to get very close to the enemy to accomplish anything at all.",
+    "Due to its high speed, you can use the Krow in a similar manner to using large amounts of raiders or fast assaults, such as quickly closing the distance to enemy Merlins and Shoguns before annihilating them. Even Paladins will have difficulties fighting off multiple Krows without support from friendly units."
+   ]
+  },
+  "jumpraid": {
+   "title": "Pyro",
+   "summary": "The Pyro is a raider/riot jumper from the Jumpbot Factory.",
+   "description": "The Pyro is a cheap, fast walker with a flamethrower. The flamethrower deals increased damage to large units and can hit multiple targets at the same time. When killed, the Pyro sets surrounding units on fire. Additionally, Pyros also come with jetpacks (activated by pressing J) that allow them to jump over obstacles or get the drop on enemies.",
+   "tactics": [
+    "For its cost, the Pyro is a fragile raider. Once an enemy has been set on fire, the Pyro should jump away to safety while the flames do their work. This works even better if you are fighting near cliffs which the Pyro can jump over. Since the flamethrower can hit enemies more than once, the Pyro is effective against larger units and structures, as long as they can stay in range and survive.",
+    "The cooldown on the jetpack is long enough that if a Pyro jumps into combat it will probably not be able to jump back out, so it can be good to walk the Pyro into combat and jump out of their range after enemies have been set on fire."
+   ]
+  },
+  "tacnuke": {
+   "title": "Eos",
+   "summary": "The Eos is a tactical nuke from the Missile Silo.",
+   "description": "A long-range precision strike weapon. The Eos' blast radius is small, but lethal.",
+   "tactics": [
+    "Eos' enormous range effectively allows you to assassinate critical enemy structures from afar. As each individual missile costs a lot, they're usually best reserved for the things that will truly hinder your enemy if destroyed. Large economic structures such as fusions, unit factories, expensive artillery pieces, expensive AA turrets, etc.",
+    "Using them against mobile units is risky, but if you have reason to believe the enemy will not move their army anytime soon, it can be worth the attempt. This becomes much easier if you use Eos as a follow up to a Shockley, as most units hit by Shockley won't recover their movements in time to escape a follow-up Eos.",
+    "Shields block tactical missiles, so shielded structures pose a major obstacle to the use of Eos. You can weaken the shield first using shockleys, but consider carefully if you aren't spending more metal in the maneuver than the target is worth."
+   ]
+  },
+  "seismic": {
+   "title": "Quake",
+   "summary": "The Quake is a seismic missile from the Missile Silo.",
+   "description": "The Quake creates a powerful seismic shockwave that smooths a wide area of terrain, while causing minimal harm to units."
+  },
+  "empmissile": {
+   "title": "Shockley",
+   "summary": "The Shockley is an EMP missile from the Missile Silo.",
+   "description": "The Shockley disables units in a small area for up to 45 seconds."
+  },
+  "napalmmissile": {
+   "title": "Inferno",
+   "summary": "The Inferno is a napalm missile from the Missile Silo.",
+   "description": "The Inferno is a large AoE fire weapon. Its direct damage is modest, but the cloud of fire it creates lasts for a very long time.",
+   "tactics": [
+    "While the Inferno has a minimal explosive payload, the wide-area napalm cloud it delivers is a death sentence to lightly-armored buildings in the target area. Units left standing in flame will take serious damage, but will extinguish quickly if taken outside of the area-of-effect.",
+    "The Inferno is not powerful enough to destroy factories, but catching factories in the area of effect can effectively idle their Build Power and prevent new unit production until the flames clear."
+   ]
+  },
+  "cloakaa": {
+   "title": "Gremlin",
+   "summary": "The Gremlin is a cloaked anti-air bot from the Cloakbot Factory.",
+   "description": "Fast and fairly sturdy for its price, the Gremlin is good budget mobile anti-air. It can cloak for free, allowing it to provide unexpected anti-air protection or escape ground forces it's defenseless against.",
+   "tactics": [
+    "The Gremlin does not have an especially strong anti-air weapon for its cost, but its cloak allows it to ambush enemy air units, especially gunships. Gremlins may also be used as cheap scouts or spotters for artillery, remember to toggle hold fire if intended they stay hidden should a stray flying unit close in."
+   ]
+  },
+  "cloakbomb": {
+   "title": "Imp",
+   "summary": "The Imp is an all terrain burrowing EMP bomb from the Cloakbot Factory.",
+   "description": "The Imp relies on its speed and small size to dodge inaccurate weapons, especially those of assaults and many skirmishers. It can paralyze heavy units or packs of lighter raiders which cannot kill it before it is already in range. Reavers or Glaives can then eliminate the helpless enemies without risk. Counter with defenses or single cheap units to set off a premature detonation. This unit cloaks when otherwise idle.",
+   "tactics": [
+    "The Imp is best used defensively - it is easier to kill a stunned enemy within your territory than within the enemy's."
+   ]
+  },
+  "cloakjammer": {
+   "title": "Iris",
+   "summary": "The Iris is an area cloaker/jammer walker from the Cloakbot Factory.",
+   "description": "The Iris has a jamming device to conceal your units' radar returns. It also has a small area cloaker to hide friendly nearby units from enemy sight. It hides units in a smaller range and uses more energy than its stationary cousin, the Cornea, and is able to transform into a Cornea at no additional cost.",
+   "tactics": [
+    "Having no weapons of its own, the Iris acts as a force multiplier for your other units, cloaking them from enemy view. This makes the Iris especially helpful at dealing with enemy skirmishers (like Ronins or Fencers), artillery (like Firewalkers or Merlins), anti-heavy sniper units (like Phantoms or Lances), and static defenses (like Pickets, Stingers, or even Cerberus) which normally won't fire at cloaked targets until they're revealed. As a result, the Iris effectively prevents longer-ranged enemy units from skirmishing any of your slower, shorter-ranged assaults (like Knights), riots (like Reavers), and even Striders (like Dantes or even Detriments), allowing them to sneakily close the distance towards the enemy's units before coming under fire, so long as your units remain under the Iris's cloaking field, and so long as they don't shoot or take damage.",
+    "The Iris itself is very fragile, and if it is killed, you may find your units in dangerous positions outside the safety of your lines.",
+    "In addition to its traditional role, the Iris can also be used to deliver bombs (like Imps and Snitches) to the heart of enemy unit clusters. When used correctly, this can be a very efficient counter to shield balls.",
+    "The Iris (just like the Aspis) is amphibious, so it can be used to cloak friendly ships, amphbots, hovercraft, Reefs, Shoguns, and even Detriments. Also, the Athena can build Irises (and Aspises), so there's always an opportunity to build them without needing a Cloakbot Factory, even if the battle takes place at sea (though you may need to terraform some dry land in order to build Athenas at sea if your Strider Hub is built far from dry land)."
+   ]
+  },
+  "striderarty": {
+   "title": "Merlin",
+   "summary": "The Merlin is a heavy saturation artillery strider from the Strider Hub.",
+   "description": "The Merlin is an MLRS strider. It can launch a volley of rockets that guarantees the destruction of almost anything in the target area, then quickly retreat behind friendly forces.",
+   "tactics": [
+    "The Merlin makes for a great counter-artillery unit: it out-ranges most other artillery, packs enough of a punch to destroy most in a single shot, and spreads its damage over an area large enough that you don't need pin-point precision when force-firing at enemy artillery units. This is specially useful in situations in which you aren't able to have constant LoS to them. For example: If the enemy is using cloak, using screening units to neutralize your scouts, or both.",
+    "However, the Merlin has a long reload time, and considerable risk of friendly fire. It may be a good idea to set it to hold fire and micromanage all of its shots if you can spare the attention. Use force-fire to pick exactly where to land the payloads."
+   ]
+  },
+  "planescout": {
+   "title": "Owl",
+   "summary": "The Owl is a radar and sonar plane from the Airplane Plant.",
+   "description": "The Owl provides an unparalleled means for providing deep vision and radar into enemy frontlines, and can locate underwater targets with its sonar.",
+   "tactics": [
+    "The most typical use case for owl is to provide vision for allied long range weaponry so they may hit their targets accurately.",
+    "With its sonar it can reveal the presence of enemy forces under the sea surface as well as allow raven to bomb such targets"
+   ]
+  },
+  "striderbantha": {
+   "title": "Paladin",
+   "summary": "The Paladin is a ranged support strider from the Strider Hub.",
+   "description": "The Paladin is an even heavier solution to a particularly uncrackable defense line, with a tachyon projector and EMP missiles for stand-off engagements, lightning hand cannons for general purpose combat, and a good deal of armor. Beware though, for it is defenseless against air and cannot be used effectively on its own."
+  },
+  "striderdetriment": {
+   "title": "Detriment",
+   "summary": "The Detriment is an ultimate assault strider from the Strider Hub.",
+   "description": "The Detriment is the single heaviest strider in the field. It can defend itself against air attacks or use its rockets to hit distant targets, but the real meat lies in the massive gauss guns designed for one purpose - to kill other heavy units quickly and efficiently. Remember - the wise commander sends his Detriment out with adequate escorts against light unit swarms and air assaults.",
+   "tactics": [
+    "Think of the Detriment as a game-ender in giant robot format. There are a few tricks that can stop one in their tracks involving heavy aerial bombardment, close-range EMP units, disintegrator gun (found on Ultimatums), and the like, but with a decent escort they're nigh unstoppable and can punch right through everything your enemy has and proceed to merrily blow up their bases.",
+    "However, they're very slow and their range is limited, so they suffer from the problem of being an absolutely enormous metal investment that can only be effective at a relatively small area at a time. If your frontlines are already collapsing, a Detriment won't save you: the enemy will simply kill you everywhere where the Detriment isn't. You need to be capable of surviving long enough for the Detriment to actually reach the enemy's economy and do its thing."
+   ]
+  },
+  "staticheavyradar": {
+   "title": "Advanced Radar",
+   "summary": "The Advanced Radar is a long-range radar.",
+   "description": "The advanced Radar Tower has a considerably greater range than the basic version."
+  },
+  "staticshield": {
+   "title": "Aegis",
+   "summary": "The Aegis is a stationary area shield that blocks projectiles.",
+   "description": "The Aegis protects a modest area with its bubble shield and links with other nearby shields to share charge. Units inside the shield can still be hit by AoE effects. Any instant damage that exceeds a shield's current hp will not be blocked, hence Shockleys always ignore Aegis shields. The Aegis can transform itself into a walking area shield at an extra cost, though it must recharge its shield from zero afterwards. An area shield has a significant energy upkeep when recharging."
+  },
+  "staticrearm": {
+   "title": "Airpad",
+   "summary": "The Airpad is a building that repairs and rearms aircraft.",
+   "description": "The Airpad repairs up to four aircraft at a time. It also refuels/rearms bombers."
+  },
+  "factoryplane": {
+   "title": "Airplane Plant",
+   "summary": "The Airplane Plant is a factory that produces airplanes.",
+   "description": "The Airplane Plant offers a variety of fixed-wing aircraft to suit your needs. Choose between multi-role fighters that can double as light attackers or specialized interceptors, and between precision bombers for taking down specific targets or their saturation counterparts for destroying swarms. The plant also comes bundled with one rearm pad. The Airplane Plant builds:",
+   "tactics": [
+    "The Airplane Plant provides the most unique array of units of any factory in Zero-K; the Planes are more like a support force, as opposed to combat units. Both the speed of the Planes and their first-strike capability is unparalleled. The Swift is the Planes' main air-to-air option, while the Raven, Thunderbird and Likho bombers punish any poorly-covered ground forces.",
+    "In contrast to the Gunships, the Airplane bombers deliver their damage in a very short period of time, so anti-air which relies on prolonged engagements is less effective against them. On the other hand, the bombers have to return to base and rearm before making another run. The Swift fighter relies on similar hit-and-run tactics against enemy air forces."
+   ]
+  },
+  "turretheavy": {
+   "title": "Desolator",
+   "summary": "The Desolator is a medium range defensive structure. It is extremely powerful and hard to take down directly.",
+   "description": "Armed with a heavy plasma cannon and a Heat Ray, the Desolator forms a focal defense point against enemy assault pushes. It can bunker down to survive attack by long-range artillery or air attacks to reduce incoming damage to a quarter, although it cannot fire its weapons while doing so.",
+   "tactics": [
+    "Desolator is an immovable object to put in your opponent's path. Its plasma cannon will smash any typical army composition to bits, and the heat ray denies swarming tactics. While it is vulnerable to artillery, its extremely high health and damage reduction when closed means it can survive a siege for a long time, specially with some repair support from Caretakers or builders.",
+    "However, Desolator is very expensive for a fixed unit that protects only a relatively small area around itself. In addition, it needs to be connected to a sizable energy grid to use its plasma cannon, a logistical detail that might be difficult to guarantee in an imperiled frontline position.",
+    "Desolator is best reserved for situations of extremely dense combat, aka, when large numbers of units are being funneled towards a small area or chokepoint.",
+    "It can also be useful when you just need to buy lots of time while you're waiting for something to happen. One common such situation is if you're playing a team game and need to hold out against a superior force while your allies are pushing elsewhere."
+   ]
+  },
+  "tankheavyarty": {
+   "title": "Tremor",
+   "summary": "The Tremor is a heavy saturation artillery tank from the Tank Foundry.",
+   "description": "The principle behind the Tremor is simple: flood an area with enough shots, and you'll hit something at least once. Slow, clumsy, vulnerable and extremely frightening, the Tremor works best against high-density target areas, where its saturation shots are most likely to do damage. It pulverizes shields in seconds and its shells smooth terrain.",
+   "tactics": [
+    "The effectiveness of artillery units can be greatly hampered by the use of cloak (including Iris area cloakers) to hide the positions of units, and/or by the use of shields (such as Aspis) to directly block the damage. However, the Tremor is well-built to counter both of these tactics. Since the Tremor can flood large areas with damage, and since units are revealed when they take damage, hiding is all but useless against a Tremor. Moreover, since shields have large surface areas, they are likely to get hit by many of the Tremor's normally-inaccurate shells, which could easily lead to the shields quickly collapsing. If you besiege a position with a Tremor for long enough, and if the enemy is unable, or unwilling, to launch a counterattack against the Tremor, then the enemy will likely have no choice but to retreat.",
+    "However, the Tremor is not a quick killer by any means (especially since its shells are so inaccurate), and they become a priority target as soon as they start firing. Before employing a Tremor, be prepared to protect it.",
+    "The Tremor is, within about a minute, able to flatten small mountains, and create makeshift ramps out of tall steep cliffs. If you're facing an opponent who terraforms a lot, and/or is positioned in an area that your tanks can't reach easily (if at all), then try using a Tremor to open up an avenue for your tanks to attack.",
+    "The Tremor is useful when besieging fortified areas, where target density is higher."
+   ]
+  },
+  "factoryhover": {
+   "title": "Hovercraft Platform",
+   "summary": "The Hovercraft Platform is a factory that produces hovercraft.",
+   "description": "The Hovercraft Platform is fast and deadly, offering the ability to cross sea and plains alike and outmaneuver the enemy. Key units: Dagger, Halberd, Scalpel, Mace, Lance, Bolas The Hovercraft Platform builds:",
+   "tactics": [
+    "The Hovercraft Platform produces units which can travel over both flat land and water at considerable speed. The Dagger, Halberd and Mace are effective in close-range combat. Should an opponent seek to engage you from afar instead, the Scalpel and Lance will deal with them quickly.",
+    "Most of the Hovercraft units are comparatively fragile and rely on high speed, long range, or a substantial alpha strike. The resilient Shield Bots or Amphibious Bots can protect the more fragile Hovercraft units until the Hovers' offensive strength can be brought to bear on the enemy."
+   ]
+  },
+  "turretaalaser": {
+   "title": "Razor",
+   "summary": "The Razor is a hardened anti-air laser.",
+   "description": "The Razor is a hardy anti-air turret. Its high hit points and 4x armour bonus when closed makes it very hard for the enemy to dislodge.",
+   "tactics": [
+    "As far as fixed AA defenses are concerned, its often a good idea to start with razors and escalate to bigger defenses if needed. Razor has an excellent combination of low cost, high coverage and decent damage output, and will often be the only AA defense you will need to protect an area against light aerial harassment, especially if the enemy is attacking you with gunships rather than planes.",
+    "Razors are also extremely durable for their cost, especially when closed. As a result, they can also be used as a decoy against enemy artillery: build a razor in front of your other things, and enemy artillery relying on radar for their targeting will waste their shots against it."
+   ]
+  },
+  "shieldraid": {
+   "title": "Bandit",
+   "summary": "The Bandit is a medium-light raider bot from the Shieldbot Factory.",
+   "description": "The Bandit outranges and is somewhat tougher than the Glaive, but still not something that you hurl against entrenched forces. Counter with riot units and Lotus towers.",
+   "tactics": [
+    "Have Bandits in groups instead of single Bandits, because the nature of the Bandit means that they work better in groups instead of solo, mostly because of their low DPS compared to other raiders, but they have very cheap cost, allowing you to make groups of them in attacking the enemy.",
+    "Bandits are cheap sources of damage, allowing you to easily exploit holes in defenses with large numbers of Bandits before the enemy can react.",
+    "Use Bandits in conjunction with Outlaws to catch fleeing units and destroy them.",
+    "Rogues benefit from having something to defend them from raiders, meaning a couple of bandits are extremely helpful in defending a skirmisher which has really slow missile speed.",
+    "Avoid all AOE weapons. Bandits are great in groups and have little HP, which AOE weapons are designed to exploit.",
+    "Bandits, in groups, can take down stronger raiders with little to no losses if they focus fire onto that one unit."
+   ]
+  },
+  "gunshipraid": {
+   "title": "Locust",
+   "summary": "The Locust is a raider gunship from the Gunship Plant.",
+   "description": "The Locust is a light gunship. Its high speed and decent damage makes it excellent for quickly taking out enemy economy or inaccurate units like assaults. However, it flies close to the ground and has a short range, meaning even other raiders can engage it on an equal footing. Like any raider, the Locust should avoid riots and static defense."
+  },
+  "energywind": {
+   "title": "Wind/Tidal Generator",
+   "summary": "The Wind/Tidal Generator is the cheapest energy-producing structure in Zero-K.",
+   "description": "Wind generators (often windgens, running together the words \"wind\" and \"gen.\" for \"generator\") produce a variable amount of energy, depending on altitude and wind speed. They are extremely fragile and chain-explode when bunched, so consider their placement carefully. When placed in water, they become somewhat sturdier tidal generators with a constant output."
+  },
+  "chicken_digger": {
+   "title": "Digger",
+   "summary": "The Digger is a burrowing scout/raider chicken.",
+   "description": "The Digger's strong claws can scoop through the hardest rock like gravy. As such, it can undetectably travel underground and appear anyplace it can cause mayhem. Protect your valuables directly, as Diggers can bypass your main defense lines."
+  },
+  "gunshipheavytrans": {
+   "title": "Hercules",
+   "summary": "The Hercules is an armed heavy air transport from the Gunship Plant.",
+   "description": "The Hercules can haul any land unit in the game. Its twin laser guns and automated cargo ejection system make it ideal for drops into hot LZs.",
+   "tactics": [
+    "Heavy enemy units can be disabled using Shockley missiles, Gnats or other EMP units, leaving them defenseless. A Hercules then can then fly in and manually load it, leaving it disabled while carried and able to be moved to any location, continuing to take damage in the air.",
+    "A Hercules can also pickup any stationary unit and destroy them using their lasers or dropping them from a large height or out of bounds."
+   ]
+  },
+  "amphimpulse": {
+   "title": "Archer",
+   "summary": "The Archer is an amphibious raider/riot bot from the Amphbot Factory.",
+   "description": "The Archer uses a powerful pair of Sonic Blasters to hit enemies on land and sea. Archers can float to surface in order to fight naval units.",
+   "tactics": [
+    "The Archer wields a pair of alternating Sonic Blasters, capable of hitting both above- and underwater targets.",
+    "When in water, it has to rise in order to fire. In direct confrontations Archer is a natural predator of lighter raiders, like Hunters or Ducks. It is, however, vulnerable to hit-and-run tactics: Claymore makes short work of tightly grouped Archers, being able to hit them even underwater with its homing payload. By far the largest threat above the water are Corsair destroyers, turning any Archer offensive into seafood.",
+    "On land, Archer is still surprisingly nimble. It best works in groups with Ducks, providing enough punch to open-up lightly defended routes. It can go toe to toe with heavier land raiders, such as Kodachi, and is especially useful due to the impulse its guns produce, stopping hit targets dead in their tracks for a split second. It is the most capable of amph-bots when it comes to defending against their nemesis, Gunships. It will still lose to concentrated force of “true” riots, such as Reavers, and finds trouble dealing with assaults with high hp pool, like Ravagers."
+   ]
+  },
+  "hoverarty": {
+   "title": "Lance",
+   "summary": "The Lance is an anti-heavy artillery hovercraft from the Hovercraft Platform.",
+   "description": "The Lance's weapon, nicknamed 'the Blue Laser of Death', has the power and accuracy to skewer most units with a single shot. Use it against high-armor units, but keep it behind the front lines&mdash;it has light armor and is too slow to be able to run from danger.",
+   "tactics": [
+    "Since Lances have such a low rate of fire, and very high damage per shot, it is good to set them to hold fire mode (or return fire mode) to conserve their shots for use against enemy Striders and assault units. Setting them to hold fire against unidentified radar targets should help ensure that their shots hit more often (since targeting unidentified radar targets imposes accuracy penalties in general), though when used in conjunction with attack move orders, it might also result in the Lances stopping in front of unidentified targets. It is good to spread out your Lances, as there is a tendency for Lances to sometimes hit each other when moving around and firing.",
+    "Lance does not deal all of its damage instantly (it instead does 100 damage 30 times over the course of a second). This means that it cannot pierce through a shield as easily as it might appear, though Lance remains useful to slowly drain enemy shields at a very safe range. On the plus side, this means a Lance's beam can pierce through multiple enemy units, thus reducing its overkill potential when used in a target-rich environment."
+   ]
+  },
+  "veharty": {
+   "title": "Badger",
+   "summary": "The Badger is an artillery minelayer rover from the Rover Assembly.",
+   "description": "The Badger lays mines—which are fairly effective, but have a limited lifespan—from a distance (rather haphazardly). The Badger outranges most defenses comfortably, but is lightly armored and cannot flee easily, so keep it screened with friendly units, possibly assisted by its own mines.",
+   "tactics": [
+    "The Badger is generally too weak and inaccurate to effectively counter more robust enemy defenses like Stardust or Stingers (which would be better countered with Impalers). However, the Badger is useful in an area denial role (similar to the Firewalker), where its mines, while not particularly damaging to enemy assault units, can stop enemy raiders, skirmishers, and even cloaked units (like Scythes, Widows, and Ultimatums) dead in their tracks.",
+    "The bulk of the damage of Badger is done by the mines it spawns, not its projectile. The Badger projectile does only 20 damage (with a respectable AoE), and spawns a mine that will explode into 5 bomblets inflicting 34 damage each to a single target, for 190 damage total per shot (and very little AoE). The full 190 damage will also be done if the projectile hits a shield directly.",
+    "The Badger's mines stay active for one minute, so a single Badger that force-fires on the ground can prepare a minefield consisting of 11 mines in a minute and can maintain it indefinitely as long as it keeps firing.",
+    "To quickly order multiple Badgers to create a minefield that stretches from place to place, hold down the key and drag a line from one spot to the other while giving the Badgers a force-fire order."
+   ]
+  },
+  "turretriot": {
+   "title": "Stardust",
+   "summary": "The Stardust is an anti-swarm turret.",
+   "description": "The Stardust sports a powerful autocannon. While it has a short range and is thus even more vulnerable to skirmishers than the Lotus, its high rate of fire and AoE allow it to quickly chew up swarms of lighter units.",
+   "tactics": [
+    "You can think of the Stardust as a fixed riot unit. It is deadly against raiders and can destroy large swarms very efficiently. Its damage output at close range is very high, which will severely punish enemies that have to close to melee range or are trying to rush past the Stardust.",
+    "However, being like a riot unit also means having the same weaknesses: the Stardust has a very short range for a fixed unit and not that much health for cost. It's very vulnerable to artillery, skirmishers, and even heavy assaults, which can destroy the Stardust efficiently by shooting from as far away as possible.",
+    "The Stardust is best deployed when you already know that your enemy is dealing in large raider swarms or in melee units. Use it to protect your other defenses and forward positions against such threats.",
+    "Lone Stardusts placed behind the lines can also be effective at closing potential pathways that enemy raider forces could take to quickly reach your economically important areas before your mobile forces can react."
+   ]
+  },
+  "turretheavylaser": {
+   "title": "Stinger",
+   "summary": "The Stinger is a high-energy laser tower.",
+   "description": "The Stinger is a medium laser turret. Its three rotating laser guns can kill almost any small unit, but its low rate of fire makes it vulnerable to swarms when unassisted.",
+   "tactics": [
+    "Stinger is the turret you build when you want to lock down an area as belonging to you. It has enough range to comfortably zone out most skirmishers, and enough firepower to fry most assault units. While a strong push can overwhelm it, the enemy will need to invest a lot more metal into it than you did into the turret, and the turret is likely to pay for itself in the losses it will cause your opponent.",
+    "However, Stinger is vulnerable to artillery. For this reason, building many stingers in close proximity is not advisable, as you're just creating a nest of units that will be easily defeated by even a small artillery group. 2 stingers placed a good distance apart, but still within supporting distance of each other, is a good formation to use if you feel a single one may be overrun. If the enemy is making very heavy use of artillery, you may want to build Gauss turrets instead: no use building a Stinger that will just get blown up by artillery immediately.",
+    "Stinger is also vulnerable to groups of light raiders. That isn't a problem as long as your mobile army is nearby, but if you expect a Stinger to be able to hold an area on its own for a while, complement it with 2 lotuses or a Stardust.",
+    "As they significantly outrange most other defenses by a good margin, stingers can also be used to push your territory by building them at the edge of the range of enemy turrets. In order for this to work, the enemy must have no mobile units around that could quickly interfere with your plans. Ideally you should use a lot of build power and set the Stinger to high priority build, so that it is finished before the enemy can react. Using this strategy many times in a row is not advised, since you will end up leaving a trail of stingers where a lot of your metal has been invested. If the enemy builds a few artillery units, they can easily start toppling that Stinger trail one by one.",
+    "Putting a Stinger in a high location can multiply their usefulness: if they're hard to reach or shot, they become much more dominating over an area. The extra height can also give them an easier time getting LoS to enemies on hilly terrain. However, they have spherical range so a Stinger positioned very high up can have its effective range at ground level reduced.",
+    "Using Stinger for defense of your main base and other backline locations is not advisable: apart from not being that effective against raiding forces, its too expensive to spread around like that. When you build a stinger, you want it to start inconveniencing the enemy immediately. Always build them at the frontline, where they will limit your opponent's mobility and attack options."
+   ]
+  },
+  "spiderscout": {
+   "title": "Flea",
+   "summary": "The Flea is an ultralight scout spider from the Spider Factory.",
+   "description": "The Flea can hide in inaccessible locations where its sophisticated sensor suite allows it to see further than it can be seen. It can be used in small groups to effectively raid mexes early on, and in maps with tall cliffs can attack from unexpected angles. It does very little damage and dies to any form of opposition.",
+   "tactics": [
+    "Although they typically lose out against more combat-worthy raiders like Glaives and Scorchers, Fleas, like other cheap scout units, excel at taking down anti-heavy units like Lances and Phantoms (even being cheap enough to affordably locate the cloaked sniper units) due to how much overkill those units' weapons do against the tiny Fleas. Should they lack modest anti-swarm escorts, even heavy units like Grizzlies, Cyclopses, and even Paladins will easily fall prey to masses of Fleas, with less cost spent on the Fleas than on the heavy units."
+   ]
+  },
+  "nebula": {
+   "title": "Nebula",
+   "summary": "The Nebula is an atmospheric mothership.",
+   "description": "As maneuverable as a brick and only modestly armed itself, the Nebula is still a fearsome force due to its ability to survive long-range attacks due to its shield, as well as shred lesser foes with its fighter-drone complement."
+  },
+  "chickena": {
+   "title": "Cockatrice",
+   "summary": "The Cockatrice is an assault/anti-armor chicken.",
+   "description": "The Cockatrice is truly a beast. Seemingly impervious to enemy fire, it casually walks up to its target and dismembers it with its incredibly powerful jaws. Fortunately, it is not fast or particularly intelligent, and can be destroyed with skirmishers or swarmers easily."
+  },
+  "chickenflyerqueen": {
+   "title": "Chicken Flyer Queen",
+   "summary": "The Chicken Flyer Queen is the boss unit in Chicken Defense. She also has a landed form.",
+   "description": "Two words: RUN AWAY! The Chicken Queen is the matriach of the Thunderbird colony, and when aggravated is virtually impossible to stop. She can spit immensely powerful acid, drop land chickens, and spray spores to kill aircraft. Only the most determined, focused assault can hope to stop this beast in her tracks."
+  },
+  "bomberdisarm": {
+   "title": "Thunderbird",
+   "summary": "The Thunderbird is a disarming lightning bomber from the Airplane Plant.",
+   "description": "Fast bomber armed with a lightning generator that disarms units in a wide area under it. After a barrage, it takes 15s to rearm.",
+   "tactics": [
+    "Thunderbirds do not deal damage themselves, but provide utility on the battlefield that can make the difference between a successful assault or a complete catastrophe.",
+    "If you can spare the time to micro, it is often much more effective to manually give your Thunderbird move orders and to deploy its lightning attack (Default 'D') when it is going to be most effective.",
+    "Do not hesitate to inform your team that you're about to disarm the units they're fighting, so they can rush them just as you finish your attack run.",
+    "Be careful not to fly over allied units on your attack run. There's not much point to disarming your enemies if your allies are also disarmed. Though sometimes it can be worth it just to buy your team some time to react."
+   ]
+  },
+  "shieldarty": {
+   "title": "Racketeer",
+   "summary": "The Racketeer is a disarming artillery from the Shieldbot Factory.",
+   "description": "The Racketeer launches long range missiles that can disarm key enemy defenses or units before assaulting them. Only one Racketeer is needed to keep a target disarmed, so pick a different target for each Racketeer. It is excellent at depleting the energy of enemy shields and rendering large units harmless.",
+   "tactics": [
+    "Use Racketeers to disarm heavy units, allowing your forces to approach the disarmed unit and destroy it.",
+    "Racketeers can also level the playing field; 3 Racketeers can disarm 3 units, meaning the enemy has 3 less units that can deal damage. This can change the tide of battle, such as if Rogues are engaged in a skirmish with other skirmishers, the Rogues can have an easier time dodging the enemy's missiles, or when an assault arrives, the Racketeer can stun the riot units and allow Bandits to move up and destroy the assault units.",
+    "Racketeers are helpless against large forces of raiders; defend them with Outlaws.",
+    "Disarm enemy static defense, then rush with Bandits to destroy the static defense and whatever it is defending.",
+    "Racketeers make pushing with a shieldball easier by disarming AOE weapons, or weapons with large amounts of burst damage, allowing your Thugs to tank damage for a longer amount of time, while also reducing the damage the rest of your units take."
+   ]
+  },
+  "shieldfelon": {
+   "title": "Felon",
+   "summary": "The Felon is a shielded riot/skirmisher bot from the Shieldbot Factory.",
+   "description": "The Felon draws energy from its shield, discharging it in accurate bursts. Link it to other shields to increase its rate of fire.",
+   "tactics": [
+    "Use Felons with Thugs so the Thugs can tank damage for the Felon while also helping the Felon recharge its shields, although the Thugs' weaker shields cannot fully recharge the Felons' shields.",
+    "Felons are good anti-skirmishers due to the Felon's instant hit projectiles, so letting a Felon get close enough to discharge itself onto the enemy skirmishers is a good tactic.",
+    "Felons are the single strongest unit in the Shieldbot factory in terms of damage and HP. However, they are also the most expensive, meaning that the Felon must be defended.",
+    "Beware if the enemy sends swarms of high health but cheap units towards the Felon; the Felon will drain its shields and be an easy target and because the Felon drains its own shield whilst firing means that the Felon will be unable to fire consistently, drastically reducing the amount of damage a shieldball can do."
+   ]
+  },
+  "energysingu": {
+   "title": "Singularity Reactor",
+   "summary": "The Singularity Reactor is the largest, most powerful and expensive energy-generating structure in the game. It implodes violently when destroyed.",
+   "description": "The Singularity Reactor generates massive amounts of energy using a controlled black hole&mdash;which is about as safe as it sounds. When the reactor is destroyed, the black hole implodes violently, dragging units inside. The entire continent on which this is built should be considered unsafe ground.",
+   "tactics": [
+    "The Singularity Reactor has the the greatest energy per metal and the densest energy per build space of all generators, making it the best energy generator once built.",
+    "Due to its high cost, multiple constructors should be used to build it in a fast time.",
+    "Due to its high target value, it should be protected by defensive buildings, units, and terraforming.",
+    "Due to its powerful explosion, it should be built away from important friendly structures, preferably in a place where even cloaked or airborne units will have a hard time finding and destroying it."
+   ]
+  },
+  "chickenr": {
+   "title": "Lobber",
+   "summary": "The Lobber is an artillery chicken.",
+   "description": "A form of organic artillery, the Lobber hurls balls of venom at a high trajectory over long distances. It proves a problem for those who rely excessively on static defenses, but is practically helpless when attacked directly."
+  },
+  "staticcon": {
+   "title": "Caretaker",
+   "summary": "The Caretaker is a static constructor.",
+   "description": "The most cost-effective source of buildpower, the Caretaker is ideal for increasing the output of factories or automatically repairing nearby defenses. It cannot start any construction projects itself, however.",
+   "tactics": [
+    "When using a Caretaker to assist your starting factory, having one Caretaker for each 10 Metal income is enough to make full use of your Economy in the early game. Before building a second caretaker, it's better to raise your metal income with Metal Extractors and Overdrive.",
+    "Once your factories are producing units and your metal supplies are still rising, that is a good sign that your economy can support an extra Caretaker.",
+    "If your starting factory has more Build Power available (10 BP + 10 BP per Caretaker) than your overall Metal/s income, an extra caretaker would not have the resources needed to speed up production once your stored metal runs out. A high Build Power factory can even start competing for resources with other constructors, slowing their production. This can be avoided by putting extra caretakers on low priority, allowing you to be able to better cope with sudden influxes of metal.",
+    "Remember that you cannot spend more resources than you actually have."
+   ]
+  },
+  "chicken_shield": {
+   "title": "Blooper",
+   "summary": "The Blooper is a shield/anti-air chicken.",
+   "description": "Protects adjacent chickens."
+  },
+  "gunshipassault": {
+   "title": "Revenant",
+   "summary": "The Revenant is a heavy raider/assault gunship from the Gunship Plant.",
+   "description": "The Revenant fires a volley of unguided rockets. It has high HP and a huge damage output, but is expensive and inaccurate, especially vs moving targets. It is best for taking on clumps of base structures, slow moving or stationary units. The Revenant should disengage between volleys to minimize damage taken."
+  },
+  "tankriot": {
+   "title": "Ogre",
+   "summary": "The Ogre is a heavy riot support tank from the Tank Foundry.",
+   "description": "Remarkably mobile for a riot platform, the Ogre packs twin high-velocity fragmentation missiles that are devastating to light units and aircraft alike, although they have limited range. Like other riot units, the Ogre does not have the range and speed to hold its own against most skirmishers. The missile is quite effective at flattening terrain so it is particularly useful at knocking down walls that Welders cannot reach.",
+   "tactics": [
+    "A decent early-game tank. It's useful for light combat and as support, just behind the Minotaurs and Cyclopses.",
+    "Use its missiles against terraformed walls. Ogres can counter overenthusiastic terraformers."
+   ]
+  },
+  "chicken_blimpy": {
+   "title": "Blimpy",
+   "summary": "The Blimpy is a heavy bomber chicken.",
+   "description": "Blimpy drops a Dodo on unsuspecting armies and bases."
+  },
+  "chicken_dragon": {
+   "title": "White Dragon",
+   "summary": "The White Dragon is a miniboss chicken in Chicken Defense.",
+   "description": "The White Dragons, senior guardians of the chicken hive, are monstrous beings second only to the queen herself. With a powerful stomp, lethal jaws, corrosive goo and a multitude of spores, they are a threat to be feared indeed."
+  },
+  "staticstorage": {
+   "title": "Storage",
+   "summary": "The Storage expands the player's metal and energy storage.",
+   "description": "Storage acts as a buffer when one expects a big influx of Metal, like when reclaiming a vast wreckage field.",
+   "tactics": [
+    "Long periods of increased Metal income are better dealt with by acquiring and utilizing more Build Power.",
+    "It can also be very useful for flash porc, where players save up large amounts of Metal to build powerful defenses very quickly. This strategy is much harder than it seems."
+   ]
+  },
+  "turretgauss": {
+   "title": "Gauss",
+   "summary": "The Gauss is a hardened artillery gauss turret designed to be difficult to dislodge with artillery.",
+   "description": "The Gauss is a compact, resilient turret with a medium-range gauss cannon. When popped down, it receives a third of incoming damage as well as small amount of health regeneration. It can also attack underwater targets.",
+   "tactics": [
+    "Gauss has a similar role to Stinger, aka, it excels at exerting control over an area and generally putting a stop to enemy assaults. Its not quite as effective as Stinger in this role, but its dramatic damage reduction when closed tends to make it the superior option when enemy artillery is making itself a problem.",
+    "Gauss also has piercing shots and a greater fire rate, both of which make it significantly less vulnerable to swarms than Stinger. Its still not a riot turret though, and if the enemy has a significant raider presence you should consider supporting your Gauss with an anti-swarm turret. Faraday tends to be a good option because, like Gauss, it is armored and therefore artillery-resistant when not firing.",
+    "Gauss has a second life in the sea: it can shot underwater targets as well, and therefore can serve as a heavier turret option for sea than Urchin, as well as an artillery-resistant option.",
+    "There are two problems however: Gauss cannot be built on sea by default, and it does not have any sonar capability. You will have to place your sea Gauss in a convenient beach or island. Depending on depth and on how much you want the turret, terraforming a small earth pillar out of the sea may be viable. The upside is that since your sea Gauss will always be on solid ground, it will never be vulnerable to exclusively aquatic weapons, which makes it much harder for many waterborne units to take them out. Though due the lack of any sonar, an Urchin (preferably placed on land, to avoid exclusively aquatic weapons) or something else with sonar will be required for the Gauss to attack underwater targets."
+   ]
+  },
+  "chicken_tiamat": {
+   "title": "Tiamat",
+   "summary": "The Tiamat is a heavy assault/riot chicken.",
+   "description": "The ultimate assault chicken, the Tiamat is a fire-breathing, iron-jawed, spore-spewing monstrosity that knows no fear, no mercy. It even has a mucous shield to protect itself and surrounding chickens from damage."
+  },
+  "chicken_listener": {
+   "title": "Listener",
+   "summary": "The Listener is a burrowing mobile seismic detector chicken.",
+   "description": "The Listener is an evolved form of the Digger. While it has lost all fighting ability, it has gained a unique sense of hearing that allows it to pinpoint the location of enemy ground forces."
+  },
+  "shieldscout": {
+   "title": "Dirtbag",
+   "summary": "The Dirtbag is a light scout and obstruction unit from the Shieldbot Factory.",
+   "description": "The Dirtbag exists to block enemy movement and generally get in the way. They are so dedicated to this task that they release their dirt payload upon death to form little annoying mounds. While waiting for their fate Dirtbags enjoy headbutting and scouting.",
+   "tactics": [
+    "Highly utilitarian, literally dirt-cheap. Annoying. The Dirtbag can serve in a number of ways and sometimes turns out to be a game-changing unit.",
+    "While a bit slower then a Bandit, Dirtbags are also twice as cheap, and have an ability to jump, which, combined with having the same vision radius, turns them into a great scout early game. As a last-ditch effort, Dirtbag can try to self-detonate on enemy metal spots, restricting the mex construction. Kind of annoying.",
+    "As such, Dirtbags also serve as excellent screens against units such as Widows or Phantoms, but they will require some fire support to completely drive off the enemy. They also one-shot Fleas. Irritating, huh?",
+    "The Dirtbag can turn game for Rover Assembly, Hovercraft Platform, and Tank Foundry players into a clumsy mess. After death, Dirtbags spawn a little ugly mound, about the height of their legs. In mass, this can turn the battlefield into a claustrophobic unreadable horror of a terrain, providing you with a cheap terraforming option, and a huge advantage if you or your allies switch into Spider Factory. Beware, that the mounds will form wherever the Dirtbag dies, and will potentially restrict your radar vision. Pesky little things.",
+    "Finally, Dirtbags can draw fire, helping during charges on Stingers and other defences alike, being a target for Lances, clog up Jugglenauts in pull mode, draw out Imps and much more. When someone hits you, try throwing some dirt in their face, turns out it might just help."
+   ]
+  },
+  "jumpskirm": {
+   "title": "Moderator",
+   "summary": "The Moderator is a disruptor skirmisher walker from the Jumpbot Factory.",
+   "description": "The Moderator's disruptor beam reduces enemy speed and rate of fire by up to 50% in addition to dealing damage, making it effective against almost all targets.",
+   "tactics": [
+    "Since the Moderator's slowbeam instantly hits, and since it deals significant amounts of slow damage, even high-weight raiders such as the Blitz and Pyro are ill-suited towards dealing with about equal numbers of Moderators. To counter this, try switching to using cheaper, smaller raiders like Glaives, or longer-ranged skirmishers like Ronins or Fencers."
+   ]
+  },
+  "factoryship": {
+   "title": "Shipyard",
+   "summary": "The Shipyard is a factory that produces naval units.",
+   "description": "Shipyard is where both ships and submarines are built. Other waterborne units such as hovercraft and amphibious bots have separate factories. The Shipyard builds:",
+   "tactics": [
+    "The Shipyard has the unique property of being the preeminent factory in its domain—the water. While the Hovercraft and Amphbots are limited to traveling above and below the waterline respectively, the Ships can move in and control both with vessels such as the versatile Corsair, Seawolf and Siren. On the other hand, Ships cannot travel on land and their impact is limited to shoreline bombardment by the Envoy and Mistral.",
+    "Since they are the only sea-only factory, Ships have less of an explicit theme to work around; instead they have a wide variety of units for every occasion. They don't have every base covered though, so use the more specialised Hovercraft and Amphbot units to supplement your Ship fleet."
+   ]
+  },
+  "spidercrabe": {
+   "title": "Crab",
+   "summary": "The Crab is a heavy riot/skirmish spider that curls into armored form when stationary from the Spider Factory.",
+   "description": "The Crab's huge shells obliterate large swarms of cheap units, and can also outrange basic defenses. When it stops walking, Crab curls up into armored form reducing incoming damage to a third. The Crab's main weakness is its lack of mobility.",
+   "tactics": [
+    "It is better for defense than attack despite its high damage, because if it is not moving it gets a much stronger defense and can tank hits better.",
+    "For a particular type of offense, it is often useful to convert the Crab in to a flex-artillery piece by moving it towards enemy fortifications, stopping just outside of their range, and terraforming a spire underneath to extend its range."
+   ]
+  },
+  "energygeo": {
+   "title": "Geothermal Generator",
+   "summary": "The Geothermal Generator is an efficient medium-cost energy producer.",
+   "description": "Geothermal plants are highly efficient energy sources that can be built only on geovents on the map. They explode quite violently when destroyed, so avoid placing anything directly adjacent."
+  },
+  "staticheavyarty": {
+   "title": "Big Bertha",
+   "summary": "The Big Bertha is a strategic plasma cannon.",
+   "description": "The Bertha is a massive cannon that fires high-energy plasmoids across the map. Used appropriately, it can effectively suppress enemy operations from the safety of your base. Do not expect it to win battles alone for you, however.",
+   "tactics": [
+    "Big Bertha lives up to [https://en.wikipedia.org/wiki/Big_Bertha_(howitzer) its ancestor's] name. It is used similarly to its ancestor too: bombarding the enemy base from a safe, distant location. After a while of shelling an enemy defensive line, you can send in the infantry to mop up what's left. Alternately, you can shell the enemy base directly and reduce it to rubble.",
+    "Be careful, as the enemy may make a push with all their available units to destroy the Big Bertha. Have some defenses ready, especially around the gun itself."
+   ]
+  },
+  "gunshipcon": {
+   "title": "Wasp",
+   "summary": "The Wasp is a heavy gunship constructor from the Gunship Plant.",
+   "description": "A heavy constructor which combines the convenience of flying with high buildpower."
+  },
+  "shipcarrier": {
+   "title": "Reef",
+   "summary": "The Reef is an aircraft carrier from the Strider Hub.",
+   "description": "The most versatile ship on the high seas, the carrier serves several functions. It is equipped with a manual-fire disarming Tactical Missile launcher for disabling enemy capital ships from outside of their fire range. The reef serves as a mobile repair base for friendly aircraft. Perhaps most notably, the carrier provides its own complement of surface attack drones to engage targets.",
+   "tactics": [
+    "The Reef's drones can travel a fairly long distance away from it, so it can be used in a similar role as a Skirmisher (as opposed to the amphibious Detriment, which is like a riot/assault unit compared to the Reef). Moreover, when you've built up enough drones (each Reef can have up to 8 Gull drones, with a combined dps of 640), they can easily overwhelm enemies through sheer numbers (especially when you have many Reefs). However, anti-swarm units and structures, including anti-air weapons, can and will give the Reef's drones problems (in which case, if you're noticing that your Reefs are not breaking through the enemy's defenses in a reasonable amount of time, then it might be time to send them back to recover).",
+    "- Still, even when the Reef's drones are being shot down, at least they can distract the enemy from your other units, including other heavy units like the Grizzly. Besides, the drones are totally expendable, while the Reef is sitting at a safe distance away.",
+    "As for the Reef's disarm missiles, keep in mind that, while they're being stockpiled, you'll be draining 5 metal-per-second-per-Reef. Therefore, if you're building many Reefs, and you want to conserve where your metal is being spent, you may want to limit how many disarm missiles they're allowed to stockpile. Generally, a stockpile size of just 1 or 2 missiles per Reef should be sufficient if your Reefs are seeing constant battle. (For the record, 2 or 3 missiles should be adequate to keep a Shogun disarmed, while 16 should be sufficient to keep a Detriment disarmed, though you'll still need to follow it up by destroying said units.)"
+   ]
+  },
+  "turretaafar": {
+   "title": "Chainsaw",
+   "summary": "The Chainsaw is a long-range anti-air missile battery.",
+   "description": "The Chainsaw is a long range anti-air turret, dealing out massive damage, able to knock bombers out of the sky very quickly. It can't take very much damage in return, though, and does poorly when attacked directly.",
+   "tactics": [
+    "As far as AA defenses go, the Chainsaw is rather costly, but the cost is well worth it if your enemy is making heavy use of aerial units, as a single well-placed Chainsaw will efficiently provide protection over a very large area.",
+    "So large, in fact, that you may even be able to disrupt enemy aerial support operations with a well-placed Chainsaw. You can zone their aerial builders out of wreckfields, or out of their own forward positions.",
+    "The Chainsaw lacks burst power however, so you shouldn't count on it alone to protect high-value units: a large and willing group of enemy bombers or gunships can still penetrate the Chainsaw's range, take out the valuables, and escape with some casualties.",
+    "The Chainsaw is rather frail for its cost, and it itself can become the target of a large enemy air raid, so if such a thing seems likely you may want to protect your Chainsaw with a more durable AA turret, such as Razor or Thresher.",
+    "The Chainsaw requires line of sight to fire. Combine that with its immense range, and one quickly realizes that putting it in a high place is ideal, so that its range isn't limited by the terrain around it. Building it atop its own terraform pillar is worth the extra cost if it means it will be able to shoot over a critical hill."
+   ]
+  },
+  "tankraid": {
+   "title": "Kodachi",
+   "summary": "The Kodachi is a raider tank from the Tank Foundry.",
+   "description": "The Kodachi is a unique raider. Its small yet agile chassis has enough armor and speed to get it close enough to fire its weapon, a napalm bomb. The Kodachi should run in, get a few shots off, and withdraw before it takes significant damage. Damaged Kodachis regenerate out of combat.",
+   "tactics": [
+    "Using the Kodachi, like with other Tank Foundry units, requires a bit more finesse compared to other raiders. The Kodachi is slower, its weapon is mediocre at face-to-face engagements, and it will generally find itself outnumbered. The key lies in constant movement. While it can be quite a bit slower than its raider peers, Kodachi's flame bombs have respectable range, AOE, and are very damaging when trying to catch up to a Kodachi. Maneuver around laying fire at the path of enemy units but never directly engage into a fair fight, and retreat as soon as the enemy units give chase, shooting at them in near impunity.",
+    "Be careful about using the Kodachi alongside other units, especially other raiders like Blitzes. If you aren't careful, you could end up harming your own units with the Kodachi's napalm bombs, which set units on fire and leave behind puddles of napalm that burn for short periods of time.",
+    "The flame bomb ground burn does very adequate damage to buildings, but they inflict very little afterburn, unlike Pyro. This means the Kodachi has to stick around and destroy the building fully before being able to run away. It can still devastate enemy economy by destroying poorly defended metal extractors and energy sources in a few seconds, which makes it especially dangerous in the early game before sufficient defenses can be set up, or even later in the game when Kodachis return in larger numbers that allow them to dive past light static defenses.",
+    "While dealing with the Kodachi yourself remember its main flaws. Early radar detection will allow you to mount up proper defenses, as you never want it roaming around freely behind your lines. Form a wide formation with your units as to not get hit with AOE flames and encircle the Kodachi if you have fast raiders, or use the better range of your own raiders to kite it otherwise and prevent it from advancing further. One or two Lotuses may be helpful to corral the Kodachi towards less vulnerable areas of your territory, or even an Imp to bait the Kodachis into a trap. Try to not let it get away, since it will eventually regenerate back to full health."
+   ]
+  },
+  "spideraa": {
+   "title": "Tarantula",
+   "summary": "The Tarantula is an anti-air spider from the Spider Factory.",
+   "description": "An all-terrain AA unit that supports other spiders against air with its medium-range missiles."
+  },
+  "turretsunlance": {
+   "title": "Sunlance",
+   "summary": "The Sunlance is an anti-tank turret that requires 25 power.",
+   "description": "The Sunlance's heavy disruptor beam cripples even the heaviest assault unit and will stop any armored assault dead in its tracks."
+  },
+  "jumpbomb": {
+   "title": "Skuttle",
+   "summary": "The Skuttle is a cloaked jumping anti-heavy bomb from the Jumpbot Factory.",
+   "description": "This slow-moving, expensive cloaked unit can jump onto enemy units and blast even a heavy tank straight to hell. Counter with swarms of cheap screening units. Be careful of its very small explosion radius when using it.",
+   "tactics": [
+    "Expensive, slow and unwieldy in comparison to its other explosive brothers, the Skuttle is a niche unit, primarily used to devastate enemy with pinpoint strikes at expensive units, heavy structures, commanders and other high priority targets.",
+    "While using the Skuttle, beware of its large decloak radius, as it boasts low hitpoints and can be destroyed in seconds. Always have your Skuttles go separately from your main force to avoid possible explosions in the midst of your own units.",
+    "Using the Skuttle effectively requires knowledge of your target, its defenses, and enemy roster. Area jammers like Cornea and cheap scouts in big numbers, such as Fleas or Darts, quickly diminish the chance of success. Mind your energy income and reserves, so as to not find your bomb decloaking in the group of enemies. Final stretch should be cut with the jump, which also allows Skuttles to ignore elevation by terraforming , enemies in the way, or even to reach flying units.",
+    "Remember that Skuttle's decloak radius is large, and it may decloak midair while jumping, leaving it vulnerable to being shot down before it reaches its target. Because of the small explosion range, always try to get as close as possible, as its damage drops sharply with range."
+   ]
+  },
+  "wolverine_mine": {
+   "title": "Claw",
+   "summary": "The Claw is a mine placed by the Badger.",
+   "description": "This mine doesn't explode—instead, it releases a flurry of bomblets at trespassing enemies. It deactivates after one minute."
+  },
+  "planecon": {
+   "title": "Crane",
+   "summary": "The Crane is a construction aircraft from the Airplane Plant.",
+   "description": "The Crane flies quickly over any terrain, but is fragile to any AA. Though it has relatively poor nano power for its cost compared to other constructors, it is able to build in many hard to reach places and expand an air players territory in a nonlinear fashion. Due to its mobility, it is ideal for reclaiming wrecks and other repetitive tasks."
+  },
+  "chickenblobber": {
+   "title": "Blobber",
+   "summary": "The Blobber is a heavy artillery chicken.",
+   "description": "The Lobber's big brother, the Blobber hurls a wide-scatter rain of acid goo. It can pummel even the toughest shield network very quickly, but remains relatively prone to direct attack."
+  },
+  "gunshipemp": {
+   "title": "Gnat",
+   "summary": "The Gnat is an anti-heavy EMP drone from the Gunship Plant.",
+   "description": "The Gnat can be used to paralyze enemy units. It makes an excellent defensive unit, and when combined with Locusts or other units can halt the enemy to give you time to kill him. Offensively it can paralyze even heavily fortified areas, but dies relatively easily to Pickets. It deals no damage on its own."
+  },
+  "jumparty": {
+   "title": "Firewalker",
+   "summary": "The Firewalker is a saturation artillery walker from the Jumpbot Factory.",
+   "description": "The Firewalker's medium range mortars immolate a small area, denying use of that terrain for brief periods of time. The bot itself is somewhat clumsy and slow to maneuver.",
+   "tactics": [
+    "Although, in general, clumps of closely-packed enemy units don't deal well with being bombarded by a Firewalker, shieldballs have it much worse than usual, since the Firewalker's incendiary mortars can somewhat penetrate through shields.",
+    "The Firewalker's incendiary mortars can reveal cloaked units that wade through the puddles of napalm that the Firewalker's shells create on impact. This makes them a useful counter against enemy task forces that are being cloaked by an Iris.",
+    "Since the puddles of napalm that the Firewalker's shells create on impact last longer than the Firewalker's rate-of-fire, you can effectively use them in an area-denial role by force-firing on the ground.",
+    "To quickly order multiple Firewalkers to create a line of burning napalm stretching from one place to another, hold down the Alt key, and drag a line from one spot to another, while giving the Firewalkers a force-fire order."
+   ]
+  },
+  "gunshipbomb": {
+   "title": "Blastwing",
+   "summary": "The Blastwing is a flying bomb with burrowing ability from the Gunship Plant.",
+   "description": "The Blastwing does only a small amount of damage, suitable for taking out Metal Extractors, Lotus or Picket towers, Wind/Tidal Generators and Caretakers, though it can offer a more formidable punch en-masse. Do not pack them too tightly, as a group of them can chain explode. Blastwings fly close to the ground and can be accidentally set off if they stick around for too long in flame left by other Blastwings. It can be useful for scouting and laying traps for raiders, and it cloaks when landed."
+  },
+  "hovercon": {
+   "title": "Quill",
+   "summary": "The Quill is a construction hovercraft from the Hovercraft Platform.",
+   "description": "The Quill allows smooth expansion across both land and sea."
+  },
+  "factoryamph": {
+   "title": "Amphbot Factory",
+   "summary": "The Amphbot Factory is a factory that produces amphibious bots.",
+   "description": "The Amphibious Operations Plant builds the slow but sturdy amphibious bots, providing an alternative approach to land/sea warfare. Units from this factory typically regenerate while submerged. The Amphbot Factory builds:",
+   "tactics": [
+    "The Amphbot Factory produces slow but tough bots that can travel up hills, across the flats and into the water. Some Amphbots like the Grizzly and Buoy float to the water surface to deploy their weapons, while others such as the Duck and Scallop remain underwater and fire from there.",
+    "While they may be slow the Amphbots compensate with several tricks. They can hide and regenerate underwater, inflict slow damage on the enemy, or use special tools to relocate their army quickly. If the map has a lot of water Hovercrafts are a good choice to support your Amphbots. Otherwise, a more mobile factory like the Jumpbots can compensate for the Amphbots' weaknesses."
+   ]
+  },
+  "tankcon": {
+   "title": "Welder",
+   "summary": "The Welder is an armed construction tank from the Tank Foundry.",
+   "description": "Heaviest among the constructors and armed with a small defensive tower, the Welder can defend itself against light enemy attacks. It also boasts above-average building power, but is quite pricey.",
+   "tactics": [
+    "While seemingly an easy unit to understand, the Welder breaks up some core unit interactions, and can be a pain to deal with.",
+    "Welders are sturdy, having health on the level of an Ogre, and while their weaponry does not seem all that harmful, their resilience and possible defense structures around make it hard to utilize raiders against them. In the early game, you generally want to avoid confrontation and divert your raiders to scouting or trying out enemy's economy. Of course, if you know what you're doing, you can always swarm the Welder when it's out of position, disable it, or use other classes and options, like outranging it with skirmishers.",
+    "The Welder becomes much more of a problem in case of a strategy involving their mono-spam. Having a big health pool and construction powers makes a lot of them into a tough obstacle. Any battle taken near a swarm of Welders will allow your opponent to immediately turn in all the reclaim and patch their Welders up. They can also utilize defense structures, having the metal income to spare. At a certain critical mass Welders become an extremely high threat, being able to build or heal in seconds. Tips for fighting off such a force:",
+    "Welder army requires a big energy investment, so it might be a good idea to target enemy's economy.",
+    "Tightly packed Welders are easy prey if you manage to disable them. Outlaws and Limpets with their slow effect are effective and easy to use.",
+    "Don't bet on air, as Welders will be fast to put up AA defenses in the hands of an experienced player.",
+    "Move fast. Each lost battle will give a large boost of reclaim to the enemy."
+   ]
+  },
+  "vehcapture": {
+   "title": "Dominatrix",
+   "summary": "The Dominatrix is a capture rover from the Rover Assembly.",
+   "description": "The Dominatrix captures enemies, turning them against their former allies. Multiple Dominatrixes can capture a single target faster, although only one becomes the controller. After taking control of a unit, the Dominatrix cannot fire for 12 seconds. If a Dominatrix is destroyed, all units it controlled are freed.",
+   "tactics": [
+    "The Dominatrix deals capture damage, effectively pitting its DPS against (1000 + the target's HP). This means that the Dominatrix (which has a capture DPS of ) will take a minimum of 1.5 seconds to capture any unit. For heavier targets, it takes longer. A single Dominatrix takes about seconds to capture an enemy Minotaur (which has HP). Damaged units will be captured faster and that capture damage does not ignore unit armor. Capture damage decays quickly if the target escapes range, so partial damage will most likely go to waste.",
+    "To prolong the lifespan of your frail Dominatrixes, try escorting them with at least one Aspis, along with an Iris to help keep enemy artillery from skirmishing your Dominatrixes to death. As with other shield balls, such a combination is asking to be countered with the likes of Firewalkers, Imps, Snitches, Thunderbirds, or Likhos."
+   ]
+  },
+  "striderantiheavy": {
+   "title": "Ultimatum",
+   "summary": "The Ultimatum is a cloaked anti-heavy/anti-strider walker built from the Strider Hub.",
+   "description": "The Ultimatum packs only one weapon: a disintegrator gun that can vaporize a heavy tank in one blast. It is best used for sneaking up to enemy heavy striders and inflicting serious damage or destruction with a few shots. Defense against it is achieved by screening your heavyweights with lighter units.",
+   "tactics": [
+    "The Ultimatum is best used for assassinating important, heavy targets. Commander? Done. Cyclops or Minotaur? Easy meat. Light Strider (Dante, Scorpion or Funnelweb)? Check, check, and check.",
+    "The Ultimatum should not be used on escorted targets, unless you are willing to lose it. It's slow and weak in open combat. Use it to pick off lone enemies."
+   ]
+  },
+  "factoryveh": {
+   "title": "Rover Assembly",
+   "summary": "The Rover Assembly is a factory that produces light wheeled vehicles.",
+   "description": "A traditional favourite, the Rover Assembly is the ideal blitzkrieg fac with its fast, highly aggressive units. Those units that lack speed make up for it with copious firepower. Key units: Dart, Scorcher, Ravager, Ripper, Fencer The Rover Assembly builds:",
+   "tactics": [
+    "The Rover Assembly is the most versatile of the flat-terrain factories. The Dart, Scorcher, Ripper and Ravager are fast and effective combat units which excel at rapid response and swift punishment of enemy weakness. When the game has slowed down and mobility is less important, the Fencer, Badger and Impaler punish your opponent from a safe distance.",
+    "The greatest weakness of the Rover Assembly is its lacklustre heavy and utility options; all of the main Rover combat units are cheap but not exceptionally strong individually, and if a frontal assault with Scorchers won't work the Rovers don't have another good solution to opposing heavies. If you combine Rovers with the raw strength of Heavy Tanks or the utility of Shield Bots, the Rover Assembly's combination of swift attacks and slow attrition will serve you very well."
+   ]
+  },
+  "planeheavyfighter": {
+   "title": "Raptor",
+   "summary": "The Raptor is an air superiority fighter from the Airplane Plant.",
+   "description": "The Raptor specializes in bringing down anything else that flies. It is sturdy enough to take limited AA fire, although it has no ground attack capability."
+  },
+  "amphassault": {
+   "title": "Grizzly",
+   "summary": "The Grizzly is a heavy amphibious assault walker from the Amphbot Factory.",
+   "description": "The Grizzly is a classic assault unit - relatively slow, clumsy and next to unstoppable. Its weapon is a high power laser beam with high range and damage, ineffective against swarmers and fast aircraft but not much else. While its weapon cannot fire underwater, the Grizzly can float to surface in order to shoot."
+  },
+  "bomberprec": {
+   "title": "Raven",
+   "summary": "The Raven is a precision bomber from the Airplane Plant.",
+   "description": "The Raven drops a single high damage, low AoE bomb. Cost for cost, nothing quite matches it for taking out that Antinuke, Minotaur or sensitive pieces of economy, but a Phoenix is more effective against smaller mobiles.",
+   "tactics": [
+    "Ravens are the workhorse of the Airplane Plant. They're the cheapest bombers, they deal a lot of damage, and have the most hitpoints for their cost.",
+    "Sometimes it's worth it to channel your inner World War 2 British bomber command officer and sacrifice some of your Ravens to take out an important enemy target. With five ravens you can bomb a Razor anti air turret to pave the way for more bombers to follow them. Or you can strike at a Singularity Reactor deep within enemy territory. If five of your bombers make it through, you will cripple your enemy's economy and perhaps take out a large portion of their base. Or if your allies are facing a particularly deadly unit, like a Dante, you could turn the tide in favour of your allies with a well-timed bomb run.",
+    "If your enemy pushes out from under their AA cover, a quick wing of Ravens using the spread attack command (Default 'Ctrl+A') can quickly soften the enemy units up for a follow-up by ground forces, or take care of the units on their own if used in sufficient numbers.",
+    "Raven bombs will pass through water surfaces, allowing you to bomb submerged units."
+   ]
+  },
+  "jumpaa": {
+   "title": "Toad",
+   "summary": "The Toad is a heavy anti-air jumper from the Jumpbot Factory.",
+   "description": "The Toad packs twin anti-air lasers and an autocannon for slaying enemy aircraft rapidly. It can also jump to quickly access high ground or to escape.",
+   "tactics": [
+    "The Jumpbot Factory doesn't lack anti-air capabilities. Moderators are more than capable of shooting down planes with their hitscan burst weapon while Jugglenauts can trap flyers indefinitely. Toads are useful against Nimbuses, who outrange most other Jumpbots."
+   ]
+  },
+  "factoryjump": {
+   "title": "Jumpbot Factory",
+   "summary": "The Jumpbot Factory is a factory that produces jumpjet equipped robots.",
+   "description": "The esoteric Jumpbot Factory offers unique tactical options for rapidly closing the distance in a knife fight, or getting over hills and rivers to cut a path through enemy lines. Key units: Pyro, Moderator, Jack, Firewalker, Jugglenaut. The Jumpbot Factory builds: Placeholder, Moderator and Firewalker have no jumping ability. While the factory itself is not able to jump, either, its Jump command can be used to set a rally point to which any jumping unit will jump instead of walking. It will still walk until it reaches its minimum required jumping distance from the destination. Constable, Pyro and Jack are equipped with jets that allow them to jump even while they are in the air, while other jumping units have to rely on the strength of their legs, which, of course, need solid ground under them to work.",
+   "tactics": [
+    "The Jumpbots combine a wide array of gimmicks into a potent force. The Constable, Pyro, Jack, Toad, Skuttle, and Jugglenaut can jump over obstacles, allowing them to attack from unexpected directions or escape from enemies, and the Jugglenaut turns the jump itself into a deadly weapon. The Moderator, Placeholder and Firewalker are specialists which contribute utility effects from longer range.",
+    "The Jump and Specalist bots rely on their unique characteristics in battle and therefore require a great deal of attention for effective use. Furthermore, if your opponent is setting the terms of engagement such that your advantages do not come fully into play, the Jumpbots are at a disadvantage in a direct fight. Combining the utility of the Jumpers and Specialists with more directly powerful units such as Amphibious Bots or Shield Bots nullifies this weakness and leaves you with a truly fearsome force."
+   ]
+  },
+  "turrettorp": {
+   "title": "Urchin",
+   "summary": "The Urchin is a static torpedo launcher.",
+   "description": "This Torpedo Launcher provides defense against both surface and submerged vessels. It also includes a short range sonar for helping detect nearby submerged enemies.",
+   "tactics": [
+    "Urchins have on sea a role similar to that of lotuses on land, that is to say, they're useful for perimeter defense and providing a minimal level of protection to your sea factories, energy buildings, mexes, and other units and defenses. They can also be used to guard beaches against amphibious invasions, and for closing water chokepoints against light enemy units.",
+    "Due to their low health and firepower, a group of urchins easily folds if the enemy makes a strong push with assault units. They're also quickly and efficiently defeated by anything that outranges them. As such, building large groups of urchins in one location is not advisable.",
+    "Urchins can be placed outside water and yet fire into water, so long as they're very close to it. This makes them harder for many waterborne units to kill, specially amphibious robots.",
+    "Contrary to most land defenses, as the weapon of Urchin only works in water, they cannot fire back against aerial units at all, being utterly defenseless against them. Areas protected by urchins will require a separate turret for AA defense, if the enemy is using air.",
+    "The same is true of any unit that attacks Urchin from land, and as such care must be taken when building them near land that the enemy controls."
+   ]
+  },
+  "zenith": {
+   "title": "Zenith",
+   "summary": "The Zenith is a superweapon that gathers meteors and throws them at the enemy.",
+   "description": "The Zenith collects meteorites from the sky (up to 300), which it can send anywhere to break things or provide a small reclaimable source of metal.",
+   "tactics": [
+    "Set the Zenith to hold-fire mode to allow it to collect meteors instead of raining down small unreliable meteor swarms at any enemies within its massively-long range (which could not only miss the targeted enemy, but also hurt your own units by accident). Giving it an attack order will send all collected meteors at once, effectively dealing high-burst damage if they are in high numbers (and quite capable of taking down approaching Striders like the Paladin). However, if the Zenith reaches full capacity, any newly collected meteors will be dropped around and on the Zenith's location, dealing damage to buildings and units."
+   ]
+  },
+  "energyfusion": {
+   "title": "Fusion Reactor",
+   "summary": "The Fusion Reactor is a medium-cost energy producer.",
+   "description": "Fusion reactors provide a good amount of steady energy output at a fair price. They are attractive targets and not very well-armored, so keep them well-protected. When killed, fusion reactors will cause heavy damage to nearby units."
+  },
+  "staticsonar": {
+   "title": "Sonar Station",
+   "summary": "The Sonar Station is a building that detects units in the water. Sonar is required to detect and engage underwater units.",
+   "description": "The docile Sonar Station provides one of the few means of locating underwater targets."
+  },
+  "chicken_sporeshooter": {
+   "title": "Sporeshooter",
+   "summary": "The Sporeshooter is an all-terrain spores (anti-air/skirm) chicken.",
+   "description": "The Sporeshooter shoots spores to drop aircraft and hit land targets from a distance. Can climb walls for surprise attacks."
+  },
+  "tankaa": {
+   "title": "Ettin",
+   "summary": "The Ettin is a flak anti-air tank from the Tank Foundry.",
+   "description": "The Ettin's flak cannon makes quick work of enemy gunships, and is also fairly effective against planes."
+  },
+  "spiderskirm": {
+   "title": "Recluse",
+   "summary": "The Recluse is a skirmisher spider (indirect fire) from the Spider Factory.",
+   "description": "An all-terrain skirmisher that can climb to difficult-to-reach locations and launch arcing volleys of rockets. It fires a burst of three rockets at a single target. It has good vision and more range than other skirmishers, but it is slow to move across distances and the rockets it fires are relatively inaccurate.",
+   "tactics": [
+    "In its Skirmisher role, the Recluse is put in a bad position when enemy units get close. A Recluse on its own is fragile and should be escorted by other spiders, firing from range while the escort keeps the enemy at a safe distance. Because of the rocket spread, the Recluse works well against enemy unit groups, as each rocket is more likely to hit something. A single volley from a Recluse will typically miss a rapidly jinking target, but as the number of Recluses grow, it quickly becomes unrealistic for a target to avoid damage entirely."
+   ]
+  },
+  "staticarty": {
+   "title": "Cerberus",
+   "summary": "The Cerberus is a plasma artillery battery for long-range bombardment.",
+   "description": "The Cerberus offers long-range artillery/counter-artillery capability, making it excellent for area denial. It is not designed as a defense turret, and will go down if attacked directly.",
+   "tactics": [
+    "Cerberus is an extremely expensive, immobile artillery piece that needs a connection to an energy grid with at least 50 energy points in it. These characteristics alone should make it clear that it is not a unit that you build lightly.",
+    "That being out of the way, a well-placed Cerberus can exert control over a very large portion of the map. It can siege fortified positions with little risk because it outranges not only all defenses, but nearly all other artillery as well. In addition to great range, it has enough damage and splash to threaten almost any unit or defense mix.",
+    "The main risk with building a Cerberus is that its a major assassination target. Its expensive, it has low health for cost, and it cannot flee from danger or even just reposition to avoid counter-fire. Even if you protect a Cerberus from being scouted by the enemy, it won't take long for the enemy to figure out where it is from the trajectory of its shots, and once the enemy knows where it is, its an easy target for tactical nukes, bombers, scythes, and other such threats.",
+    "The enemy may also simply push hard against the Cerberus and destroy it, if you build it without having a mobile army or fortifications to keep it safe.",
+    "As such, before building a Cerberus, you should make sure you can protect it. Its a good idea to add a shield and some fixed defenses around the Cerberus specifically, including some AA defenses.",
+    "Another major mistake you can make when building a Cerberus is to build it too far back. Cerberus is too expensive to be treated as only a defense turret: you should always build it near enough to the front that it can pressure your enemy's frontline.",
+    "Cerberus benefits immensely from being put in a high position: it makes it harder to attack, gives it clearer shots, and makes it even harder for enemy artillery to fight back against it. A Cerberus on high ground is often game winning, or at least forces your opponent to retreat from its range."
+   ]
+  },
+  "striderdante": {
+   "title": "Dante",
+   "summary": "The Dante is an assault/riot strider from the Strider Hub.",
+   "description": "The Dante is a heavy combat unit that specializes in getting close and melting its target. Its flamethrower and twin heatrays aren't extraordinary, but its incendiary rockets can be fired in a salvo of twenty that devastates a wide swath of terrain.",
+   "tactics": [
+    "Like most striders, the key to using Dantes effectively is to not only attack frequently with them, but also to keep them alive whenever possible. As durable as Dantes are, they're expensive to build, and thus, expensive to replace in the event that they're destroyed, so be sure to set up a fallback point for your Dantes to automatically retreat to when their health drops below a certain point. (Setting them to retreat when under 65% health is recommended if the game progresses to the point where striders are more common.)",
+    "If your opponent is unprepared, and does not have any strong anti-strider units (such as large amounts of Phantoms, Lances, or Widows, or a Scorpion), a Dante can easily end the game. It is armed and armored well enough to be able to break through modest lines of defense (such as a line of Fencers, or a handful of Stingers), giving other units, especially raiders, an opportunity to exploit the opening to go on a rampage behind enemy lines (in a similar manner to Blitzkrieg, or Soviet Deep Battle doctrine). However, if your opponent is prepared, and has built significant amounts of anti-strider units, your Dante becomes, at best, a large paperweight, and at worst, a donation of metal, since it's rather slow, and doesn't deal well with getting paralyzed by Widows or Scorpions, or getting picked off by Phantoms or Lances.",
+    "To better improve the survivability of your Dantes, especially in the face of enemy anti-strider units like Lances, Phantoms, or Merlins, try escorting them with an Iris, so that the enemy's anti-strider units will have a more difficult time picking the Dantes off.",
+    "If enemy Scorpions threaten your Dantes, try escorting them with anti-heavy units, or even other striders, since the Scorpion needs to wait a long time to use its electro-stunner attack again."
+   ]
+  },
+  "bomberriot": {
+   "title": "Phoenix",
+   "summary": "The Phoenix is a saturation napalm bomber from the Airplane Plant.",
+   "description": "The Phoenix's napalm bombs decimate large clumps of units and light structures.",
+   "tactics": [
+    "The Phoenix is useful for killing and damaging large clumps of light units, setting them on fire and causing a large amount of damage. However, Phoenixes are also more vulnerable than other bombers.",
+    "While the low initial damage of the Phoenix is underwhelming, the 10-second burn can make quick work of lighter units like Darts even when they dodge most initial damage.",
+    "Burn damage will reset the countdown for units with regenerative abilities like Glaives or Reavers, as well as keep units with a cloak from disappearing from sight.",
+    "Be careful when using Phoenixes around allied units, as the same properties that make them useful against enemy hordes make them a liability in a chaotic front line."
+   ]
+  },
+  "staticnuke": {
+   "title": "Trinity",
+   "summary": "The Trinity is a strategic nuclear launcher.",
+   "description": "The Trinity launches devastating nuclear missiles that can obliterate entire bases. However, it is easily defeated by enemy antinuke systems, which must be removed from the desired target area beforehand. For those times when a single building (like an antinuke or advanced geothermal) needs to be destroyed, firing missiles from the smaller Missile Silo may be more effective than building the Trinity and its missile."
+  },
+  "spidercon": {
+   "title": "Weaver",
+   "summary": "The Weaver is a construction spider from the Spider Factory.",
+   "description": "The Weaver is a constructor that can climb over any obstacle and build defenses on high ground. It is also equipped with a short range radar."
+  },
+  "tankassault": {
+   "title": "Minotaur",
+   "summary": "The Minotaur is an assault tank from the Tank Foundry.",
+   "description": "A heavy duty battle tank. The Minotaur excels at absorbing damage in pitched battles, but its low rate of fire means it is not so good at dealing with swarms, and its heavy armor comes at the price of maneuverability.",
+   "tactics": [
+    "A combination of exceptionally high health with above average top speed means Minotaurs excel at surviving battle if you bother to pull them back when their health is low. This gives you the opportunity to repair them and send them back to the front brand new. Its easy to see how this can give you the upper hand in the battle of attrition over time.",
+    "Minotaurs parked in the frontlines should have supporting riot units handy, least the enemy raid or \"crawling\"/mobile bomb them, as their cannons are quite terrible at killing anything fast or numerous."
+   ]
+  },
+  "hoveraa": {
+   "title": "Flail",
+   "summary": "The Flail is an anti-air hovercraft from the Hovercraft Platform.",
+   "description": "The Flail launches a single large, short-medium range SAM that does heavy damage."
+  },
+  "striderscorpion": {
+   "title": "Scorpion",
+   "summary": "The Scorpion is an all-terrain cloaked infiltration strider from the Strider Hub.",
+   "description": "The Scorpion paralyzes enemies with its lightning sting and then chews them up with its particle beam claws. Its tough carapace shrugs off most enemy fire, and can also turn the Scorpion transparent.",
+   "tactics": [
+    "With its stealthiness, ability to climb walls, and high-alpha stun ability, the Scorpion makes an excellent late-game ambush unit, especially on hilly maps, where it is capable of approaching enemy assets from unexpected angles. Use Scorpions to take out artillery/support, lone heavy targets or to stun out particularly clustered enemy armies like shield balls.",
+    "They're, ultimately, expensive, sluggish units with a short range, that can easily be overrun by a force of spread-out raiders. It's recommended to have some support to cover them when they reveal themselves and dish out damage to their stunned targets. If what you want is to punch right through the enemy's main forces, there are better Striders for that, like the Dante or the Paladin.",
+    "The Scorpion's multi-stunner special ability is able to paralyze other heavy units that it sneaks up to, including Striders of similar weight like Dantes, Funnelwebs, Merlins, and other Scorpions, which a single Scorpion is sufficient to paralyze. Paladins and White Dragons can be paralyzed with 3 or 4 Scorpions. This makes the Scorpion an effective anti-heavy/anti-Strider unit."
+   ]
+  },
+  "shieldskirm": {
+   "title": "Rogue",
+   "summary": "The Rogue is a skirmisher bot (indirect fire) from the Shieldbot Factory.",
+   "description": "The Rogue's arcing rockets have a low rate of fire, but do a lot of damage - this makes Rogues very good at dodging in and out of range of enemy units or defenses, or in a powerful initial salvo. Counter them by attacking them with fast units, or crawling bombs when massed.",
+   "tactics": [
+    "Move Rogues in range of static defenses when you are ready to fire, and not beforehand; in doing so, you can reduce the maximum amount of damage inflicted on them.",
+    "Outlaws and Bandits can offer some protection against raider-type units for Rogues.",
+    "Thugs may be used to tank the damage from static defenses that outrange the Rogue, and the Rogue's high damage output can often destroy said defenses before many losses are sustained.",
+    "Rogues have relatively slow rockets, so slowing down the enemy forces with Outlaws or similar units can increase the chance of hitting them."
+   ]
+  },
+  "factoryshield": {
+   "title": "Shieldbot Factory",
+   "summary": "The Shieldbot Factory is a factory that produces robots with linking Shields and other tough robots to fight alongside them.",
+   "description": "The Shield Bot Factory is tough yet flexible. Its units are built to take the pain and dish it back out, without compromising mobility. Clever use of unit combos is well rewarded. Key units: Bandit, Thug, Outlaw, Rogue, Racketeer The Shieldbot Factory builds:",
+   "tactics": [
+    "The Shield Bot Factory's greatest strengths are its versatility and its eponymous shields, which protect its units from lasting harm. The Convict, Thug, Felon and Aspis provide shield cover to each other and other units, meaning that the Shield Bots will generally come out ahead in shorter fights. The Bandit and Racketeer are flexible units, capable of contributing strongly in almost any situation. The Shield player should focus on taking fights when their shields are strong, and retreating when their shields are weak, to minimize casualties and build up a strong force.",
+    "The Shield factory's greatest weakness is its lack of artillery. Furthermore, the resilience of its units generally relies on its shields, and if the enemy has a way around or through those shields the Shield Bots can be in a lot of trouble. The Rovers and Heavy Tanks cover both of these weaknesses. Almost every other factory in the game benefits greatly from the protective power of shields, so Shield Bots can be used effectively in almost any factory combination."
+   ]
+  },
+  "factoryspider": {
+   "title": "Spider Factory",
+   "summary": "The Spider Factory is a factory that produces all-terrain spiders.",
+   "description": "Optimized for rough terrain, the Spider Factory relies primarily on range and maneuverability rather than brute force. Key units: Flea, Recluse, Hermit, Crab The Spider Factory builds:",
+   "tactics": [
+    "All of the Spiders can climb any hill, no matter how steep, giving you a wider range of angles from which you can attack and to which you can retreat. The Hermit, Recluse and Crab are especially powerful when firing from hills since they can abuse their long range. The Spider factory has an effective scout in the Flea, but no true raider; the Venom compensates for this as a comparatively fast Spider which stuns enemy raiders, allowing you to destroy them at your leisure.",
+    "The strength of the Spiders lies in defence, since they are much weaker when they come down from the hills and they are lacking in conventional artillery. With sufficient numbers they can overrun enemy positions (especially with Hermits) but it is not their specialty. Using Gunships or Airplanes to assist your Spiders will give you an offensive boost without compromising your advantage on hilly terrain. Alternatively, heavier factories such as the Strider Hub or Heavy Tank Factory will benefit from the utility and capacity to control hills which the Spider Factory offers."
+   ]
+  },
+  "striderhub": {
+   "title": "Strider Hub",
+   "summary": "The Strider Hub is a factory that constructs striders.",
+   "description": "The Strider Hub deploys striders, the \"humongous mecha\" that inspire awe and fear on the battlefield. Unlike a normal factory, the hub is only required to start a project, not to finish it. The Strider Hub builds:"
+  },
+  "shieldaa": {
+   "title": "Vandal",
+   "summary": "The Vandal is an anti-air bot from the Shieldbot Factory.",
+   "description": "The Vandal is a cheap, hardy and reliable dedicated anti-air bot. Defenseless vs. land forces."
+  },
+  "amphcon": {
+   "title": "Conch",
+   "summary": "The Conch is an amphibious construction bot from the Amphbot Factory.",
+   "description": "The Conch is a sturdy constructor that can build or reclaim in the deep sea as well as it does on land. Can enter an armored form while immobile, greatly reducing incoming damage. Can turn into a Djinn, providing a quick bridge to the frontlines."
+  },
+  "hoverdepthcharge": {
+   "title": "Claymore",
+   "summary": "The Claymore is an anti-sub hovercraft from the Hovercraft Platform.",
+   "description": "The somewhat old-fashioned Claymore is armed with a heavy depthcharge launcher, It is one of the hovercraft's few AOE weapons. The depth charge can be rolled across the ground when on land."
+  },
+  "chicken_leaper": {
+   "title": "Leaper",
+   "summary": "The Leaper is a hopping raider chicken.",
+   "description": "The Leaper is the chickens' fast attack unit, running down enemies and leaping over obstacles."
+  },
+  "amphriot": {
+   "title": "Scallop",
+   "summary": "The Scallop is an amphibious riot bot (anti-sub) from the Amphbot Factory.",
+   "description": "A typical riot unit, the Scallop is armed with impact explosives for underwater targets and a quadruple shotgun for fighting above water enemies and on the ground.",
+   "tactics": [
+    "Normally, your Scallops are too slow and short-ranged to be able to close the distance with enemy's skirmishers. However, with help from some Lobsters, they can quickly close the distance towards the enemy units by having some much needed mobility and suprise factor. Such a tactic can also help the Scallops deal with some more modest base defenses like Stardust or Stingers, so long as the Scallops are launched right next to the base defenses, so that their shotguns can deal maximum damage from point-blank range. Beware of Faraday turrets, as those are effective at stopping such advances.",
+    "Against ships, while the Scallop can take care of enemy Hunters, Seawolves and Corsairs just fine, unfortunately, it possesses neither the speed, nor the range, to deal with enemy Sirens, which can skirmish the Scallops to oblivion. Although Buoys and Grizzlies could possibly help in dealing with enemy Sirens, as mentioned before, Lobsters can help fix this problem by hurling the Scallops at the Sirens.",
+    "Remember that Scallops, just as other Amphbot Factory units, have to surface in order to bring their full firepower to the battle. While moving closer to the enemy underwater they are safe from most raiders due to their torpedoes, but are vulnerable to attack from units such as Claymores."
+   ]
+  },
+  "chicken": {
+   "title": "Chicken",
+   "summary": "This page is about the unit. For the game mode, see Chicken Defense. The Chicken is a swarmer chicken.",
+   "description": "The footsoldier of the Thunderbirds is an aggressive zergling-type unit. What it lacks in individual strength, it compensates for with its sheer numbers, overwhelming enemies with floods and floods of little chickens. A good riot unit is recommended for stopping them.",
+   "tactics": [
+    "Use something that can kite it reliably or kill them in huge numbers. Raiders and riots are a good counter.",
+    "Stardusts are able to hold off many Chickens. Use them in large numbers."
+   ]
+  },
+  "chickend": {
+   "title": "Chicken Tube",
+   "summary": "The Chicken Tube is a defense building and energy source for the chickens.",
+   "description": "The Tube is the chickens' only defense structure, firing deadly spores at air and ground targets alike."
+  },
+  "tankheavyraid": {
+   "title": "Blitz",
+   "summary": "The Blitz is a lightning assault/raider tank from the Tank Foundry.",
+   "description": "The Blitz is a high-tech raider. Its weapon, a lightning gun, deals mostly paralyzing EMP damage. This way, the Blitz can disable turrets, waltz through the defensive line, and proceed to level the economic heart of the opponent's base.",
+   "tactics": [
+    "The Blitz often outperforms most other raiders in battle for a variety of reasons. 1st, since the Blitz has so much HP compared to other raiders, it can more easily survive battles against other raiders long enough for it to retreat home for repairs. 2nd, its lightning gun leaves most other raiders paralyzed after a single shot, allowing it to easily escape from assaults by most other raiders. (Prior to version 1.6.5.6, it could one-shot Glaives.)",
+    "However, the Blitz's lightning gun overkills much cheaper and faster scouts like Fleas and Darts, so you may opt to counter Blitzes with them (in addition to using riot units like Reavers or Maces).",
+    "Many low-weight riot units, such as Reavers, Outlaws, Maces, Rippers, and Redbacks struggle to defeat Blitzes in even matchups due to the Blitz's high health and emp damage (in addition to its fast speed). In many respects, the Blitz is more of a fast assault unit (like the Ravager and Halberd) than a pure low-health raider (like the Glaive or Bandit), and in an even match, the Blitz is likely to come out on top of those riot units.",
+    "- As a Cloakbot player, it might be better to counter Blitzes with Knights instead of Reavers, since not only do Knights have more health, and deliver more damage-per-shot, than both Blitzes and Reavers, they also do more EMP damage-per-shot than Blitzes. Therefore, in an even match between Knights and Blitzes, Knights will most likely come out on top of the more frail Blitzes.",
+    "- Likewise, as a Shieldbot player, you may want to use Felons to counter Blitzes instead of Outlaws, since Outlaws do so little damage to a Blitz that you'd need many of them to feasibly slow down just one of them (let alone take one out). Felons, on the other hand, excel at quickly taking down Blitzes with their shield guns (assuming that they have a fully-charged shield).",
+    "- As mentioned before, the Blitz overkills Darts, so you may want to use them to counter Blitzes instead of Rippers. Moreover, a single Dominatrix can capture a single Blitz in less than 4 seconds, and multiple Dominatrices can assist in the capturing process. In a larger combat setting that pits multiple Blitzes with multiple Dominatrices, if your Dominatrices are able to capture even one Blitz, any captured Blitzes are likely to turn on their former comrades, helping your Dominatrices to come out of this battle on top.",
+    "- As a Hover player, consider using Claymores against large numbers of Blitzes, with the occasional Mace or 2 thrown in. Since a single Claymore comes close to killing a single Blitz with a single depth charge, adding a Mace to a group of Claymores should help in quickly putting the weakened Blitzes out of their misery.",
+    "- As mentioned before, the Blitz overkills Fleas, so you may want to use them to counter Blitzes instead of Redbacks. Alternatively, Venoms stand a fighting chance at putting a stop to the Blitzes' rampage, since for their cost, Venoms deal more emp damage-per-shot than the Blitz, and have both a higher rate-of-fire and a wider area-of-effect. However, since Venoms do so little normal damage, they need to rely upon other harder-hitting units, such as Hermits or Redbacks to finish off the enemy Blitzes for good."
+   ]
+  },
+  "hoverriot": {
+   "title": "Mace",
+   "summary": "The Mace is a riot hover from the Hovercraft Platform.",
+   "description": "The Mace is a mobile laser tower. Its high firepower is useful for killing light enemy units. It is perfectly accurate and is good against Gunships, Airplanes, and fast units. However, its thin armor makes it vulnerable when targetted directly, especially by skirmishers.",
+   "tactics": [
+    "Use Maces to do crowd control to protect powerful ranged attackers such as Scalpel and Lance from approaching raiders. Even heavier raiders such as Blitz are outranged by Mace. Watch out for enemy skirmishers."
+   ]
+  },
+  "mahlazer": {
+   "title": "Starlight",
+   "summary": "The Starlight is a superweapon firing a powerful beam laser from the sky.",
+   "description": "This large-scale tool is used to shape terrain for terraforming projects. Also useful as a cleanser of obstacles such as pesky enemy units and bases.",
+   "tactics": [
+    "The Starlight creates a MASSIVE beam that shakes the land it hits. This beam will \"Walk\" to a target... but watch out for friendly fire! Especially if you build it deep in your base!",
+    "Few things, if any, can hope to withstand a Starlight's direct onslaught for long. Even a Detriment will melt within mere seconds."
+   ]
+  },
+  "staticantinuke": {
+   "title": "Antinuke",
+   "summary": "The Antinuke is a strategic nuke interception system.",
+   "description": "The Antinuke automatically intercepts enemy nuclear ICBMs that enter its coverage radius."
+  },
+  "chickenbroodqueen": {
+   "title": "Chicken Brood Queen",
+   "summary": "The Chicken Brood Queen is a constructor chicken.",
+   "description": "The egg-laying brood queen is not quite as fearsome in combat as the other queen, but can in the long run present an even bigger threat. It produces all the different chicken breeds of the Thunderbirds."
+  },
+  "amphtele": {
+   "title": "Djinn",
+   "summary": "The Djinn is an amphibious teleport bridge from the Amphbot Factory.",
+   "description": "Djinn excels at moving large land based armies across bodies of water. It can place a Lamp at remote locations with its special ability to teleport units. The teleportation is one-way, moving units from the Lamp to the Djinn, so ensure the destination is safe.",
+   "tactics": [
+    "Djinn is an expensive unit, so it's best built to move expensive armies, like striders, a dozen Scallops, or a couple Grizzlies.",
+    "Djinn is faster than many heavy and assault-class units, and outspeeds most of the amph bot factory unit set. Move it ahead of your assault force to close the distance faster.",
+    "The specops engineer Athena can fly undetected behind enemy lines to build Djinn. If walking is not an option, flying can be.",
+    "Djinn can be used for unit retrieval. Keep the Djinn safe in base, and create a lamp cross-map near your exposed units. Teleport them back to safety for Repairs and to join the next assault."
+   ]
+  },
+  "chickenspire": {
+   "title": "Chicken Spire",
+   "summary": "The Chicken Spire is a static artillery chicken.",
+   "description": "Long range static artillery."
+  },
+  "chickenc": {
+   "title": "Basilisk",
+   "summary": "The Basilisk is an all-terrain riot chicken.",
+   "description": "The Basilisk climbs walls like a spider to surprise the enemy with its highly acidic spit. Only a vigilant watch keeps these critters from sauntering over hills to wreck your base from unexpected directions. Gunships are the best solution to Basilisk incursions."
+  },
+  "chickenwurm": {
+   "title": "Wurm",
+   "summary": "The Wurm is a burrowing flamer (assault/riot) chicken.",
+   "description": "The Wurm \"burrows\" under the surface of the ground, revealing itself to hurl a ball of fire that immolates a large swathe of terrain. It can climb cliffs and surprise defense turrets, but is weak to assaults."
+  },
+  "turretemp": {
+   "title": "Faraday",
+   "summary": "The Faraday is an EMP turret.",
+   "description": "The Faraday is a powerful EMP tower. It has high damage and area of effect. Greatly amplifies the effect of other towers, but somewhat useless on its own. When closed, damage received is reduced. Be careful of its splash damage, as it can paralyze your own units if they are too close to the enemy.",
+   "tactics": [
+    "The Faraday is often useful in situations in which you would like to build a Stardust, but fear that it will be quickly destroyed by the enemy's skirmisher or artillery units. With its damage reduction when closed, the Faraday is much more durable against such tactics. Its powerful EMP blast will quickly halt enemy raids, and can even give enemy assault and riot units pause (quite literally).",
+    "However, the Faraday deals no direct damage, meaning that it wins only half of the battle. You then need nearby mobile units or turrets to finish off the paralyzed enemies.",
+    "As the Faraday excels at stalling enemy forces, it is also very useful for protecting valuable units and buildings against deep raids: In such situations, you usually only need to buy enough time for a portion of your main forces to make it back to your endangered base or unit and finish off the invaders. You can also pair the Faraday with one or two lotuses to provide the damage.",
+    "Faradays are not exactly cheap, so, when used for base defense, it pays to position them carefully, so that you can get the most coverage for the lowest cost. Putting them atop a small terraformed pedestal may be worth it if it allows them to shoot over nearby structures."
+   ]
+  },
+  "factorygunship": {
+   "title": "Gunship Plant",
+   "summary": "The Gunship Plant is a factory that produces gunships.",
+   "description": "The Gunship Plant is designed for close air support. It includes a selection of transports for hauling land units around, and combat gunships which can perform a variety of offensive or defensive roles. The Gunship Plant builds:",
+   "tactics": [
+    "The principle of Gunships is to assault the enemy from the air, at any time, and in any place. To this end, the Locust and Harpy are quick and capable of engaging enemy forces directly, while the Charon and Hercules can transport friendly land forces to the places they will be most effective. As a finishing blow, the super-heavy Krow gunship is without equal against opponents with poor anti-air coverage.",
+    "In contrast to Airplanes, Gunships never have to rearm, so they can stick around an enemy base or army and keep dealing damage. On the other hand, they are slower and require more time to deal the same amount of damage that a bombing run would. Similarly, the Trident and Harpy are favoured in a head-on, prolonged engagement against the Swift and Raptor airplane fighters, but they are slower and less able to react to air-to-ground threats presented by the enemy."
+   ]
+  },
+  "jumpassault": {
+   "title": "Jack",
+   "summary": "The Jack is a melee assault jumper from the Jumpbot Factory.",
+   "description": "The Jack is a melee assault walker with jumpjets. A few Jacks can easily level most fortification lines. Its small range and very low speed make it very vulnerable to skirmishers.",
+   "tactics": [
+    "The Jack is another one of multi-use units in Jumpbot Factory roster. Jacks are both tanks, damage dealers and sometimes even raiders in their own right.",
+    "The Jack can take quite a punishment, allowing them to tank in front of less sturdy units like Moderators or Firewalkers. Their large healthpool and their jump ability also allows them to cross defence lines with ease, making it easy to send several Jacks behind enemy lines to wreak havoc.",
+    "The Jack has a surprisingly strong damage, mainly coming from its fast attack rate. You always want to outrange and outrun them in a fight. The best way of dealing with them are disabling methods. Units such as Venom, Bolas or Gnat will give your army a window to dispose of Jacks.",
+    "Jacks can also be utilized in a very specific tactic using Newton turrets and their Newton Firezones command. It can allow your opponent to quickly overrun your base of operations, so keep an eye out for that."
+   ]
+  },
+  "factorytank": {
+   "title": "Tank Foundry",
+   "summary": "The Tank Foundry is a factory that produces heavy tracked vehicles.",
+   "description": "The Tank Foundry is the ultimate in brute-force methods—nothing gets the job done quite like a sustained artillery barrage followed by a decisive push with the largest tanks in the field. Key units: Emissary, Minotaur, Ogre, Cyclops. The Tank Foundry builds:",
+   "tactics": [
+    "The Heavy Tank Factory dispenses with subtlety in favour of raw strength. The Minotaur and Cyclops epitomize the Tank philosophy—hit hard, and be tougher than your opponent, so they lose units and you do not. The Welder, Kodachi and Blitz similarly emphasize toughness and high weight, compared to the constructors and raiders of other factories.",
+    "The greatest weaknesses of the Heavy Tanks are their lack of subtlety and of faster, light-weight units. They can be outmaneuvered more easily than most other factories. Using tanks in combination with Cloakbots and Rovers compensates very well for this weakness and results in a strong, well-balanced force."
+   ]
+  },
+  "amphfloater": {
+   "title": "Buoy",
+   "summary": "The Buoy is a heavy amphibious skirmisher bot from the Amphbot Factory.",
+   "description": "The Buoy works around its inability to shoot while submerged by floating to the surface of the sea. Here it can fire a decently ranged cannon with slow damage. It is unable to move while floating."
+  },
+  "shipcon": {
+   "title": "Mariner",
+   "summary": "The Mariner is a construction ship from the Shipyard.",
+   "description": "Although expensive, the Construction Ship boasts extremely high nano power, combined with tough armor and good speed."
+  },
+  "energypylon": {
+   "title": "Energy Pylon",
+   "summary": "The Energy Pylon is a building that extends the overdrive grid.",
+   "description": "Energy Transmission Pylons help extend energy grids and connect more Extractors or energy sources. This in turn helps Extractors overdrive, producing more metal. Pylons can also provide a fast way to power defenses that rely on the energy grid. Energy Pylons are simple connectors that do not produce any Energy themselves. Over short distances or in low-energy situations using energy producers like solar collectors to connect grids can be a more cost efficient alternative.",
+   "tactics": [
+    "A Energy Pylon explodes when it dies, so keep raiders at a distance or they risk being caught by the explosion. This property can be used to blow up an enemy unit or turret that is standing right next to an Energy Pylon and trying to protect. Simply target the Energy Pylon instead."
+   ]
+  },
+  "hoverassault": {
+   "title": "Halberd",
+   "summary": "The Halberd is a blockade runner hover from the Hovercraft Platform.",
+   "description": "The Halberd buttons down into its armored hull when not firing, offering 3x damage resistance. Its slow, short-ranged weapon is unsuitable for use against highly mobile targets.",
+   "tactics": [
+    "Set the Halberd's fire state to \"hold fire mode\" to keep it from opening up its protective hull to fire at enemies, thus keeping its damage reduction capabilities active (for, say, when it needs to speed past some modest defenses)."
+   ]
+  },
+  "jumpcon": {
+   "title": "Constable",
+   "summary": "The Constable is a jumpjet constructor from the Jumpbot Factory.",
+   "description": "Fast and capable of jumping over short distances or heights, the Constable is the ideal constructor for rapid expansion. Armed with a light slowbeam, it can also provide combat support."
+  },
+  "shiptorpraider": {
+   "title": "Hunter",
+   "summary": "The Hunter is a torpedo-boat (raider) from the Shipyard.",
+   "description": "The Torpedo Boat is a mobile raider and anti-submarine unit. It is effective against underwater units and large vessels."
+  },
+  "shieldbomb": {
+   "title": "Snitch",
+   "summary": "The Snitch is a burrowing \"crawling\"/mobile bomb from the Shieldbot Factory.",
+   "description": "This fast-moving suicide unit is very good against massed units, particularly assault tanks. It features a cloaking device which is automatically activated once the unit stands still, effectively turning it into a mine. Chain explodes terribly, so best not to mass it. Counter with Pickets, Fencers, or single cheap units to set off a premature detonation."
+  },
+  "turretaaflak": {
+   "title": "Thresher",
+   "summary": "The Thresher is an anti-air flak gun.",
+   "description": "The Thresher is a flak cannon with good AoE and a high damage output, letting it swiftly cut enemy gunships to ribbons.",
+   "tactics": [
+    "Thresher shines when the enemy is attacking you with such large groups of aircraft, that other AA defenses are overwhelmed by their sheer numbers. As Thresher possesses significant AoE, it doesn't have that problem, and it has enough health to endure, at least temporarily, the enemy's attempts to quickly neutralize it. It works better against gunships, as bombers tend to space themselves out more when attacking in groups."
+   ]
+  },
+  "staticmissilesilo": {
+   "title": "Missile Silo",
+   "summary": "The Missile Silo is a pseudo-factory that produces tactical cruise missiles.",
+   "description": "The Missile Silo constructs and holds up to four different cruise missiles, each with a unique warhead. It offers excellent standoff strike capability for offensive and defensive purposes. The Missile Silo builds:",
+   "tactics": [
+    "Compared to its longer-range cousin, the Trinity strategic nuclear launcher, the Missile Silo fires smaller Tactical Missiles cannot be intercepted by Antinuke coverage.",
+    "The missiles can take damage while on the Silo, and if they (or the Silo itself) are destroyed, the missiles will explode. While missiles cannot be intercepted while they are in flight, they might hit the ground (especially if terraformed) or a shield and explode before they reach the intended target."
+   ]
+  },
+  "vehsupport": {
+   "title": "Fencer",
+   "summary": "The Fencer is a deployable missile rover from the Rover Assembly, effective against light land and air units. It must stop to fire.",
+   "description": "Keep the Fencer at maximum range to harass the opponent's units. The Fencer's missiles track, so they are ideal to kill fast-moving raiders and \"crawling\"/mobile bombs. It is able to hit air, but is only really useful against fighters. Cannot fire over obstacles, and does poorly if enemies, particularly assault units, are allowed to close range. Unlike skirmishers, the Fencer cannot fire while moving."
+  },
+  "raveparty": {
+   "title": "Disco Rave Party",
+   "summary": "The Disco Rave Party is a destructive rainbow projector firing multi-colored super shots.",
+   "description": "The Disco Rave Party throws six different party shots at your enemy for a different surprise each time. Fun for the whole family!"
+  },
+  "hoverskirm": {
+   "title": "Scalpel",
+   "summary": "The Scalpel is a skirmisher/anti-heavy hovercraft from the Hovercraft Platform.",
+   "description": "Use the Scalpel for hit-and-run attacks. Has a long reload time and not too many hit points, and should always be kept at range with the enemy. An arcing projectile allows it to shoot over obstacles and friendly units."
+  },
+  "hoverraid": {
+   "title": "Dagger",
+   "summary": "The Dagger is a fast attack hovercraft from the Hovercraft Platform.",
+   "description": "The Dagger is the hovercraft platform's scout. It provides a cheap, disposable method of getting intel, and can also hit economic targets of opportunity. Its light Gauss gun can also hit underwater targets.",
+   "tactics": [
+    "Although they lack the damage-per-second values of most other raiders, such as Glaives or Bandits, Daggers have their own advantages over them. Not only are Daggers' speed unrivaled on the surface, their gauss guns pack enough punch to kill a Glaive in just 3 shots, plus they penetrate through multiple targets. Don't be surprised to see your armies of Glaives lose out against an equal force of Daggers, especially if said Daggers use the attack-move command to automatically kite your Glaives to oblivion.",
+    "The Dagger is a versatile raider, capable of attacking surface, air, and even underwater targets, which is useful to know if your enemy is fielding a mixture of said units."
+   ]
+  },
+  "staticradar": {
+   "title": "Radar Tower",
+   "summary": "The Radar Tower is an early warning system.",
+   "description": "The Radar tower provides early warning of enemy units and their movements over a moderate distance at virtually no cost. It has a very small but steady energy cost and will automatically shut down if you run out of energy. Radar coverage is blocked by terrain such as mountains. Some units may carry a radar jammer or be able to cloak and evade detection by radar. The Radar tower can also be morphed into a light scout plane, the Sparrow, mainly used for early game scouting when the Airplane factory is not available."
+  },
+  "spiderriot": {
+   "title": "Redback",
+   "summary": "The Redback is a riot spider from the Spider Factory.",
+   "description": "A rapid-fire spider that excels at picking off fast units.",
+   "tactics": [
+    "This spider excels at taking out fast units, which is a problem for the spider factory in general. Like most Spiders, the Redback can be combined with Recluses to create a hard-to-beat combo, as raiders will have a problem closing the distance. Its somewhat high range for a riot allows for some kiting, and is very hard to engage with short-ranged units. It also has very high DPS, which makes constantly strafing the enemy a good idea, as it allows the Redback to deal more damage. Powerful against Gunships as well.",
+    "Keep away from skirmishers and artillery.",
+    "These spiders are tall enough to shoot over each other and are much stronger in groups."
+   ]
+  },
+  "turretantiheavy": {
+   "title": "Lucifer",
+   "summary": "The Lucifer is a long-ranged defensive structure effective against large targets.",
+   "description": "Inside the heavily armored shell of the Lucifer lies the devastating Tachyon Accelerator. This fearsome weapon is capable of delivering pinpoint damage at extreme ranges, provided you keep it connected to a power source. Remember that the Lucifer is strictly a support weapon; leave it unguarded and it will be swamped with raiders. When under attack by long range artillery or bombers the main gun can retract to reduce incoming damage to a quarter.",
+   "tactics": [
+    "Lucifer is essentially an anti-heavy turret, and should be deployed when your enemy is using a lot of heavy units. They're not terribly effective against anything else because their reload time is very long for such an expensive turret, and as such even units of moderate weight may be too numerous for a Lucifer to handle. A Lucifer will always need protection from swarms.",
+    "Even if the enemy is indeed using a lot of heavy units, building a Lucifer is still something to think twice about. Its quite an investment to put into an immobile defensive unit, one which also needs a connection to a robust energy grid to be used. Lucifer is best reserved for when you have been put into a definitely defensive position, when you have decided you won't push a certain section of the frontline anymore and will just lock it down to the best of your ability.",
+    "Lucifer is very easy to bait into wasting its shots, and this is doubly bad for Lucifer because it also loses its armor while firing, meaning an enemy can not only bait a Lucifer into wasting its shots, but also into exposing itself so that it takes damage more easily. For that reason, its usually a good idea to set Lucifer to hold fire and micro-manage the turret's shots. This way you can make sure that Lucifer will only expose itself to obliterate targets that are actually worth the risk and the reload time."
+   ]
+  },
+  "chickenf": {
+   "title": "Talon",
+   "summary": "The Talon is a flying spike spitter chicken.",
+   "description": "It's a flying chicken! The Talon is a lethal predator that takes down enemy aircraft with its spikes, but will also happily employ them on ground targets. It can be defeated like any other air unit, however."
+  },
+  "amphaa": {
+   "title": "Angler",
+   "summary": "The Angler is an amphibious anti-air bot from the Amphbot Factory.",
+   "description": "Angler is amphibious anti-air bot designed to counter the factory's nemesis - Raven. Two of them together can float to the surface and kill a single Raven."
+  },
+  "vehscout": {
+   "title": "Dart",
+   "summary": "The Dart is a raider/scout rover from the Rover Assembly.",
+   "description": "Cheap and fast, the Dart is deadly in the first minutes of the game if your opponent is caught off-guard. Use missile towers, LLTs or any quick units to stop them.",
+   "tactics": [
+    "Although they typically lose out against more combat-worthy raiders like Glaives and Scorchers, Darts, like other cheap scout units, excel at taking down anti-heavy units like Lances and Phantoms (even being cheap enough to affordably locate the cloaked sniper units) due to how much overkill those units' weapons do against the tiny Darts. Should they lack modest anti-swarm escorts, even heavy units like Grizzlies, Cyclopses, and even Paladins will easily fall prey to masses of Darts, with less cost spent on the Darts than on the heavy units."
+   ]
+  },
+  "vehaa": {
+   "title": "Crasher",
+   "summary": "The Crasher is a fast anti-air rover from the Rover Assembly.",
+   "description": "The Crasher is a speedy solution to enemy bomber attacks, and also works well against gunships."
+  },
+  "vehassault": {
+   "title": "Ravager",
+   "summary": "The Ravager is an assault rover from the Rover Assembly.",
+   "description": "Expensive and powerful, the Ravager is capable of holding its own against most opposition. Though its maneuverability is terrible, its strength is when moving at a considerable top speed in a straight line. Due to this, it is almost impossible to skirmish using raiders. In combat, you should attempt to keep travelling forward and not turn too suddenly, so as to maintain top speed. Circling your target at the edge of your range is a good tactic. An arcing projectile allows it to shoot over wreckage, other tanks, etc. Vulnerable to \"crawling\"/mobile bombs when in swarms."
+  },
+  "athena": {
+   "title": "Athena",
+   "summary": "The Athena is an airborne specops engineer built from the Strider Hub.",
+   "description": "The Athena is the pinnacle of stealth strike capability. Equipped with a cloaking device and a radar jammer, it can slip through enemy lines to assemble squads of raiders, inflicting havoc on the opposition's logistics. It is capable of quickly producing support structures to gather forward intel, and can resurrect wrecks from the battlefield to add to your army."
+  },
+  "spideremp": {
+   "title": "Venom",
+   "summary": "The Venom is a lightning riot spider from the Spider Factory.",
+   "description": "The Venom is an all-terrain unit designed to paralyze enemies so other units can easily destroy them. It moves particularly fast for a riot unit and in addition to the paralysis from its EMP weapon it does a respectable amount of damage. Works well in tandem with the Recluse to keep enemies from closing range with the fragile skirmisher.",
+   "tactics": [
+    "The Venom's stun is very powerful, a single Venom will render an enemy almost helpless already, and two Venoms will stunlock it perfectly if they overlay their shots at all. Because of the stun, a few Venoms can leave many enemy units defenseless against any attacks. Hard-hitting assaults like the Hermit or skirmishers like the Recluse, which fire projectiles that move too slowly to reliably hit agile enemies, can benefit greatly from the Venom's ability to disable enemies.",
+    "Aim for clusters of enemies, as the small splash radius can be exploited better, stunning many enemy units. When facing faster raiders, keep walking your Venoms towards the enemy so that they do not have any chance to escape in the small gaps between the Venom shots. Ensure that you don't stun your own Venoms.",
+    "The Venom is fast enough to close range on skirmishers. The speed also makes them a potent threat in small groups to lone, heavy units that cannot fend off raiders. Venoms deal EMP very quickly and can achieve stunlock in a matter of seconds against anything short of a Paladin, this can be a brute force substitute for Widow when stealth is not necessary."
+   ]
+  },
+  "spiderantiheavy": {
+   "title": "Widow",
+   "summary": "The Widow is a cloaked scout/anti-heavy from the Spider Factory with an exceptionally strong EMP stunner.",
+   "description": "Widow is an excellent scout, and very difficult to detect. It can penetrate deep into enemy lines. The Widow's short-range stunner will paralyze any one target for a very long time, except for some Striders. Its weapon has a very long reload and works best as a force multiplier to help your army take out a single hard-to-destroy target. When encountering smaller units, the widow is most likely to survive by using hit-and-run tactics and finding a secluded spot to cloak."
+  },
+  "vehheavyarty": {
+   "title": "Impaler",
+   "summary": "The Impaler is a precision artillery rover from the Rover Assembly.",
+   "description": "The Impaler fires vertically a high damage, high accuracy kinetic missile at long range. Its high arc makes it able to fire over any obstacle, however that makes the flight time so high that it's useless against moving targets. Use the Impaler to kill specific buildings."
+  },
+  "turretaaheavy": {
+   "title": "Artemis",
+   "summary": "The Artemis is a very long-range anti-air missile tower.",
+   "description": "The Artemis is an extremely long-ranging first strike anti-air weapon that sends a clear message to enemy aircraft - can't go here, sonny. Each shot must be stockpiled for 20 seconds, but is well worth the time, for a quick salvo of missiles will wipe out almost any air attack without fuss.",
+   "tactics": [
+    "Be careful not to waste the Artemis's missiles on cheaper, more expendable air units like Swifts, Pigeons, Blastwings, Gnats, and even drones from a drone carrier (such as a Reef). 20 seconds is a painfully-long time to stockpile missiles, meaning that it's surprisingly easy for an enemy to deplete an Artemis's stockpile of missiles without having to sacrifice much in terms of metal cost (if any). Against such smaller easy-to-overkill targets, cheaper, more consistent anti-air weapons platforms (such as the Chainsaw, or even a screen of various mobile anti-air units like the Vandal) are recommended. If you need it restocked quickly, you can click the stockpile icon to increase or decrease the maximum number of missiles that the Artemis will produce. You can also switch it to a higher priority so it will consume more metal and build faster. But, be careful! It might use a big portion of your metal and leave you with no resources!"
+   ]
+  },
+  "jumpscout": {
+   "title": "Puppy",
+   "summary": "The Puppy is a walking missile from the Jumpbot Factory.",
+   "description": "This fast-moving suicide unit is good for raiding and sniping lightly-armored targets. When standing next to wreckages, it automatically draws metal from them to replicate itself, [https://en.wikipedia.org/wiki/Gray_goo grey goo] style."
+  },
+  "planefighter": {
+   "title": "Swift",
+   "summary": "The Swift is a multi-role fighter from the Airplane Plant.",
+   "description": "The Swift can hit both land and air. It is effective against air units with its guided missiles and lasers, but enemy AA and air superiority fighters will kill it quickly. In numbers, it can harass land units and is suitable for raiding. Swifts are equipped with afterburner jets which are activated by pressing D on the keyboard. These give the Swift a massive speed boost, allowing them to execute incredible combat and evasive maneuvers.",
+   "tactics": [
+    "The Swift is useful for scouting enemy bases using its speed boost. It can fly over an enemy base and find out what buildings are there. This may not sound like much but in many situations it can make or break a game. Seeing an enemy Superweapon, Detriment, or Trinity coming removes a lot of the threat already. While knowing the locations of important enemy structures such as antinukes, singularity reactors or Big Berthas allow you to strike the enemy where it hurts the most.",
+    "The swift's speed boost also allow it to quickly retreat from battle and allowing it to see another day. Another defensive use of its speed boost is to use it to outrun or dodge missiles and other anti-air weaponry."
+   ]
+  },
+  "turretmissile": {
+   "title": "Picket",
+   "summary": "The Picket is a light missile tower.",
+   "description": "The Picket is a light multi-purpose missile tower. It is good for sniping units from a distance, providing some degree of anti-air protection, and skirmishing enemy LLTs from outside their range. However, it breaks when you sneeze on it."
+  },
+  "staticjammer": {
+   "title": "Cornea",
+   "summary": "The Cornea is a stationary area cloaker and radar jammer.",
+   "description": "Hides units in a modest area from enemy sight and radar. The Cornea also hides radar signatures for nearby buildings. When the cloaker is active, it has a heavy energy upkeep. The Cornea can transform itself into a walking area cloaker for a one-time cost. Units are invisible until they perform a combat or construction action, or until injured. Enemies that walk up to an invisible unit will also remove the unit's cloak."
+  },
+  "vehriot": {
+   "title": "Ripper",
+   "summary": "The Ripper is a riot rover from the Rover Assembly.",
+   "description": "The Ripper's riot cannon is effective at destroying swarms of raiders and halting enemy advances. The projectile does not arc, so Rippers should avoid clumping and be arranged in a line formation wherever possible. Due to their lack of speed and range, most skirmishers are effective against them. The Ripper's cannon flattens terrain to enable allied vehicles passage over harsh terrain."
+  },
+  "gunshiptrans": {
+   "title": "Charon",
+   "summary": "The Charon is an air transport from the Gunship Plant.",
+   "description": "The Charon is the basic air transport. It is ideal to ferry units to the front or make a drop deep behind enemy lines, but should not be used to land in areas with any kind of AA cover. It can only transport 'Light' or 'Medium' units, that is, units that cost 1000 metal or less.",
+   "tactics": [
+    "The Charon can be used offensively by manually loading an enemy worker while they build, then flying them to allies to destroy or dropping them into an area that could damage them or leave them useless."
+   ]
+  },
+  "chicken_pigeon": {
+   "title": "Pigeon",
+   "summary": "The Pigeon is a flying spore scout chicken.",
+   "description": "A small flying chicken scout with spore."
+  },
+  "chickens": {
+   "title": "Spiker",
+   "summary": "The Spiker is a skirmisher chicken.",
+   "description": "The Spiker's razor sharp projectiles can pierce even the thickest armor. While it doesn't have much health, it remains a potent threat to both air and ground units. Counter with anything that can reliably outrange it."
+  },
+  "gunshipaa": {
+   "title": "Trident",
+   "summary": "The Trident is an anti-air gunship from the Gunship Plant.",
+   "description": "The Trident is a slow gunship that cuts down enemy aircraft with missiles. It is much slower than other gunships, so it is much easier to kill the Trident with ground units than with planes."
+  },
+  "bomberheavy": {
+   "title": "Likho",
+   "summary": "The Likho is a singularity bomber from the Airplane Plant.",
+   "description": "The Likho drops a single powerful bomb that can send units flying. It is sturdy enough to penetrate moderate AA and escape to repair, but should not be used recklessly - it's too expensive for that.",
+   "tactics": [
+    "The Likho is your heavy-duty end-game bomber. It can survive enemy fire that would destroy two Ravens, but costs as much as 6.5 of them. Depending on what you find yourself having to deal with, you may be better off with more Ravens!",
+    "The Likho is especially useful against units that like to clump together into balls, like units from the Shieldbot Factory, Ravagers, and Blitzes.",
+    "The Likho's large cost means that it's a prime target for reclamation if you do lose it. Try not to lose it over enemy territory! If possible, lose it as close to your own front lines as you can! Better still, do not lose it at all.",
+    "The homing bomb of the Likho means it's much less likely to miss moving targets than the bombs the Raven drops. This also means it doesn't have to get so close to the enemy and can be more safely used against units with low range but high damage like Reavers, Maces, or Ogres."
+   ]
+  },
+  "amphraid": {
+   "title": "Duck",
+   "summary": "The Duck is an amphibious raider bot (anti-sub) from the Amphbot Factory.",
+   "description": "The Duck is the basic underwater raider. Armed with short ranged torpedoes, it uses its (relatively) high speed to harass sea targets that cannot shoot back, though it dies to serious opposition. On land it can launch arcing torpedoes a short distance through the air as a decent short ranged anti-heavy weapon."
+  },
+  "tankarty": {
+   "title": "Emissary",
+   "summary": "The Emissary is a general-purpose artillery from the Tank Foundry.",
+   "description": "The heavy, long-ranging gun of the Emissary makes it the unit of choice for standoff shelling of enemy mobiles or structures. As always, it should be wary of anything that gets close to it.",
+   "tactics": [
+    "The emissary has a fast projectile for an artillery unit, and even has a bit of AoE. These characteristics make this unit also quite effective against mobile units; effectively functioning as a long range fire support unit. If you are struggling to deal with skirmishers as tanks, try making some of these."
+   ]
+  },
+  "striderfunnelweb": {
+   "title": "Funnelweb",
+   "summary": "The Funnelweb is a shield support strider from the Strider Hub.",
+   "description": "The slow all-terrain Funnelweb features an extremely powerful wide-area shield and high nano power for post-battle utility. It is otherwise unarmed.",
+   "tactics": [
+    "Use the Funnelweb as combat support. The shield and buildpower it offers is a force multiplier. Putting a solid force within its shield is a recipe for a base killing army. The Funnelweb's shield recharges quickly outside of combat, and the strength of its shield does not affect the shield strength of any nearby shielded units. The shield will only begin regenerating if it has taken no damage in the last 10 seconds, so harassing the Funnelweb with light repeated attacks can be a good tactic to drain and keep the shield health low.",
+    "Always, always, always give a Funnelweb an escort. It is not armed, and it cannot defend itself against anything. Seriously, a lone raider could destroy it. Bringing a mixed bag of riots, skirmishers, and raiders is usually a good idea."
+   ]
+  },
+  "vehcon": {
+   "title": "Mason",
+   "summary": "The Mason is a construction rover from the Rover Assembly.",
+   "description": "Highly mobile and capable of taking a beating, the Mason can quickly expand over a large area. Has an extended build range of 210 elmo instead of the usual 180."
+  },
+  "tankheavyassault": {
+   "title": "Cyclops",
+   "summary": "The Cyclops is a very heavy tank buster from the Tank Foundry.",
+   "description": "The Cyclops is the heaviest tank on the field. Its Tankbuster Cannon smashes lesser tanks into oblivion, and can shake walls down, allowing it to spearhead assaults against terraformed fortifications. Its preferred target is other heavy units, enemies are slowed significantly upon hit, making escape all but impossible. However, it turns like a tub of water, its short range makes it easy prey for massed raiders, advanced skirmishers or air attacks.",
+   "tactics": [
+    "If you need a tank to go first into the breach, this is it. It can soak up plenty of damage and can deal plenty of damage in return. A charge made up of purely Cyclopses can only be stopped by the heaviest defences, other tanks, and Strider forces.",
+    "Airplane Plant bombers are a good counter to these. They can evade the Tankbuster Cannon fire and deliver their payload with relative ease, especially with Cyclops's inability to dodge the Raven's glide bomb.",
+    "The Nimbus gunship can also fight well against Cyclopses - they're too slow to evade the gunfire or close in on the distant gunship."
+   ]
+  },
+  "vehraid": {
+   "title": "Scorcher",
+   "summary": "The Scorcher is a raider rover from the Rover Assembly.",
+   "description": "Capable of taking damage and dishing it out, the Scorcher is a versatile unit that remains very useful for more than just raiding, though it pays the price in manueverability and in cost. Though able to hold its own in combat, it is no match for anti-swarm and riot units or defenses. The Scorcher's heatray deals more damage up close. Retreating from enemy raiders can allow the Scorcher to deal damage safely since it outranges and outspeeds most of its peers. The heatray damage is normally very poor at maximum range, but the projectile does not have to travel as far if an enemy unit is chasing the Scorcher, resulting in a much higher amount of damage being dealt. This can allow a group of Scorchers to harass enemy units that they cannot engage into directly so long as they make sure they can always retreat before the enemy closes in."
+  },
+  "jumpsumo": {
+   "title": "Jugglenaut",
+   "summary": "The Jugglenaut is a heavy riot jumper with gravity guns from the Jumpbot Factory.",
+   "description": "The Jugglenaut's impressive armor makes it a near-unstoppable sphere of death. It slowly advances on enemy units to break up their formation with its Gravity Beams and stomp them into ground using its jump. Its stomp is the only way it can damage buildings.",
+   "tactics": [
+    "The Jugglenaut is a beast of a unit and certainly a highlight of Jumpbot Factory. Classified as a heavy riot, it can fulfill a number of roles of which you couldn't even think, utilizing its impressive health pool, gravity-manipulation weaponry and adorable looks. Using the Jugglenaut requires quite a bit of finesse and an understanding of some of the more in-depth game mechanics.",
+    "The main weaponry of the Jugglenaut is represented by twin gravity guns, with a force equivalent of two Newton turrets. They can work in one of two modes: push (repulsing) or pull (attraction) . This can be switched in unit's panel, default key being . Applied to an enemy (or even a friendly unit), causes the Jugglenaut to shift the target along the ground, or even lift it off completely. Effectiveness largely depends on a unit's mass, which can be viewed in its description. Each unit is affected differently. Most, however, will go flying right into the Jugglenaut, causing collision damage. This will damage the jumper, but also often results in the death of the enemy.",
+    "Gravity guns have a number of applications, from scattering lightweight units like Glaives and pushing away Snitches, to tearing off Crabs, to which the Jugglenaut is a natural predator, or singling out units like Felons from a group of enemies. This, however, can be turned into a weakness. In pull mode , the Jugglenaut can take quite a bit of collision damage, greatly decreasing its health and battle readiness. If your opponent is distracted from its white sphere of death, a good tactic is either feeding it a few walking bombs to either disable or cripple enemy formation, or units like Dirtbags, dealing cheap damage. Attacking from the side of the Jugglenaut can bear greater success, as its guns can point together only at its front or back, and a strike from a side will meet only half its firepower. It also struggles against static defences.",
+    "While the Jugglenaut is a walking fortress, for the reasons listed above it will usually traverse the battlefield wounded. A good idea is keeping a few builders, like Constables, on the ready to heal it, or to periodically pull it off the front lines.",
+    "In a desperate situation for retreat, while dealing with buildings, or to start a new space program for enemy units, the Jugglenaut can jump. This will cause it to momentarily come to a full stop in order to prepare, after which it will lunge into air and deal a huge amount of damage in its landing spot. Landing amidst friendlies will cause friendly losses.",
+    "Fighting enemy Jugglenauts can be tricky. Generally, you want to use its gravity weaponry against it, strike at a greater range, or simply outmaneuver it."
+   ]
+  },
+  "shieldassault": {
+   "title": "Thug",
+   "summary": "The Thug is a shielded assault bot from the Shieldbot Factory.",
+   "description": "Weak on its own, the Thug makes an excellent screen for Outlaws and Rogues. The linking shield gives Thugs strength in numbers, but can be defeated by AoE weapons or focus fire.",
+   "tactics": [
+    "Send Thugs to destroy the opponent's static defenses while tanking the damage for Rogues and Outlaws.",
+    "A small group of Thugs benefit greatly from an Outlaw, as the Outlaw slows down the fire rate of turrets, allowing the Thugs to tank damage for a longer time, while also slowing down raiders who attack the group. As a benefit, the Thugs can tank for the Outlaw, allowing the Outlaw's disruptor pulse to finish its work.",
+    "Use Thugs with Felons to tank damage intended for the Felon, while also helping regenerate the Felon's shields.",
+    "Thugs can be used as heavy raiders as they can go through light defense by themselves or with a partner that Bandits wouldn't be able to.",
+    "Thugs lack damage, so they take time to destroy enemy static defense, so bringing some Bandits along will allow the Bandits to get close and destroy the static defense while the Thugs tank damage for them."
+   ]
+  },
+  "spiderassault": {
+   "title": "Hermit",
+   "summary": "The Hermit is an all terrain assault bot from the Spider Factory.",
+   "description": "The Hermit can take an incredible beating, and is useful as a shield for the weaker, more-damaging Recluses.",
+   "tactics": [
+    "While single Hermits are weak on their own, in groups, they are formidable enemies as they are cheap, have lots of health, and can screen allied skirmishers. (Blobs of 10 or more can easily crush more modest defenses.) Their cannons are not suited to hitting fast moving units (unless supported by emp units like the Venom), but can reliably hit targets like large tanks and static defenses. Hermits, like other slow-moving assault units, should avoid taking on Skirmishers and Artillery without support."
+   ]
+  },
+  "jumpblackhole": {
+   "title": "Placeholder",
+   "summary": "The Placeholder is a black hole launcher from the Jumpbot Factory.",
+   "description": "The Placeholder is a support unit. Its projectiles create a vacuum that sucks in nearby units, clustering and holding them in place to help finish them off."
+  },
+  "turretimpulse": {
+   "title": "Newton",
+   "summary": "The Newton is a gravity turret that can push or pull units.",
+   "description": "The Newton is armed with an experimental graviton projector. This weapon does no damage directly, but can push units toward or away from the Newton. You can use it on your own units as well, but beware of friendly fire.",
+   "tactics": [
+    "Being priced twice the cost of usual defensive structures, like LMT or LLT, and not dealing any direct damage—it is hard to find a cost-effective use for the Newton. However, use its strong sides, and this turret turns into a game changer.",
+    "The Newton's weapon is a gravity gun. It can work in one of two modes: push (repulsing) or pull (attraction) . This can be switched in units panel, the default shortcut key is . Pushing or pulling units with enough force or under the right circumstances will cause them to be lifted off the ground and tossed in the desired direction. This can be used either to deter lightweight enemies, to drag them out of formation, or to push them to certain death by causing collision damage.",
+    "While most common turrets deal direct damage and are usually able to dispatch a few raiders at most on their own, the Newton can hold off a small squad or army. Locating it on a hill will allow this turret to easily peel off small raids and hold them off indefinitely, eventually even killing several enemies. It can also punish solo raiders, like Pyros or Kodachis.",
+    "One of the more exquisite and late-game strategies with the Newton includes construction of a home-brew mass driver. This can lead to an unexpected and strong hit on the enemy's turf.",
+    "While the Newton has a very specific role and won't come into play each game, it excels in the hands of an experienced player in the right circumstances."
+   ]
+  },
+  "chicken_rafflesia": {
+   "title": "Rafflesia",
+   "summary": "The Rafflesia is a chicken shield building.",
+   "description": "The Rafflesia protects nearby chicken units and structures with its shield."
+  },
+  "shieldriot": {
+   "title": "Outlaw",
+   "summary": "The Outlaw is a riot bot from the Shieldbot Factory.",
+   "description": "The Outlaw emits an electromagnetic disruption pulse in a wide circle around it that damages and slows enemy units. Friendly units are unaffected.",
+   "tactics": [
+    "The Outlaw's slowing pulse is extremely helpful when defending Rogues or Thugs against enemy raiders, as the Outlaw's slow damage reduces the raiders' speed down to the point that the Rogues' and Thugs' slow projectiles have a much better chance of landing hits on the slowed raiders.",
+    "Moreover, slow damage applies to the affected units' rate-of-fire stats as well as their speed stats, so an Outlaw which cuts the enemy's speed in half also cuts their damage-per-second values in half, giving any allied units, whether it be Rogues, Thugs, or even Bandits an edge against their opponents.",
+    "The Outlaw's pulse can de-cloak Badger mines, Scythes, and any \"crawling\"/mobile bombs such as Imps or Snitches, meaning that if you suspect your opponent might try to, say, destroy your shieldball with \"crawling\"/mobile bombs, or sneak behind your defensive line and wreak havoc with Scythes, use Outlaws to decloak and slow down the enemy's cloaked units, giving the rest of your forces time to kill the cloaked enemies before they do significant damage.",
+    "Because of its low damage output, don't expect to be able to wipe out swarms of raiders (let alone high-weight raiders such as the Blitz, Pyro, or Scythe), with just a single Outlaw. The Outlaw is closer to a support unit than a combat unit because, to actually kill the enemy units in a short amount of time, the Outlaw must have some support from other, more powerful units, such as Bandits, Rogues, or Thugs."
+   ]
+  },
+  "turretlaser": {
+   "title": "Lotus",
+   "summary": "The Lotus is a light laser tower.",
+   "description": "The Lotus is a basic turret. A versatile, solid anti-ground weapon, it does well versus scouts as well as being able to take on one or two raiders. Falls relatively easily to skirmishers, artillery or assault units unless supported.",
+   "tactics": [
+    "In the early game it is common for small forces of raiders and scouts to run all over the map, both to gather intel and to pick off any vulnerable builders, factories or economic buildings they find. The Lotus is a cheap and effective way to protect your base and metal extractors against these early raids.",
+    "They're also useful for protecting larger fixed defenses that deal poorly with raiders, such as stingers, from direct attack by such forces.",
+    "Their low cost comes at the expense of low power, however, and lotuses are easily overwhelmed by large groups of raiders, or even by a small number of heavy raiders. Assaults, riots and skirmishers will all take them down easily as well. It can be tempting to simply build more lotuses, but large groups of lotuses are highly vulnerable to anything that outranges them, as the individual turrets don't even have enough health to slow down an enemy skirmisher or artillery push.",
+    "Occasionally, building a group of 3-4 lotuses around a critical building, such as a factory or fusion, may be useful if your enemy is making use of stealthy raiders or other such deep-raiding tactics."
+   ]
+  },
+  "chicken_spidermonkey": {
+   "title": "Spidermonkey",
+   "summary": "The Spidermonkey is an all-terrain support chicken.",
+   "description": "The Spidermonkey is a very unusual support chicken. As the name suggests, it can climb walls, however it can also spin a silk line that slows and yanks enemies."
+  },
+  "chicken_roc": {
+   "title": "Roc",
+   "summary": "The Roc is a heavy attack flyer chicken.",
+   "description": "Large, angry and capable of fighting both air and land opposition, the Roc is a formidable flying chicken."
+  },
+  "turretaaclose": {
+   "title": "Hacksaw",
+   "summary": "The Hacksaw is a burst anti-air turret.",
+   "description": "The Hacksaw's twin missiles brutally punish any aircraft that enters their range, but take a considerable amount of time to reload, making them less than ideal against light targets.",
+   "tactics": [
+    "The best attribute of the hacksaw is being cheap, allowing it to be quickly deployed in areas where enemy bombers have started to harass your forces. However, beware of the fact that they can be easily baited into wasting their shots by cheap fliers.",
+    "If you want cost-effective AA coverage over a large area, however, the Hacksaw isn't what you're looking for."
+   ]
+  },
+  "shieldshield": {
+   "title": "Aspis",
+   "summary": "The Aspis is an area Shield walker from the Shieldbot Factory.",
+   "description": "The Aspis protects surrounding units with its area shield by destroying enemy projectiles and will automatically connect to other shield-equipped units to share charge. The area shield will not stop units and only intercepts projectiles on its perimeter, so enemies can get under the shield and shoot at the units inside. Recharging and maintaining area shields costs energy.",
+   "tactics": [
+    "The Aspis (like the Iris) is amphibious, so it can be used to shield friendly ships, amphbots, hovercraft, Reefs, Shoguns, and even Detriments.",
+    "The Athena can build Aspis, so there's always an opportunity to build them without needing a Shieldbot Factory even if the battle takes place at sea. You may need to terraform some dry land to build Athenas at sea if your Strider Hub is far from dry land."
+   ]
+  },
+  "gunshipskirm": {
+   "title": "Harpy",
+   "summary": "The Harpy is a multi-role support gunship from the Gunship Plant.",
+   "description": "The Harpy is a light combat gunship. While its missiles are not the most damaging thing around, they are quite accurate and their disruption warheads slow down their targets."
+  },
+  "chicken_dodo": {
+   "title": "Dodo",
+   "summary": "The Dodo is a fast chicken bomb runner.",
+   "description": "The Dodo's body contains a volatile mixture of organic explosives. At the slightest provocation, it explodes spectacularly, with the resulting shockwave throwing nearby units into the air. Beware as its flying limbs and spikes will do residual damage."
+  },
+  "gunshipheavyskirm": {
+   "title": "Nimbus",
+   "summary": "The Nimbus is a fire support gunship from the Gunship Plant.",
+   "description": "The Nimbus is a fire support gunship that flies out of the reach of most ground mobiles. It is tough enough to survive limited anti-air fire, and its twin EMGs chew through units stupid enough to stay put."
+  },
+  "chickenlandqueen": {
+   "title": "Chicken Queen",
+   "summary": "The Chicken Queen is the boss unit in Chicken Defense. She also has a flying form.",
+   "description": "Two words: RUN AWAY! The Chicken Queen is the matriach of the Thunderbird colony, and when aggravated is virtually impossible to stop. It can spit fiery napalm, spray spores to kill aircraft, and kick land units away from it. Most of all, its jaws can rip apart the largest assault mech in seconds. Only the most determined, focused assault can hope to stop this beast in her tracks."
+  },
+  "hoverskirm2": {
+   "title": "Trisula",
+   "summary": "The Trisula is a light assault/battle hovercraft.",
+   "description": "The Trisula is a fairly fast, sturdy combatant armed with a scatter beam weapon that can erase multiple small targets or slag a single large one."
+  },
+  "hoversonic": {
+   "title": "Morningstar",
+   "summary": "The Morningstar is an antisub hovercraft.",
+   "description": "The Morningstar comes armed with a sonic pulse cannon which completely doesn't care whether target is above or under water."
+  },
+  "assaultcruiser": {
+   "title": "Vanquisher",
+   "summary": "The Vanquisher is a heavy assault cruiser.",
+   "description": "The Vanquisher cruiser boasts excellent armor and lethal close-in firepower. Its gauss cannons slice through surface targets like butter, while its missiles support it against enemies above and below the water surface. Its short range and lack of anti-air firepower leaves it vulnerable to standoff units and aircraft."
+  },
+  "subscout": {
+   "title": "Lancelet",
+   "summary": "The Lancelet is a scout/suicide minisub.",
+   "description": "The Lancelet is basically a large smart torpedo with scouting functionality. It can remain hidden in the depths to observe enemy movements, then detonate its explosive charge to sink unwary ships."
+  },
+  "dronelight": {
+   "title": "Firefly",
+   "summary": "The Firefly is an attack drone.",
+   "description": "The Firefly is an attack drone with a weak high precision pulse laser. They can protect their parent unit from light enemy units. They do not share stealth with it though, so they can also betray the presence of a cloaked commander. A Firefly can be created by adding the Companion Drone module to a Commander. The Guardian Commander can spawn in one Firefly for free at level 1, and gains an additional Firefly at levels 3 and 6."
+  },
+  "droneheavyslow": {
+   "title": "Viper",
+   "summary": "The Viper is an advanced battle drone.",
+   "description": "The Viper is an advanced battle drone similar to the Firefly but equipped with a Disruptor Pulse Beam, slowing its targets more with each hit. A Viper can be created by adding the Battle Drone module to a Commander."
+  },
+  "dronefighter": {
+   "title": "Spicula",
+   "summary": "The Spicula is a fighter drone carried exclusively by the Nebula.",
+   "description": "The Spicula is a fast multirole fighter drone whose particle beam is effective against both land and air targets."
+  },
+  "roost": {
+   "title": "Roost",
+   "summary": "The Roost is a spawn point for Chickens.",
+   "description": "Roosts are the hatching grounds of the Thunderbirds."
+  },
+  "tele_beacon": {
+   "title": "Lamp",
+   "summary": "The Lamp is a teleport bridge entry beacon for the Djinn.",
+   "description": "This is Djinn's entry beacon. Right-click it to teleport units to the parent Djinn."
+  },
+  "energyheavygeo": {
+   "title": "Advanced Geothermal",
+   "summary": "The Advanced Geothermal is a powerful energy producer morphed from the Geothermal Generator.",
+   "description": "The Advanced Geothermal power plant produces a massive amount of energy. It requires protection, though, as destroying it results in a devastating explosion.",
+   "tactics": [
+    "While morphing, the Geothermal Generator stops providing resources and drains them instead, so it may be wise to accumulate some of them before hitting that morph button."
+   ]
+  },
+  "dronecarry": {
+   "title": "Gull",
+   "summary": "The Gull is a carrier drone created by the Reef.",
+   "description": "The Gull is a small, aggressive drone armed with a capture ray similar to the Dominatrix. The captured enemies are transferred to the Reef, so the drone can be destroyed without losing control. After a successful control, the Gull cannot fire for 5 seconds. If multiple Gulls fired at the same target, only one has to reload."
+  },
+  "shipriot": {
+   "title": "Corsair",
+   "summary": "The Corsair is a corvette (raider/riot) from the Shipyard.",
+   "description": "This Corvette comes equipped with two shotguns which are effective against anything which gets close. It has no weapons effective against underwater targets."
+  },
+  "shipscout": {
+   "title": "Cutter",
+   "summary": "The Cutter is a scout ship armed with disarming missiles from the Shipyard.",
+   "description": "Cheap, fast, and fragile, this Picket Ship is a good scout and spotter for more expensive ships. While its weapon is weak, it can disarm smaller foes. In numbers, their disarming missiles are effective against larger targets."
+  },
+  "shipskirm": {
+   "title": "Mistral",
+   "summary": "The Mistral is a rocket boat (skirmisher) from the Shipyard.",
+   "description": "This Rocket Boat fires a salvo of four medium-range rockets, useful for bombarding sea and shore targets. Beware of subs and anything with enough speed to get close."
+  },
+  "shiparty": {
+   "title": "Envoy",
+   "summary": "The Envoy is a cruiser (artillery) from the Shipyard.",
+   "description": "This cruiser packs a powerful long-range artillery cannon, useful for bombarding fixed emplacements and shore targets. Beware of aircraft, submarines and raider ships.",
+   "tactics": [
+    "The Envoy is a good unit for operations where you can field a navy, and when air support is out of the question. They do Well against buildings. It is recommended to Escort them with other ships, and, incase you need to preform a landing, to deploy them with Amphibious bots as Well."
+   ]
+  },
+  "subtacmissile": {
+   "title": "Scylla",
+   "summary": "The Scylla is a tactical nuke missile sub from the Strider Hub.",
+   "description": "The Tactical Nuke Missile Sub provides a standoff precision strike weapon in the form of tactical missiles. It has no defense against direct attacks and should avoid contact with the enemy."
+  },
+  "subraider": {
+   "title": "Seawolf",
+   "summary": "The Seawolf is an attack submarine (stealth raider) from the Shipyard.",
+   "description": "Stealthy, fast, and fragile, this Submarine can quickly strike unprotected targets. Slow damage allows it to effectively kill lone units. Watch out for anything with anti-sub weaponry, especially Torpedo Boats and Destroyers."
+  },
+  "shipheavyarty": {
+   "title": "Shogun",
+   "summary": "The Shogun is an artillery battleship from the Strider Hub.",
+   "description": "A single salvo from one of these will pummel almost any surface target into submission. The psychological effects of the muzzle flash and the ship recoiling in the water are impressive enough, to say nothing of the effects of a direct hit. Be warned--battleships are not meant to be used on their own, lacking in anti-air and anti-submarine protection as they are. Shogun can be set to fire at a high arc by toggling its trajectory toggle. Using a high arc will result in indirect fire which is useful for bombardment of elevated land targets, at the cost of reduced accuracy and a slower projectile."
+  },
+  "shipassault": {
+   "title": "Siren",
+   "summary": "The Siren is a destroyer (riot/assault) from the Shipyard.",
+   "description": "This Destroyer is a general-purpose combat vessel, combining a strong area-of-effect sonic cannon, a medium-range vertical launch missile, and strong armor. Use its sonic gun against smaller opponents above and below the water, and its missile against static targets."
+  },
+  "shipaa": {
+   "title": "Zephyr",
+   "summary": "The Zephyr is an anti-air frigate from the Shipyard.",
+   "description": "With its powerful twin anti-air laser batteries, this Anti-Air Frigate protects your fleet from aerial attackers. As always, it is useless against targets that aren't airborne."
+  },
+  "amphbomb": {
+   "title": "Limpet",
+   "summary": "The Limpet is an amphibious slow bomb from the Amphbot Factory.",
+   "description": "The Limpet can dodge most slow projectiles thanks to its agility and small size, allowing it to get close to enemy units in order to detonate, slowing and damaging them. Unlike other types of bombs, friendly units are not affected by its explosion."
+  },
+  "starlight_satellite": {
+   "title": "Glint",
+   "summary": "The Glint is a Starlight relay satellite.",
+   "description": "This is the satellite used by Starlight for targeting."
+  },
+  "amphlaunch": {
+   "title": "Lobster",
+   "summary": "The Lobster is a launcher bot from the Amphbot Factory.",
+   "description": "Lacking armaments of its own, the Lobster's response to threats is to throw other units at the problem. Though originally intended for rapid coastline deployment, the Lobster has a variety of uses and can even offensively throw enemies units.",
+   "tactics": [
+    "While at first seeming as an afterthought unit, the Lobster is an ace in Amphbot Factory's arsenal, allowing it a much-needed mobility boost and opening strategies for both sea and land warfare. You'll find that using Lobsters greatly improves performance from other units of this factory, while not requiring a lot of investment, as even one is usually sufficient.",
+    "The Lobster launches units to great heights, allowing for both fast terrain traversal and access to otherwise unreachable terrain, while not causing any fall damage. It also ignores the unit's mass, launching anything from Flea to Detriment (and being the fastest of transport methods for the latter).",
+    "While using the Lobster, always mind its \"grab\", represented by thin green lines, as any unit in its reach will be launched alongside the desired ones.",
+    "Some of the possible strategies include:",
+    "Landing your troops on cliffs and from unexpected angles on island maps.",
+    "Launching your Limpets, giving you an arc-artillery previously missing and a potent disabling method.",
+    "Using Lobsters in stealth to launch enemy into traps.",
+    "Making a chain of Lobsters, launching one with the other, effectively allowing you to get your army across the map in moments.",
+    "Tossing a lobster into enemy lines and tossing enemies out of position into your riots."
+   ]
+  },
+  "planelightscout": {
+   "title": "Sparrow",
+   "summary": "The Sparrow is a light scout and jammer plane.",
+   "description": "The Sparrow is a light scout that can be built from a Radar Tower, making it the only plane that is available without a Plane Factory. Such an accessible scouting option is invaluable to those without access to planes. =",
+   "tactics": [
+    "The Sparrow is unarmed and fragile, but has the benefit that it can be morphed from a basic radar tower. This makes airborne scouting and radar jamming in the early game available regardless of which factory is chosen.",
+    "It can also be built directly from the Airplane Plant, but for scouting is inferior to the other choices available there like the Swift and the Owl.",
+    "With its radar jammer you could try using it to hide the approach of your forces or hide the radar dots of your frontline to make it harder for enemy artillery to hit you."
+   ]
+  },
+  "hoverheavyraid": {
+   "title": "Bolas",
+   "summary": "The Bolas is a heavy disruptor hovercraft from the Hovercraft Platform.",
+   "description": "The Bolas is a second option of raider for the hovercraft factory. Named uniquely a \"heavy-raider\" it is one of the more expensive ground raiders. It wields a slow pulse beam and excels at one-on-one engagements, but is somewhat fragile for its cost.",
+   "tactics": [
+    "The Bolas is capable of dispatching many units in one-on-one engagements, even the direct-counter ones like riots. As such, the Bolas should never be faced with a lone unit/lower numbers. The key to defeating a group of Bolases comes down to a few options:",
+    "- Overwhelm them with numbers;",
+    "- Fight them at a great range/disadvantageous terrain (as all hovercraft struggle with hills);",
+    "- Create an opening using disabling methods like Imps, Racketeers or Outlaws;",
+    "- Use a bait, like Dirtbags or Halberds.",
+    "While using the Bolas yourself, remember to group up several of them for greater results. Whittle down your opponent with hit-and-run, accumulating the slow-effect on their units, and allowing the Bolases or other troops to finish the enemy off."
+   ]
+  },
+  "amphsupport": {
+   "title": "Bulkhead",
+   "summary": "The Bulkhead is a deployable plasma projectile amphbot from the Amphbot Factory, effective against slow-moving and static units. It must stop to fire.",
+   "description": "The Bulkhead is a heavily armored dual plasma cannon balanced atop a cheap set of legs. While this gives it an impressive combination of health and range, it is unable to aim or fire its cannons without first stopping to brace itself. This drawback is less pronounced in the water, where it can float to fire then sink to reposition.",
+   "tactics": [
+    "The Bulkhead allows for easier disposal of static defenses, and just 3 of them can even topple a Stinger. In combination with Limpets, Bulkheads can target faster units, such as raiders."
+   ]
+  },
+  "plateamph": {
+   "title": "Amphbot Plate",
+   "summary": "The Amphbot Plate is a plate for the Amphbot Factory.",
+   "description": "Construction plates increase the production capacity of nearby factories by acting as an independent build queue. Plates are the cheapest way to increase unit production, eschewing the versatility of Caretaker for greater efficiency. Be warned, a plate will not function without a nearby factory of the appropriate type."
+  },
+  "platecloak": {
+   "title": "Cloakbot Plate",
+   "summary": "The Cloakbot Plate is a plate for the Cloakbot Factory.",
+   "description": "Construction plates increase the production capacity of nearby factories by acting as an independent build queue. Plates are the cheapest way to increase unit production, eschewing the versatility of Caretaker for greater efficiency. Be warned, a plate will not function without a nearby factory of the appropriate type."
+  },
+  "plateshield": {
+   "title": "Shieldbot Plate",
+   "summary": "The Shieldbot Plate is a plate for the Shieldbot Factory.",
+   "description": "Construction plates increase the production capacity of nearby factories by acting as an independent build queue. Plates are the cheapest way to increase unit production, eschewing the versatility of Caretaker for greater efficiency. Be warned, a plate will not function without a nearby factory of the appropriate type."
+  },
+  "plateveh": {
+   "title": "Rover Plate",
+   "summary": "The Rover Plate is a plate for the Rover Assembly.",
+   "description": "Construction plates increase the production capacity of nearby factories by acting as an independent build queue. Plates are the cheapest way to increase unit production, eschewing the versatility of Caretaker for greater efficiency. Be warned, a plate will not function without a nearby factory of the appropriate type."
+  },
+  "platehover": {
+   "title": "Hovercraft Plate",
+   "summary": "The Hovercraft Plate is a plate for the Hovercraft Platform.",
+   "description": "Construction plates increase the production capacity of nearby factories by acting as an independent build queue. Plates are the cheapest way to increase unit production, eschewing the versatility of Caretaker for greater efficiency. Be warned, a plate will not function without a nearby factory of the appropriate type."
+  },
+  "plategunship": {
+   "title": "Gunship Plate",
+   "summary": "The Gunship Plate is a plate for the Gunship Plant.",
+   "description": "Construction plates increase the production capacity of nearby factories by acting as an independent build queue. Plates are the cheapest way to increase unit production, eschewing the versatility of Caretaker for greater efficiency. Be warned, a plate will not function without a nearby factory of the appropriate type."
+  },
+  "plateplane": {
+   "title": "Plane Plate",
+   "summary": "The Plane Plate is a plate for the Airplane Plant.",
+   "description": "Construction plates increase the production capacity of nearby factories by acting as an independent build queue. Plates are the cheapest way to increase unit production, eschewing the versatility of Caretaker for greater efficiency. Be warned, a plate will not function without a nearby factory of the appropriate type."
+  },
+  "platespider": {
+   "title": "Spider Plate",
+   "summary": "The Spider Plate is a plate for the Spider Factory.",
+   "description": "Construction plates increase the production capacity of nearby factories by acting as an independent build queue. Plates are the cheapest way to increase unit production, eschewing the versatility of Caretaker for greater efficiency. Be warned, a plate will not function without a nearby factory of the appropriate type."
+  },
+  "platejump": {
+   "title": "Jumpbot Plate",
+   "summary": "The Jumpbot Plate is a plate for the Jumpbot Factory.",
+   "description": "Construction plates increase the production capacity of nearby factories by acting as an independent build queue. Plates are the cheapest way to increase unit production, eschewing the versatility of Caretaker for greater efficiency. Be warned, a plate will not function without a nearby factory of the appropriate type."
+  },
+  "platetank": {
+   "title": "Tank Plate",
+   "summary": "The Tank Plate is a plate for the Tank Foundry.",
+   "description": "Construction plates increase the production capacity of nearby factories by acting as an independent build queue. Plates are the cheapest way to increase unit production, eschewing the versatility of Caretaker for greater efficiency. Be warned, a plate will not function without a nearby factory of the appropriate type."
+  },
+  "plateship": {
+   "title": "Ship Plate",
+   "summary": "The Ship Plate is a plate for the Shipyard.",
+   "description": "Construction plates increase the production capacity of nearby factories by acting as an independent build queue. Plates are the cheapest way to increase unit production, eschewing the versatility of Caretaker for greater efficiency. Be warned, a plate will not function without a nearby factory of the appropriate type."
+  },
+  "missileslow": {
+   "title": "Zeno",
+   "summary": "The Zeno is a slow homing missile from the Missile Silo.",
+   "description": "Zeno is an experimental single-impact slowing device with a lingering slow AOE.",
+   "tactics": [
+    "With the immense slow damage it applies to the primary target along with its unique homing capabilities and range equal to the Quake, the Zeno can be used to help catch key enemy targets from almost any distance. However, the lingering zone that it spawns can also make it difficult to follow up with your own units, as the zone affects every unit inside.",
+    "Keep in mind the slow speed of the missile, which can slightly delay a prepared attack and give the enemy room to react."
+   ]
+  },
+  "bomberstrike": {
+   "title": "Magpie",
+   "summary": "The Magpie is a tactical strike bomber from the Airplane Plant.",
+   "description": "The Magpie launches short-range homing missiles at ground and air targets. It makes up for its low damage and long reload time by boasting the range and maneuverability to hit dangerous targets and make it back to base."
+  },
+  "bomberassault": {
+   "title": "Odin",
+   "summary": "The Odin is a heavy assault bomber from the Airplane Plant. Odin is expensive, durable and very slow for a plane, for its attack it precisely drops a tiny spot of 'thermite' which over time deals heavy damage. Its purpose is sniping high value structures. It's also got the alternative purpose of providing shield cover for a short time.",
+   "tactics": [
+    "The nature of how thermite deals its damage makes it useless vs units unless they are stunned for a long time by for example a widow.",
+    "Its main intended purpose is to snipe high value structures, often by diving deep into enemy territory. There are very few unshielded structures that can survive being hit by an Odin. After scouting the enemy base one can often find that its not well defended along the maps edge and so one can fly in there and strike something critical, beware the enemy may have placed newton turrets in order to grab or push away your Odins, they have abysmal turn rate so that could ruin your plans.",
+    "An advantage about the sheer amount of damage thermite deals is that it likely also destroys the wreck of its target leaving your enemy with no way to resurrect it or at least less reclaim.",
+    "A creative use case would be bombing wrecks of striders that the enemy otherwise will likely get to reclaim",
+    "Alternatively if your allies are making a push somewhere you could provide them some cover under your shields or vice versa if the enemy is pushing your allies."
+   ]
+  },
+  "commander_egg": {
+   "title": "Commander Egg",
+   "summary": "",
+   "description": "The Commander Egg can morph into a fresh level 1 Commander to replace a lost one."
+  }
+ }
+}

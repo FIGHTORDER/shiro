@@ -12,6 +12,7 @@ import AlertTriangle from "lucide/dist/esm/icons/triangle-alert.js";
 import ArrowDown from "lucide/dist/esm/icons/arrow-down.js";
 import ArrowLeft from "lucide/dist/esm/icons/arrow-left.js";
 import Bell from "lucide/dist/esm/icons/bell.js";
+import BookMarked from "lucide/dist/esm/icons/book-marked.js";
 import BookOpen from "lucide/dist/esm/icons/book-open.js";
 import Check from "lucide/dist/esm/icons/check.js";
 import ChevronDown from "lucide/dist/esm/icons/chevron-down.js";
@@ -23,6 +24,8 @@ import ExternalLink from "lucide/dist/esm/icons/external-link.js";
 import Eye from "lucide/dist/esm/icons/eye.js";
 import Flag from "lucide/dist/esm/icons/flag.js";
 import Github from "lucide/dist/esm/icons/github.js";
+import Grid from "lucide/dist/esm/icons/grid-3x3.js";
+import History from "lucide/dist/esm/icons/history.js";
 import Image from "lucide/dist/esm/icons/image.js";
 import Info from "lucide/dist/esm/icons/info.js";
 import Loader from "lucide/dist/esm/icons/loader.js";
@@ -60,6 +63,7 @@ export const ICONS = {
   "arrow-down": ArrowDown,
   "arrow-left": ArrowLeft,
   "bell": Bell,
+  "book-marked": BookMarked,
   "book-open": BookOpen,
   "check": Check,
   "chevron-down": ChevronDown,
@@ -71,6 +75,8 @@ export const ICONS = {
   "eye": Eye,
   "flag": Flag,
   "github": Github,
+  "grid": Grid,
+  "history": History,
   "image": Image,
   "info": Info,
   "loader": Loader,

@@ -17,6 +17,7 @@ import FriendsScreen from "./screens/FriendsScreen.jsx";
 import ProfileScreen from "./screens/ProfileScreen.jsx";
 import AppsScreen from "./screens/AppsScreen.jsx";
 import CampaignScreen from "./screens/CampaignScreen.jsx";
+import CodexScreen from "./screens/CodexScreen.jsx";
 import SettingsScreen from "./screens/SettingsScreen.jsx";
 import DownloadsScreen from "./screens/DownloadsScreen.jsx";
 import HostBattleDialog from "./screens/HostBattleDialog.jsx";
@@ -999,6 +1000,7 @@ export default function App() {
       onChatHeight={h => useSettings.getState().set({ roomChatHeight: h })}
       onStart={startRoom} />
   );
+  else if (view === "codex") body = <CodexScreen gameVersion={shell.game} />;
   else if (view === "campaigns") body = (
     <CampaignScreen campaigns={campaigns} gameVersion={shell.game}
       busy={campaignBusy} error={campaignError}

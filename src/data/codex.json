@@ -1,0 +1,3945 @@
+{
+ "formatVersion": 1,
+ "game": "Zero-K v1.14.8.0",
+ "units": [
+  {
+   "id": "energyheavygeo",
+   "name": "Advanced Geothermal",
+   "description": "Large Powerplant - HAZARDOUS",
+   "cost": 1500,
+   "health": 3250,
+   "sight": 273,
+   "icon": "energyheavygeo.png",
+   "model": "energyheavygeo.s3o"
+  },
+  {
+   "id": "staticheavyradar",
+   "name": "Advanced Radar",
+   "description": "Long-Range Radar",
+   "cost": 450,
+   "health": 330,
+   "sight": 1120,
+   "icon": "staticheavyradar.png",
+   "model": "novaradar.s3o",
+   "factory": "Athena",
+   "factoryId": "athena"
+  },
+  {
+   "id": "staticshield",
+   "name": "Aegis",
+   "description": "Area Shield",
+   "cost": 525,
+   "health": 900,
+   "sight": 200,
+   "icon": "staticshield.png",
+   "model": "m-8.s3o",
+   "weapon": {
+    "damage": 3600
+   }
+  },
+  {
+   "id": "staticrearm",
+   "name": "Airpad",
+   "description": "Repairs and Rearms Aircraft, repairs at 2.5 e/s per pad",
+   "cost": 350,
+   "health": 1860,
+   "sight": 273,
+   "icon": "staticrearm.png",
+   "model": "staticrearm.dae"
+  },
+  {
+   "id": "factoryplane",
+   "name": "Airplane Plant",
+   "description": "Produces Airplanes",
+   "health": 4000,
+   "sight": 273,
+   "icon": "factoryplane.png",
+   "model": "CORAP.s3o"
+  },
+  {
+   "id": "plateplane",
+   "name": "Airplane Plate",
+   "description": "Parallel Unit Production",
+   "sight": 273,
+   "icon": "plateplane.png",
+   "model": "plate_plane.s3o"
+  },
+  {
+   "id": "factoryamph",
+   "name": "Amphbot Factory",
+   "description": "Produces Amphibious Bots",
+   "health": 4000,
+   "sight": 273,
+   "icon": "factoryamph.png",
+   "model": "factory2.s3o"
+  },
+  {
+   "id": "plateamph",
+   "name": "Amphbot Plate",
+   "description": "Parallel Unit Production",
+   "sight": 273,
+   "icon": "plateamph.png",
+   "model": "plate_amph.s3o"
+  },
+  {
+   "id": "spideranarchid",
+   "name": "Anarchid",
+   "description": "Riot EMP Spider",
+   "cost": 250,
+   "health": 600,
+   "speed": 48,
+   "sight": 440,
+   "icon": "spideremp.png",
+   "model": "spideranarchid.s3o",
+   "weapon": {
+    "damage": 30,
+    "range": 270,
+    "reload": 0.1
+   }
+  },
+  {
+   "id": "obj_artefact",
+   "name": "Ancient Artefact",
+   "description": "Capture artefacts by destroying them. Control all artefacts to win.",
+   "cost": 1000,
+   "health": 11000,
+   "sight": 273,
+   "model": "pw_artefact.dae"
+  },
+  {
+   "id": "amphaa",
+   "name": "Angler",
+   "description": "Amphibious Anti-Air Bot",
+   "cost": 180,
+   "health": 1100,
+   "speed": 48,
+   "sight": 660,
+   "icon": "amphaa.png",
+   "model": "amphaa.s3o",
+   "weapon": {
+    "damage": 150.1,
+    "range": 820,
+    "reload": 0.3
+   },
+   "factory": "Amphbot Factory",
+   "factoryId": "factoryamph"
+  },
+  {
+   "id": "staticantinuke",
+   "name": "Antinuke",
+   "description": "Strategic Nuke Interception System",
+   "cost": 3000,
+   "health": 3300,
+   "sight": 660,
+   "icon": "staticantinuke.png",
+   "model": "staticantinuke.s3o",
+   "weapon": {
+    "damage": 1500,
+    "range": 3800,
+    "reload": 6
+   }
+  },
+  {
+   "id": "amphimpulse",
+   "name": "Archer",
+   "description": "Amphibious Raider/Riot Bot",
+   "cost": 200,
+   "health": 760,
+   "speed": 70.5,
+   "sight": 500,
+   "icon": "amphimpulse.png",
+   "model": "amphraider2.s3o",
+   "weapon": {
+    "damage": 155.01,
+    "range": 255,
+    "reload": 35
+   },
+   "factory": "Amphbot Factory",
+   "factoryId": "factoryamph"
+  },
+  {
+   "id": "turretaaheavy",
+   "name": "Artemis",
+   "description": "Very Long-Range Anti-Air Missile Tower, Drains 4 m/s, 20 second stockpile",
+   "cost": 2400,
+   "health": 3200,
+   "sight": 660,
+   "icon": "turretaaheavy.png",
+   "model": "SCREAMER.s3o",
+   "weapon": {
+    "damage": 1601.5,
+    "range": 2400,
+    "reload": 1.8
+   }
+  },
+  {
+   "id": "shieldshield",
+   "name": "Aspis",
+   "description": "Area Shield Walker",
+   "cost": 700,
+   "health": 700,
+   "speed": 61.5,
+   "sight": 300,
+   "icon": "shieldshield.png",
+   "model": "m-8.s3o",
+   "weapon": {
+    "damage": 3600
+   },
+   "factory": "Shieldbot Factory",
+   "factoryId": "factoryshield"
+  },
+  {
+   "id": "asteroid",
+   "name": "Asteroid",
+   "description": "Space Rock",
+   "cost": 50,
+   "health": 500,
+   "sight": 1,
+   "icon": "asteroid.png",
+   "model": "asteroid.s3o"
+  },
+  {
+   "id": "athena",
+   "name": "Athena",
+   "description": "Airborne SpecOps Engineer",
+   "cost": 600,
+   "health": 750,
+   "speed": 210,
+   "sight": 380,
+   "icon": "athena.png",
+   "model": "selene.s3o",
+   "factory": "Strider Hub",
+   "factoryId": "striderhub"
+  },
+  {
+   "id": "veharty",
+   "name": "Badger",
+   "description": "Artillery Minelayer Rover",
+   "cost": 270,
+   "health": 450,
+   "speed": 55.5,
+   "sight": 660,
+   "icon": "veharty.png",
+   "model": "corwolv.s3o",
+   "weapon": {
+    "damage": 750,
+    "range": 750,
+    "reload": 5.6
+   },
+   "factory": "Rover Assembly",
+   "factoryId": "factoryveh"
+  },
+  {
+   "id": "shieldraid",
+   "name": "Bandit",
+   "description": "Medium-Light Raider Bot",
+   "cost": 75,
+   "health": 340,
+   "speed": 93,
+   "sight": 560,
+   "icon": "shieldraid.png",
+   "model": "mbot.s3o",
+   "weapon": {
+    "damage": 50,
+    "range": 232,
+    "reload": 0.1
+   },
+   "factory": "Shieldbot Factory",
+   "factoryId": "factoryshield"
+  },
+  {
+   "id": "chickenc",
+   "name": "Basilisk",
+   "description": "All-Terrain Riot",
+   "cost": 0,
+   "health": 1800,
+   "speed": 66,
+   "sight": 512,
+   "icon": "chickenc.png",
+   "model": "chickenc.s3o",
+   "weapon": {
+    "damage": 400,
+    "range": 400,
+    "reload": 3
+   },
+   "factory": "Chicken Brood Queen",
+   "factoryId": "chickenbroodqueen"
+  },
+  {
+   "id": "corcom1",
+   "name": "Battle Commander",
+   "description": "Heavy Combat Commander",
+   "cost": 1200,
+   "health": 3000,
+   "speed": 37.5,
+   "sight": 500,
+   "icon": "corcom.png",
+   "model": "corcomAlt.s3o",
+   "weapon": {
+    "damage": 70,
+    "range": 290,
+    "reload": 0.1
+   }
+  },
+  {
+   "id": "staticheavyarty",
+   "name": "Big Bertha",
+   "description": "Strategic Plasma Cannon",
+   "cost": 6000,
+   "health": 4800,
+   "sight": 660,
+   "icon": "staticheavyarty.png",
+   "model": "armbrtha.s3o",
+   "weapon": {
+    "damage": 5600,
+    "range": 5600,
+    "reload": 8
+   }
+  },
+  {
+   "id": "gunshipbomb",
+   "name": "Blastwing",
+   "description": "Flying Bomb/Scout (Burrows)",
+   "cost": 55,
+   "health": 80,
+   "speed": 234,
+   "sight": 500,
+   "icon": "gunshipbomb.png",
+   "model": "f-1.s3o",
+   "weapon": {
+    "damage": 10000,
+    "range": 10,
+    "reload": 5.6
+   },
+   "factory": "Gunship Plant",
+   "factoryId": "factorygunship"
+  },
+  {
+   "id": "chicken_blimpy",
+   "name": "Blimpy",
+   "description": "Dodo Bomber",
+   "cost": 0,
+   "health": 1850,
+   "speed": 150,
+   "sight": 512,
+   "icon": "chicken_blimpy.png",
+   "model": "chicken_blimpy.s3o",
+   "weapon": {
+    "damage": 1000,
+    "range": 300,
+    "reload": 0.5
+   },
+   "factory": "Chicken Brood Queen",
+   "factoryId": "chickenbroodqueen"
+  },
+  {
+   "id": "tankheavyraid",
+   "name": "Blitz",
+   "description": "Lightning Assault/Raider Tank",
+   "cost": 300,
+   "health": 1300,
+   "speed": 97.5,
+   "sight": 560,
+   "icon": "tankheavyraid.png",
+   "model": "corseal.s3o",
+   "weapon": {
+    "damage": 180,
+    "range": 245,
+    "reload": 2.6
+   },
+   "factory": "Tank Foundry",
+   "factoryId": "factorytank"
+  },
+  {
+   "id": "chickenblobber",
+   "name": "Blobber",
+   "description": "Heavy Artillery",
+   "cost": 0,
+   "health": 2400,
+   "speed": 54,
+   "sight": 1200,
+   "icon": "chickenblobber.png",
+   "model": "chickenblobber.s3o",
+   "weapon": {
+    "damage": 1350,
+    "range": 1350,
+    "reload": 8
+   },
+   "factory": "Chicken Brood Queen",
+   "factoryId": "chickenbroodqueen"
+  },
+  {
+   "id": "chicken_shield",
+   "name": "Blooper",
+   "description": "Shield/Anti-Air",
+   "cost": 0,
+   "health": 1600,
+   "speed": 54,
+   "sight": 512,
+   "icon": "chicken_shield.png",
+   "model": "chicken_shield.s3o",
+   "weapon": {
+    "damage": 60,
+    "range": 700,
+    "reload": 2.5
+   },
+   "factory": "Chicken Brood Queen",
+   "factoryId": "chickenbroodqueen"
+  },
+  {
+   "id": "hoverheavyraid",
+   "name": "Bolas",
+   "description": "Disruptor Hovercraft",
+   "cost": 180,
+   "health": 700,
+   "speed": 97.5,
+   "sight": 560,
+   "icon": "hoverheavyraid.png",
+   "model": "hoverskirm.s3o",
+   "weapon": {
+    "damage": 42,
+    "range": 225,
+    "reload": 0.4
+   },
+   "factory": "Hovercraft Platform",
+   "factoryId": "factoryhover"
+  },
+  {
+   "id": "amphsupport",
+   "name": "Bulkhead",
+   "description": "Deployable Amphibious Fire Support (must stop to fire)",
+   "cost": 240,
+   "health": 1540,
+   "speed": 48,
+   "sight": 700,
+   "icon": "amphsupport.png",
+   "model": "amphdeploy.s3o",
+   "weapon": {
+    "damage": 645,
+    "range": 645,
+    "reload": 1.9
+   },
+   "factory": "Amphbot Factory",
+   "factoryId": "factoryamph"
+  },
+  {
+   "id": "amphfloater",
+   "name": "Buoy",
+   "description": "Heavy Amphibious Skirmisher Bot",
+   "cost": 280,
+   "health": 1250,
+   "speed": 51,
+   "sight": 500,
+   "icon": "amphfloater.png",
+   "model": "can.s3o",
+   "weapon": {
+    "damage": 450,
+    "range": 450,
+    "reload": 1.8
+   },
+   "factory": "Amphbot Factory",
+   "factoryId": "factoryamph"
+  },
+  {
+   "id": "staticcon",
+   "name": "Caretaker",
+   "description": "Construction Assistant",
+   "cost": 180,
+   "health": 500,
+   "sight": 380,
+   "icon": "staticcon.png",
+   "model": "armsenan.s3o",
+   "weapon": {
+    "damage": 500
+   },
+   "factory": "Athena",
+   "factoryId": "athena"
+  },
+  {
+   "id": "staticarty",
+   "name": "Cerberus",
+   "description": "Plasma Artillery Battery - Power by connecting to a 50 energy grid",
+   "cost": 2500,
+   "health": 3750,
+   "sight": 660,
+   "icon": "staticarty.png",
+   "model": "corbhmth.s3o",
+   "weapon": {
+    "damage": 601,
+    "range": 1850,
+    "reload": 10
+   }
+  },
+  {
+   "id": "turretaafar",
+   "name": "Chainsaw",
+   "description": "Long-Range Anti-Air Missile Battery",
+   "cost": 900,
+   "health": 2500,
+   "sight": 702,
+   "icon": "turretaafar.png",
+   "model": "armcir.s3o",
+   "weapon": {
+    "damage": 225.1,
+    "range": 1800,
+    "reload": 1
+   }
+  },
+  {
+   "id": "gunshiptrans",
+   "name": "Charon",
+   "description": "Air Transport",
+   "cost": 100,
+   "health": 300,
+   "speed": 345,
+   "sight": 300,
+   "icon": "gunshiptrans.png",
+   "model": "smallTransport.s3o",
+   "factory": "Gunship Plant",
+   "factoryId": "factorygunship"
+  },
+  {
+   "id": "chicken",
+   "name": "Chicken",
+   "description": "Swarmer",
+   "cost": 0,
+   "health": 270,
+   "speed": 87,
+   "sight": 256,
+   "icon": "chicken.png",
+   "model": "chicken.s3o",
+   "weapon": {
+    "damage": 80,
+    "range": 80,
+    "reload": 1.2
+   },
+   "factory": "Chicken Brood Queen",
+   "factoryId": "chickenbroodqueen"
+  },
+  {
+   "id": "chickenbroodqueen",
+   "name": "Chicken Brood Queen",
+   "description": "Tends the Nest",
+   "cost": 0,
+   "health": 3000,
+   "speed": 60,
+   "sight": 1024,
+   "icon": "chickenbroodqueen.png",
+   "model": "chickenbroodqueen.s3o",
+   "weapon": {
+    "damage": 120,
+    "range": 120,
+    "reload": 0.4
+   }
+  },
+  {
+   "id": "chickenflyerqueen",
+   "name": "Chicken Queen",
+   "description": "Clucking Hell!",
+   "cost": 0,
+   "health": 150000,
+   "speed": 90,
+   "sight": 4096,
+   "icon": "chickenflyerqueen.png",
+   "model": "chickenflyerqueen.s3o",
+   "weapon": {
+    "damage": 500,
+    "range": 500,
+    "reload": 10
+   }
+  },
+  {
+   "id": "chickenlandqueen",
+   "name": "Chicken Queen",
+   "description": "Clucking Hell!",
+   "cost": 0,
+   "health": 200000,
+   "speed": 75,
+   "sight": 2048,
+   "icon": "chickenflyerqueen.png",
+   "model": "chickenflyerqueen.s3o",
+   "weapon": {
+    "damage": 500,
+    "range": 500,
+    "reload": 10
+   }
+  },
+  {
+   "id": "chickenspire",
+   "name": "Chicken Spire",
+   "description": "Static Artillery",
+   "cost": 0,
+   "health": 1500,
+   "sight": 512,
+   "icon": "chickenspire.png",
+   "model": "spire.s3o",
+   "weapon": {
+    "damage": 1000,
+    "range": 6300,
+    "reload": 14
+   }
+  },
+  {
+   "id": "chickend",
+   "name": "Chicken Tube",
+   "description": "Defence and energy source",
+   "cost": 0,
+   "health": 500,
+   "sight": 512,
+   "icon": "chickend.png",
+   "model": "tube.s3o",
+   "weapon": {
+    "damage": 60,
+    "range": 460,
+    "reload": 12
+   }
+  },
+  {
+   "id": "wolverine_mine",
+   "name": "Claw",
+   "description": "Badger Mine",
+   "cost": 10,
+   "health": 40,
+   "sight": 120,
+   "icon": "wolverine_mine.png",
+   "model": "claw.s3o",
+   "weapon": {
+    "damage": 70,
+    "range": 115,
+    "reload": 20
+   }
+  },
+  {
+   "id": "hoverdepthcharge",
+   "name": "Claymore",
+   "description": "Riot Hovercraft (Anti-Sub)",
+   "cost": 300,
+   "health": 1300,
+   "speed": 70.5,
+   "sight": 385,
+   "icon": "hoverdepthcharge.png",
+   "model": "hoverassault.s3o",
+   "weapon": {
+    "damage": 520.1,
+    "range": 300,
+    "reload": 3.1
+   },
+   "factory": "Hovercraft Platform",
+   "factoryId": "factoryhover"
+  },
+  {
+   "id": "factorycloak",
+   "name": "Cloakbot Factory",
+   "description": "Produces Cloaked, Mobile Robots",
+   "health": 4000,
+   "sight": 273,
+   "icon": "factorycloak.png",
+   "model": "cremfactory.s3o"
+  },
+  {
+   "id": "platecloak",
+   "name": "Cloakbot Plate",
+   "description": "Parallel Unit Production",
+   "sight": 273,
+   "icon": "platecloak.png",
+   "model": "plate_cloak.s3o"
+  },
+  {
+   "id": "chickena",
+   "name": "Cockatrice",
+   "description": "Assault/Anti-Armor",
+   "cost": 0,
+   "health": 2800,
+   "speed": 54,
+   "sight": 256,
+   "icon": "chickena.png",
+   "model": "chickena.s3o",
+   "weapon": {
+    "damage": 1700.1,
+    "range": 140,
+    "reload": 7
+   },
+   "factory": "Chicken Brood Queen",
+   "factoryId": "chickenbroodqueen"
+  },
+  {
+   "id": "cremcom1",
+   "name": "Commander",
+   "description": "Mobile Assault Commander",
+   "cost": 1200,
+   "health": 2500,
+   "speed": 40.5,
+   "sight": 500,
+   "icon": "cremcom.png",
+   "model": "cremcom.s3o",
+   "weapon": {
+    "damage": 70,
+    "range": 300,
+    "reload": 0.1
+   }
+  },
+  {
+   "id": "commander_egg",
+   "name": "Commander Egg",
+   "description": "Morphs into a Commander. Disarm and slow explosion on death.",
+   "cost": 600,
+   "health": 1500,
+   "speed": 40,
+   "sight": 300,
+   "icon": "commander_egg.png",
+   "model": "commander_egg.s3o",
+   "weapon": {
+    "damage": 20000.6
+   },
+   "factory": "Athena",
+   "factoryId": "athena"
+  },
+  {
+   "id": "amphcon",
+   "name": "Conch",
+   "description": "Amphibious Construction Bot, Armored When Idle",
+   "cost": 150,
+   "health": 1000,
+   "speed": 54,
+   "sight": 375,
+   "icon": "amphcon.png",
+   "model": "amphcon.s3o",
+   "factory": "Amphbot Factory",
+   "factoryId": "factoryamph"
+  },
+  {
+   "id": "cloakcon",
+   "name": "Conjurer",
+   "description": "Cloaked Construction Bot",
+   "cost": 120,
+   "health": 600,
+   "speed": 54,
+   "sight": 375,
+   "icon": "cloakcon.png",
+   "model": "spherecon.s3o",
+   "factory": "Cloakbot Factory",
+   "factoryId": "factorycloak"
+  },
+  {
+   "id": "jumpcon",
+   "name": "Constable",
+   "description": "Jumpjet Constructor",
+   "cost": 135,
+   "health": 550,
+   "speed": 63,
+   "sight": 375,
+   "icon": "jumpcon.png",
+   "model": "behe_coroner.s3o",
+   "weapon": {
+    "damage": 30,
+    "range": 240,
+    "reload": 2
+   },
+   "factory": "Jumpbot Factory",
+   "factoryId": "factoryjump"
+  },
+  {
+   "id": "shieldcon",
+   "name": "Convict",
+   "description": "Shielded Construction Bot",
+   "cost": 120,
+   "health": 780,
+   "speed": 61.5,
+   "sight": 375,
+   "icon": "shieldcon.png",
+   "model": "conbot.s3o",
+   "weapon": {
+    "damage": 900
+   },
+   "factory": "Shieldbot Factory",
+   "factoryId": "factoryshield"
+  },
+  {
+   "id": "staticjammer",
+   "name": "Cornea",
+   "description": "Area Cloaker/Jammer",
+   "cost": 420,
+   "health": 700,
+   "sight": 250,
+   "icon": "staticjammer.png",
+   "model": "radarjammer.dae",
+   "weapon": {
+    "damage": 1000000000,
+    "range": 72000,
+    "reload": 4
+   },
+   "factory": "Athena",
+   "factoryId": "athena"
+  },
+  {
+   "id": "shipriot",
+   "name": "Corsair",
+   "description": "Raider/Riot Corvette",
+   "cost": 220,
+   "health": 1500,
+   "speed": 90,
+   "sight": 500,
+   "icon": "shipriot.png",
+   "model": "shipriot.s3o",
+   "weapon": {
+    "damage": 50,
+    "range": 300,
+    "reload": 2
+   },
+   "factory": "Shipyard",
+   "factoryId": "factoryship"
+  },
+  {
+   "id": "spidercrabe",
+   "name": "Crab",
+   "description": "Heavy Riot/Skirmish Spider - Curls into Armored Form When Stationary",
+   "cost": 1600,
+   "health": 4800,
+   "speed": 40.5,
+   "sight": 660,
+   "icon": "spidercrabe.png",
+   "model": "armcrabe.s3o",
+   "weapon": {
+    "damage": 600.5,
+    "range": 600,
+    "reload": 4
+   },
+   "factory": "Spider Factory",
+   "factoryId": "factoryspider"
+  },
+  {
+   "id": "planecon",
+   "name": "Crane",
+   "description": "Construction Aircraft",
+   "cost": 200,
+   "health": 260,
+   "speed": 180,
+   "sight": 375,
+   "icon": "planecon.png",
+   "model": "crane.s3o",
+   "factory": "Airplane Plant",
+   "factoryId": "factoryplane"
+  },
+  {
+   "id": "vehaa",
+   "name": "Crasher",
+   "description": "Fast Anti-Air Rover",
+   "cost": 220,
+   "health": 900,
+   "speed": 114,
+   "sight": 660,
+   "icon": "vehaa.png",
+   "model": "vehaa.s3o",
+   "weapon": {
+    "damage": 290.1,
+    "range": 730,
+    "reload": 4
+   },
+   "factory": "Rover Assembly",
+   "factoryId": "factoryveh"
+  },
+  {
+   "id": "shipscout",
+   "name": "Cutter",
+   "description": "Scout Ship (Disarming)",
+   "cost": 55,
+   "health": 260,
+   "speed": 156,
+   "sight": 800,
+   "icon": "shipscout.png",
+   "model": "shipscout.s3o",
+   "weapon": {
+    "damage": 70,
+    "range": 265,
+    "reload": 2
+   },
+   "factory": "Shipyard",
+   "factoryId": "factoryship"
+  },
+  {
+   "id": "tankheavyassault",
+   "name": "Cyclops",
+   "description": "Very Heavy Tank Buster",
+   "cost": 2200,
+   "health": 12000,
+   "speed": 57,
+   "sight": 540,
+   "icon": "tankheavyassault.png",
+   "model": "corgol_512.s3o",
+   "weapon": {
+    "damage": 1000.1,
+    "range": 450,
+    "reload": 3.5
+   },
+   "factory": "Tank Foundry",
+   "factoryId": "factorytank"
+  },
+  {
+   "id": "hoverraid",
+   "name": "Dagger",
+   "description": "Fast Attack Hovercraft (Anti-Sub)",
+   "cost": 80,
+   "health": 300,
+   "speed": 144,
+   "sight": 640,
+   "icon": "hoverraid.png",
+   "model": "corsh.s3o",
+   "weapon": {
+    "damage": 110.01,
+    "range": 212,
+    "reload": 2.8
+   },
+   "factory": "Hovercraft Platform",
+   "factoryId": "factoryhover"
+  },
+  {
+   "id": "hoverminer",
+   "name": "Dampener",
+   "description": "Minelaying Hover",
+   "cost": 200,
+   "health": 400,
+   "speed": 63,
+   "sight": 484,
+   "icon": "hoverminer.png",
+   "model": "hoverminer.s3o",
+   "weapon": {
+    "damage": 20,
+    "range": 300,
+    "reload": 5
+   }
+  },
+  {
+   "id": "striderdante",
+   "name": "Dante",
+   "description": "Assault/Riot Strider",
+   "cost": 3500,
+   "health": 15000,
+   "speed": 57,
+   "sight": 600,
+   "icon": "striderdante.png",
+   "model": "dante.s3o",
+   "weapon": {
+    "damage": 100,
+    "range": 320,
+    "reload": 0.133
+   },
+   "factory": "Strider Hub",
+   "factoryId": "striderhub"
+  },
+  {
+   "id": "vehscout",
+   "name": "Dart",
+   "description": "Disruptor Raider/Scout Rover",
+   "cost": 40,
+   "health": 120,
+   "speed": 152.7,
+   "sight": 660,
+   "icon": "vehscout.png",
+   "model": "vehscout.s3o",
+   "weapon": {
+    "damage": 32,
+    "range": 150,
+    "reload": 1
+   },
+   "factory": "Rover Assembly",
+   "factoryId": "factoryveh"
+  },
+  {
+   "id": "turretheavy",
+   "name": "Desolator",
+   "description": "Medium Range Defence Fortress - Power by connecting to a 50 energy grid",
+   "cost": 1500,
+   "health": 10000,
+   "sight": 763,
+   "icon": "turretheavy.png",
+   "model": "DDM.s3o",
+   "weapon": {
+    "damage": 430,
+    "range": 417,
+    "reload": 0.1
+   }
+  },
+  {
+   "id": "striderdetriment",
+   "name": "Detriment",
+   "description": "Ultimate Assault Strider (Undersea Fire)",
+   "cost": 21000,
+   "health": 76000,
+   "speed": 36,
+   "sight": 900,
+   "icon": "striderdetriment.png",
+   "model": "detriment.s3o",
+   "weapon": {
+    "damage": 4000,
+    "range": 550,
+    "reload": 2
+   },
+   "factory": "Strider Hub",
+   "factoryId": "striderhub"
+  },
+  {
+   "id": "chicken_digger",
+   "name": "Digger",
+   "description": "Burrowing Scout/Raider",
+   "cost": 0,
+   "health": 180,
+   "speed": 90,
+   "sight": 256,
+   "icon": "chicken_digger.png",
+   "model": "chicken_digger.s3o",
+   "weapon": {
+    "damage": 60,
+    "range": 60,
+    "reload": 1.2
+   },
+   "factory": "Chicken Brood Queen",
+   "factoryId": "chickenbroodqueen"
+  },
+  {
+   "id": "shieldscout",
+   "name": "Dirtbag",
+   "description": "Box of Dirt",
+   "cost": 30,
+   "health": 560,
+   "speed": 84,
+   "sight": 600,
+   "icon": "shieldscout.png",
+   "model": "clogger.s3o",
+   "weapon": {
+    "damage": 10000,
+    "range": 50,
+    "reload": 1.9
+   },
+   "factory": "Shieldbot Factory",
+   "factoryId": "factoryshield"
+  },
+  {
+   "id": "raveparty",
+   "name": "Disco Rave Party",
+   "description": "Destructive Rainbow Projector",
+   "cost": 45000,
+   "health": 8000,
+   "sight": 660,
+   "icon": "raveparty.png",
+   "model": "raveparty.s3o",
+   "weapon": {
+    "damage": 9600,
+    "range": 9600,
+    "reload": 3.5
+   }
+  },
+  {
+   "id": "amphtele",
+   "name": "Djinn",
+   "description": "Amphibious Teleport Bridge",
+   "cost": 750,
+   "health": 2500,
+   "speed": 75,
+   "sight": 300,
+   "icon": "amphtele.png",
+   "model": "amphteleport.s3o",
+   "factory": "Amphbot Factory",
+   "factoryId": "factoryamph"
+  },
+  {
+   "id": "chicken_dodo",
+   "name": "Dodo",
+   "description": "Chicken Bomb",
+   "cost": 0,
+   "health": 200,
+   "speed": 210,
+   "sight": 256,
+   "icon": "chicken_dodo.png",
+   "model": "chicken_dodo.s3o",
+   "weapon": {
+    "damage": 500
+   },
+   "factory": "Chicken Brood Queen",
+   "factoryId": "chickenbroodqueen"
+  },
+  {
+   "id": "vehcapture",
+   "name": "Dominatrix",
+   "description": "Capture Rover",
+   "cost": 420,
+   "health": 820,
+   "speed": 58.5,
+   "sight": 550,
+   "icon": "vehcapture.png",
+   "model": "corvrad_big.s3o",
+   "weapon": {
+    "damage": 30,
+    "range": 450,
+    "reload": 1
+   },
+   "factory": "Rover Assembly",
+   "factoryId": "factoryveh"
+  },
+  {
+   "id": "striderdozer",
+   "name": "Dozer",
+   "description": "Heavy Buster, Very Tank",
+   "cost": 2200,
+   "health": 12000,
+   "speed": 57,
+   "sight": 540,
+   "icon": "tankheavyassault.png",
+   "model": "terraTank.s3o",
+   "weapon": {
+    "damage": 400,
+    "range": 800,
+    "reload": 0.2
+   }
+  },
+  {
+   "id": "chicken_drone",
+   "name": "Drone",
+   "description": "Morphs Into Chicken Structures",
+   "cost": 0,
+   "health": 170,
+   "speed": 54,
+   "sight": 256,
+   "icon": "chicken_drone.png",
+   "model": "chicken_drone.s3o",
+   "factory": "Chicken Brood Queen",
+   "factoryId": "chickenbroodqueen"
+  },
+  {
+   "id": "chicken_drone_starter",
+   "name": "Drone",
+   "description": "Morphs Into Chicken Structures",
+   "cost": 0,
+   "health": 170,
+   "speed": 54,
+   "sight": 256,
+   "icon": "chicken_drone_starter.png",
+   "model": "chicken_drone.s3o"
+  },
+  {
+   "id": "amphraid",
+   "name": "Duck",
+   "description": "Amphibious Raider (Anti-Sub, Undersea Fire)",
+   "cost": 80,
+   "health": 360,
+   "speed": 93,
+   "sight": 560,
+   "icon": "amphraid.png",
+   "model": "amphraider3.s3o",
+   "weapon": {
+    "damage": 130.01,
+    "range": 232,
+    "reload": 2
+   },
+   "factory": "Amphbot Factory",
+   "factoryId": "factoryamph"
+  },
+  {
+   "id": "tankarty",
+   "name": "Emissary",
+   "description": "General-Purpose Artillery",
+   "cost": 700,
+   "health": 840,
+   "speed": 63,
+   "sight": 660,
+   "icon": "tankarty.png",
+   "model": "cormart.s3o",
+   "weapon": {
+    "damage": 600.5,
+    "range": 1150,
+    "reload": 7
+   },
+   "factory": "Tank Foundry",
+   "factoryId": "factorytank"
+  },
+  {
+   "id": "energypylon",
+   "name": "Energy Pylon",
+   "description": "Extends overdrive grid",
+   "cost": 200,
+   "health": 1000,
+   "sight": 273,
+   "icon": "energypylon.png",
+   "model": "armestor.s3o"
+  },
+  {
+   "id": "dynsupport1",
+   "name": "Engineer Commander",
+   "description": "Econ/Support Commander",
+   "cost": 1200,
+   "health": 3800,
+   "speed": 36,
+   "sight": 500,
+   "icon": "commsupport.png",
+   "model": "commsupport.s3o"
+  },
+  {
+   "id": "shiparty",
+   "name": "Envoy",
+   "description": "Artillery Cruiser",
+   "cost": 1200,
+   "health": 2600,
+   "speed": 51,
+   "sight": 660,
+   "icon": "shiparty.png",
+   "model": "shiparty.s3o",
+   "weapon": {
+    "damage": 1200,
+    "range": 1200,
+    "reload": 7.3
+   },
+   "factory": "Shipyard",
+   "factoryId": "factoryship"
+  },
+  {
+   "id": "tacnuke",
+   "name": "Eos",
+   "description": "Tactical Nuke",
+   "cost": 600,
+   "health": 1000,
+   "sight": 0,
+   "icon": "tacnuke.png",
+   "model": "wep_tacnuke.s3o",
+   "weapon": {
+    "damage": 3502.4,
+    "range": 3500,
+    "reload": 10
+   },
+   "factory": "Missile Silo",
+   "factoryId": "staticmissilesilo"
+  },
+  {
+   "id": "tankaa",
+   "name": "Ettin",
+   "description": "Flak Anti-Air Tank",
+   "cost": 500,
+   "health": 1400,
+   "speed": 96,
+   "sight": 660,
+   "icon": "tankaa.png",
+   "model": "corsent.s3o",
+   "weapon": {
+    "damage": 900,
+    "range": 900,
+    "reload": 0.4
+   },
+   "factory": "Tank Foundry",
+   "factoryId": "factorytank"
+  },
+  {
+   "id": "turretemp",
+   "name": "Faraday",
+   "description": "EMP Turret",
+   "cost": 260,
+   "health": 1600,
+   "sight": 554,
+   "icon": "turretemp.png",
+   "model": "armartic.s3o",
+   "weapon": {
+    "damage": 1100,
+    "range": 460,
+    "reload": 2.9
+   }
+  },
+  {
+   "id": "shieldfelon",
+   "name": "Felon",
+   "description": "Shielded Riot/Skirmisher Bot",
+   "cost": 620,
+   "health": 1600,
+   "speed": 43.5,
+   "sight": 520,
+   "icon": "shieldfelon.png",
+   "model": "shieldfelon.s3o",
+   "weapon": {
+    "damage": 1800,
+    "range": 435,
+    "reload": 0.166
+   },
+   "factory": "Shieldbot Factory",
+   "factoryId": "factoryshield"
+  },
+  {
+   "id": "vehsupport",
+   "name": "Fencer",
+   "description": "Deployable Missile Rover (must stop to fire)",
+   "cost": 145,
+   "health": 530,
+   "speed": 84,
+   "sight": 660,
+   "icon": "vehsupport.png",
+   "model": "cormist_512.s3o",
+   "weapon": {
+    "damage": 70,
+    "range": 600,
+    "reload": 0.766
+   },
+   "factory": "Rover Assembly",
+   "factoryId": "factoryveh"
+  },
+  {
+   "id": "dronelight",
+   "name": "Firefly",
+   "description": "Attack Drone",
+   "cost": 20,
+   "health": 180,
+   "speed": 210,
+   "sight": 500,
+   "icon": "dronelight.png",
+   "model": "attackdrone.s3o",
+   "weapon": {
+    "damage": 150,
+    "range": 150,
+    "reload": 0.8
+   }
+  },
+  {
+   "id": "jumparty",
+   "name": "Firewalker",
+   "description": "Saturation Artillery Walker",
+   "cost": 900,
+   "health": 1250,
+   "speed": 42,
+   "sight": 660,
+   "icon": "jumparty.png",
+   "model": "firewalker.s3o",
+   "weapon": {
+    "damage": 300,
+    "range": 900,
+    "reload": 12
+   },
+   "factory": "Jumpbot Factory",
+   "factoryId": "factoryjump"
+  },
+  {
+   "id": "hoveraa",
+   "name": "Flail",
+   "description": "Anti-Air Hovercraft",
+   "cost": 300,
+   "health": 950,
+   "speed": 105,
+   "sight": 660,
+   "icon": "hoveraa.png",
+   "model": "hoveraa.s3o",
+   "weapon": {
+    "damage": 475,
+    "range": 820,
+    "reload": 5.4
+   },
+   "factory": "Hovercraft Platform",
+   "factoryId": "factoryhover"
+  },
+  {
+   "id": "spiderscout",
+   "name": "Flea",
+   "description": "Ultralight Scout Spider (Burrows)",
+   "cost": 25,
+   "health": 40,
+   "speed": 144,
+   "sight": 620,
+   "icon": "spiderscout.png",
+   "model": "arm_flea.s3o",
+   "weapon": {
+    "damage": 50,
+    "range": 150,
+    "reload": 0.233
+   },
+   "factory": "Spider Factory",
+   "factoryId": "factoryspider"
+  },
+  {
+   "id": "striderfunnelweb",
+   "name": "Funnelweb",
+   "description": "Shield Support Strider",
+   "cost": 4000,
+   "health": 4500,
+   "speed": 41,
+   "sight": 650,
+   "icon": "striderfunnelweb.png",
+   "model": "funnelweb.dae",
+   "weapon": {
+    "damage": 10
+   },
+   "factory": "Strider Hub",
+   "factoryId": "striderhub"
+  },
+  {
+   "id": "energyfusion",
+   "name": "Fusion Reactor",
+   "description": "Medium Powerplant",
+   "cost": 1000,
+   "health": 2200,
+   "sight": 273,
+   "icon": "energyfusion.png",
+   "model": "energyfusion.s3o"
+  },
+  {
+   "id": "turretgauss",
+   "name": "Gauss",
+   "description": "Popup gauss turret, regenerates when closed (Anti-Sub)",
+   "cost": 400,
+   "health": 3000,
+   "sight": 664,
+   "icon": "turretgauss.png",
+   "model": "gauss.dae",
+   "weapon": {
+    "damage": 200.1,
+    "range": 560,
+    "reload": 2.1
+   }
+  },
+  {
+   "id": "energygeo",
+   "name": "Geothermal Generator",
+   "description": "Medium Powerplant",
+   "cost": 500,
+   "health": 1750,
+   "sight": 273,
+   "icon": "energygeo.png",
+   "model": "geo.dae"
+  },
+  {
+   "id": "cloakraid",
+   "name": "Glaive",
+   "description": "Light Raider Bot",
+   "cost": 65,
+   "health": 230,
+   "speed": 115.5,
+   "sight": 560,
+   "icon": "cloakraid.png",
+   "model": "spherebot.s3o",
+   "weapon": {
+    "damage": 10.5,
+    "range": 185,
+    "reload": 0.3
+   },
+   "factory": "Cloakbot Factory",
+   "factoryId": "factorycloak"
+  },
+  {
+   "id": "starlight_satellite",
+   "name": "Glint",
+   "description": "Starlight relay satellite",
+   "cost": 300,
+   "health": 1500,
+   "speed": 0.03,
+   "sight": 0,
+   "icon": "satellite.png",
+   "model": "starlight_satellite.dae",
+   "weapon": {
+    "damage": 10500,
+    "range": 10500,
+    "reload": 20
+   }
+  },
+  {
+   "id": "gunshipemp",
+   "name": "Gnat",
+   "description": "Anti-Heavy EMP Drone",
+   "cost": 85,
+   "health": 440,
+   "speed": 225,
+   "sight": 380,
+   "icon": "gunshipemp.png",
+   "model": "marshmellow.s3o",
+   "weapon": {
+    "damage": 700,
+    "range": 160,
+    "reload": 1.2
+   },
+   "factory": "Gunship Plant",
+   "factoryId": "factorygunship"
+  },
+  {
+   "id": "grebe",
+   "name": "Grebe",
+   "description": "Amphibious Raider Bot",
+   "cost": 300,
+   "health": 900,
+   "speed": 72,
+   "sight": 500,
+   "icon": "grebe.png",
+   "model": "amphraider.s3o",
+   "weapon": {
+    "damage": 240,
+    "range": 360,
+    "reload": 3
+   }
+  },
+  {
+   "id": "cloakaa",
+   "name": "Gremlin",
+   "description": "Cloaked Anti-Air Bot",
+   "cost": 120,
+   "health": 550,
+   "speed": 93,
+   "sight": 760,
+   "icon": "cloakaa.png",
+   "model": "spherejeth.s3o",
+   "weapon": {
+    "damage": 720,
+    "range": 720,
+    "reload": 0.3
+   },
+   "factory": "Cloakbot Factory",
+   "factoryId": "factorycloak"
+  },
+  {
+   "id": "amphassault",
+   "name": "Grizzly",
+   "description": "Heavy Amphibious Assault Walker",
+   "cost": 1900,
+   "health": 8700,
+   "speed": 45,
+   "sight": 660,
+   "icon": "amphassault.png",
+   "model": "amphassault.s3o",
+   "weapon": {
+    "damage": 8192,
+    "range": 600,
+    "reload": 6
+   },
+   "factory": "Amphbot Factory",
+   "factoryId": "factoryamph"
+  },
+  {
+   "id": "dynassault1",
+   "name": "Guardian Commander",
+   "description": "Heavy Combat Commander",
+   "cost": 1200,
+   "health": 4400,
+   "speed": 40.5,
+   "sight": 500,
+   "icon": "benzcom.png",
+   "model": "benzcom1.s3o"
+  },
+  {
+   "id": "dronecarry",
+   "name": "Gull",
+   "description": "Carrier Drone",
+   "cost": 15,
+   "health": 260,
+   "speed": 256.8,
+   "sight": 500,
+   "icon": "dronecarry.png",
+   "model": "carrydrone.s3o",
+   "weapon": {
+    "damage": 30,
+    "range": 250,
+    "reload": 1
+   }
+  },
+  {
+   "id": "factorygunship",
+   "name": "Gunship Plant",
+   "description": "Produces Gunships",
+   "health": 4000,
+   "sight": 273,
+   "icon": "factorygunship.png",
+   "model": "factorygunship.s3o"
+  },
+  {
+   "id": "plategunship",
+   "name": "Gunship Plate",
+   "description": "Parallel Unit Production",
+   "sight": 273,
+   "icon": "plategunship.png",
+   "model": "plate_gunship.s3o"
+  },
+  {
+   "id": "turretaaclose",
+   "name": "Hacksaw",
+   "description": "Burst Anti-Air Turret",
+   "cost": 210,
+   "health": 580,
+   "sight": 560,
+   "icon": "turretaaclose.png",
+   "model": "turretaaclose.s3o",
+   "weapon": {
+    "damage": 700.1,
+    "range": 490,
+    "reload": 0.2
+   }
+  },
+  {
+   "id": "hoverassault",
+   "name": "Halberd",
+   "description": "Blockade Runner Hover",
+   "cost": 210,
+   "health": 1450,
+   "speed": 96,
+   "sight": 385,
+   "icon": "hoverassault.png",
+   "model": "hoverassault.s3o",
+   "weapon": {
+    "damage": 160.1,
+    "range": 200,
+    "reload": 1.2
+   },
+   "factory": "Hovercraft Platform",
+   "factoryId": "factoryhover"
+  },
+  {
+   "id": "gunshipskirm",
+   "name": "Harpy",
+   "description": "Multi-Role Support Gunship",
+   "cost": 300,
+   "health": 1250,
+   "speed": 114,
+   "sight": 550,
+   "icon": "gunshipskirm.png",
+   "model": "rapier.s3o",
+   "weapon": {
+    "damage": 220.1,
+    "range": 360,
+    "reload": 5
+   },
+   "factory": "Gunship Plant",
+   "factoryId": "factorygunship"
+  },
+  {
+   "id": "gunshipheavytrans",
+   "name": "Hercules",
+   "description": "Armed Heavy Air Transport",
+   "cost": 750,
+   "health": 1800,
+   "speed": 270,
+   "sight": 660,
+   "icon": "gunshipheavytrans.png",
+   "model": "largeTransport.s3o",
+   "weapon": {
+    "damage": 50,
+    "range": 312,
+    "reload": 0.2
+   },
+   "factory": "Gunship Plant",
+   "factoryId": "factorygunship"
+  },
+  {
+   "id": "spiderassault",
+   "name": "Hermit",
+   "description": "All Terrain Assault Bot",
+   "cost": 145,
+   "health": 1550,
+   "speed": 54,
+   "sight": 420,
+   "icon": "spiderassault.png",
+   "model": "hermit.s3o",
+   "weapon": {
+    "damage": 350,
+    "range": 350,
+    "reload": 2.6
+   },
+   "factory": "Spider Factory",
+   "factoryId": "factoryspider"
+  },
+  {
+   "id": "platehover",
+   "name": "Hovercraft Plate",
+   "description": "Parallel Unit Production",
+   "sight": 273,
+   "icon": "platehover.png",
+   "model": "plate_hover.s3o"
+  },
+  {
+   "id": "factoryhover",
+   "name": "Hovercraft Platform",
+   "description": "Produces Hovercraft",
+   "health": 4000,
+   "sight": 273,
+   "icon": "factoryhover.png",
+   "model": "factoryhover.s3o"
+  },
+  {
+   "id": "shiptorpraider",
+   "name": "Hunter",
+   "description": "Torpedo Raider Ship (Anti-Sub)",
+   "cost": 100,
+   "health": 360,
+   "speed": 126,
+   "sight": 560,
+   "icon": "shiptorpraider.png",
+   "model": "shiptorpraider.dae",
+   "weapon": {
+    "damage": 220.1,
+    "range": 240,
+    "reload": 2.6
+   },
+   "factory": "Shipyard",
+   "factoryId": "factoryship"
+  },
+  {
+   "id": "cloakbomb",
+   "name": "Imp",
+   "description": "All Terrain EMP Bomb (Burrows)",
+   "cost": 125,
+   "health": 50,
+   "speed": 126,
+   "sight": 240,
+   "icon": "cloakbomb.png",
+   "model": "armtick.s3o",
+   "weapon": {
+    "damage": 2500
+   },
+   "factory": "Cloakbot Factory",
+   "factoryId": "factorycloak"
+  },
+  {
+   "id": "vehheavyarty",
+   "name": "Impaler",
+   "description": "Precision Artillery Rover",
+   "cost": 700,
+   "health": 1100,
+   "speed": 60,
+   "sight": 660,
+   "icon": "vehheavyarty.png",
+   "model": "core_diplomat.s3o",
+   "weapon": {
+    "damage": 800.1,
+    "range": 1500,
+    "reload": 10
+   },
+   "factory": "Rover Assembly",
+   "factoryId": "factoryveh"
+  },
+  {
+   "id": "napalmmissile",
+   "name": "Inferno",
+   "description": "Napalm Missile",
+   "cost": 500,
+   "health": 1000,
+   "sight": 0,
+   "icon": "napalmmissile.png",
+   "model": "wep_napalm.s3o",
+   "weapon": {
+    "damage": 220,
+    "range": 3500,
+    "reload": 10
+   },
+   "factory": "Missile Silo",
+   "factoryId": "staticmissilesilo"
+  },
+  {
+   "id": "cloakjammer",
+   "name": "Iris",
+   "description": "Area Cloaker/Jammer Walker",
+   "cost": 600,
+   "health": 600,
+   "speed": 54,
+   "sight": 400,
+   "icon": "cloakjammer.png",
+   "model": "spherecloaker.s3o",
+   "factory": "Cloakbot Factory",
+   "factoryId": "factorycloak"
+  },
+  {
+   "id": "jumpassault",
+   "name": "Jack",
+   "description": "Melee Assault Jumper",
+   "cost": 600,
+   "health": 6000,
+   "speed": 54.3,
+   "sight": 350,
+   "icon": "jumpassault.png",
+   "model": "corcan.s3o",
+   "weapon": {
+    "damage": 10000,
+    "range": 122,
+    "reload": 1
+   },
+   "factory": "Jumpbot Factory",
+   "factoryId": "factoryjump"
+  },
+  {
+   "id": "jumpsumo",
+   "name": "Jugglenaut",
+   "description": "Heavy Riot Jumper",
+   "cost": 1700,
+   "health": 13500,
+   "speed": 34.5,
+   "sight": 480,
+   "icon": "jumpsumo.png",
+   "model": "m-9.s3o",
+   "weapon": {
+    "damage": 70,
+    "range": 440,
+    "reload": 0.1
+   },
+   "factory": "Jumpbot Factory",
+   "factoryId": "factoryjump"
+  },
+  {
+   "id": "factoryjump",
+   "name": "Jumpbot Factory",
+   "description": "Produces Jumpjet Equipped Robots",
+   "health": 4000,
+   "sight": 273,
+   "icon": "factoryjump.png",
+   "model": "factoryjump.s3o"
+  },
+  {
+   "id": "platejump",
+   "name": "Jumpbot Plate",
+   "description": "Parallel Unit Production",
+   "sight": 273,
+   "icon": "platejump.png",
+   "model": "plate_jump.s3o"
+  },
+  {
+   "id": "cloakassault",
+   "name": "Knight",
+   "description": "Lightning Assault Bot",
+   "cost": 350,
+   "health": 2500,
+   "speed": 51,
+   "sight": 385,
+   "icon": "cloakassault.png",
+   "model": "spherezeus.s3o",
+   "weapon": {
+    "damage": 230,
+    "range": 340,
+    "reload": 2.2
+   },
+   "factory": "Cloakbot Factory",
+   "factoryId": "factorycloak"
+  },
+  {
+   "id": "tankraid",
+   "name": "Kodachi",
+   "description": "Raider Tank",
+   "cost": 170,
+   "health": 660,
+   "speed": 106.5,
+   "sight": 600,
+   "icon": "tankraid.png",
+   "model": "logkoda.s3o",
+   "weapon": {
+    "damage": 90,
+    "range": 210,
+    "reload": 0.5
+   },
+   "factory": "Tank Foundry",
+   "factoryId": "factorytank"
+  },
+  {
+   "id": "gunshipkrow",
+   "name": "Krow",
+   "description": "Flying Fortress",
+   "cost": 4200,
+   "health": 16000,
+   "speed": 99,
+   "sight": 633,
+   "icon": "gunshipkrow.png",
+   "model": "krow.s3o",
+   "weapon": {
+    "damage": 8192,
+    "range": 395,
+    "reload": 0.4
+   },
+   "factory": "Gunship Plant",
+   "factoryId": "factorygunship"
+  },
+  {
+   "id": "tele_beacon",
+   "name": "Lamp",
+   "description": "Teleport Bridge Entry Beacon, right click to teleport.",
+   "cost": 100,
+   "health": 1500,
+   "sight": 0,
+   "icon": "tele_beacon.png",
+   "model": "amphteleportbeacon.s3o"
+  },
+  {
+   "id": "hoverarty",
+   "name": "Lance",
+   "description": "Anti-Heavy Artillery Hovercraft",
+   "cost": 1100,
+   "health": 1000,
+   "speed": 49.5,
+   "sight": 660,
+   "icon": "hoverarty.png",
+   "model": "penetrator_lordmuffe.s3o",
+   "weapon": {
+    "damage": 8192,
+    "range": 980,
+    "reload": 23
+   },
+   "factory": "Hovercraft Platform",
+   "factoryId": "factoryhover"
+  },
+  {
+   "id": "subscout",
+   "name": "Lancelet",
+   "description": "Scout/Suicide Minisub",
+   "cost": 200,
+   "health": 200,
+   "speed": 114,
+   "sight": 550,
+   "icon": "subscout.png",
+   "model": "subscout.s3o",
+   "weapon": {
+    "damage": 1500,
+    "range": 200,
+    "reload": 3.6
+   }
+  },
+  {
+   "id": "chicken_leaper",
+   "name": "Leaper",
+   "description": "Hopping Raider",
+   "cost": 0,
+   "health": 720,
+   "speed": 120,
+   "sight": 256,
+   "icon": "chicken_leaper.png",
+   "model": "chicken_leaper.s3o",
+   "weapon": {
+    "damage": 8000,
+    "range": 100,
+    "reload": 1
+   },
+   "factory": "Chicken Brood Queen",
+   "factoryId": "chickenbroodqueen"
+  },
+  {
+   "id": "bomberheavy",
+   "name": "Likho",
+   "description": "Singularity Bomber",
+   "cost": 2000,
+   "health": 2360,
+   "speed": 270,
+   "sight": 780,
+   "icon": "bomberheavy.png",
+   "model": "bomberheavy.dae",
+   "weapon": {
+    "damage": 2000.1,
+    "range": 500,
+    "reload": 1
+   },
+   "factory": "Airplane Plant",
+   "factoryId": "factoryplane"
+  },
+  {
+   "id": "bomberheavyold",
+   "name": "Likho",
+   "description": "Singularity Bomber",
+   "cost": 2000,
+   "health": 2360,
+   "speed": 270,
+   "sight": 780,
+   "icon": "bomberheavy.png",
+   "model": "armcybr.s3o",
+   "weapon": {
+    "damage": 2000.1,
+    "range": 500,
+    "reload": 1
+   }
+  },
+  {
+   "id": "amphbomb",
+   "name": "Limpet",
+   "description": "Amphibious Slow Bomb",
+   "cost": 160,
+   "health": 400,
+   "speed": 120,
+   "sight": 240,
+   "icon": "AMPHBOMB.png",
+   "model": "amphbomb.s3o",
+   "weapon": {
+    "damage": 120.1
+   },
+   "factory": "Amphbot Factory",
+   "factoryId": "factoryamph"
+  },
+  {
+   "id": "chicken_listener",
+   "name": "Listener",
+   "description": "Burrowing Mobile Seismic Detector",
+   "cost": 0,
+   "health": 700,
+   "speed": 18,
+   "sight": 700,
+   "icon": "chicken_listener.png",
+   "model": "chicken_listener.s3o",
+   "factory": "Chicken Brood Queen",
+   "factoryId": "chickenbroodqueen"
+  },
+  {
+   "id": "chickenr",
+   "name": "Lobber",
+   "description": "Artillery",
+   "cost": 0,
+   "health": 500,
+   "speed": 54,
+   "sight": 1000,
+   "icon": "chickenr.png",
+   "model": "chickenr.s3o",
+   "weapon": {
+    "damage": 950,
+    "range": 950,
+    "reload": 6
+   },
+   "factory": "Chicken Brood Queen",
+   "factoryId": "chickenbroodqueen"
+  },
+  {
+   "id": "amphlaunch",
+   "name": "Lobster",
+   "description": "Amphibious Launcher Bot",
+   "cost": 350,
+   "health": 960,
+   "speed": 54,
+   "sight": 500,
+   "icon": "amphlaunch.png",
+   "model": "behecrash.s3o",
+   "weapon": {
+    "damage": 620,
+    "range": 620,
+    "reload": 18
+   },
+   "factory": "Amphbot Factory",
+   "factoryId": "factoryamph"
+  },
+  {
+   "id": "gunshipraid",
+   "name": "Locust",
+   "description": "Raider Gunship",
+   "cost": 220,
+   "health": 800,
+   "speed": 250,
+   "sight": 560,
+   "icon": "gunshipraid.png",
+   "model": "banshee.s3o",
+   "weapon": {
+    "damage": 8.1,
+    "range": 260,
+    "reload": 4
+   },
+   "factory": "Gunship Plant",
+   "factoryId": "factorygunship"
+  },
+  {
+   "id": "turretlaser",
+   "name": "Lotus",
+   "description": "Light Laser Tower",
+   "cost": 90,
+   "health": 785,
+   "sight": 554,
+   "icon": "turretlaser.png",
+   "model": "lotustest2.s3o",
+   "weapon": {
+    "damage": 30,
+    "range": 460,
+    "reload": 0.1
+   }
+  },
+  {
+   "id": "turretantiheavy",
+   "name": "Lucifer",
+   "description": "Tachyon Projector - Power by connecting to a 50 energy grid",
+   "cost": 2200,
+   "health": 6000,
+   "sight": 1280,
+   "icon": "turretantiheavy.png",
+   "model": "arm_annihilator.s3o",
+   "weapon": {
+    "damage": 8192,
+    "range": 1200,
+    "reload": 10
+   }
+  },
+  {
+   "id": "hoverriot",
+   "name": "Mace",
+   "description": "Riot Hover",
+   "cost": 400,
+   "health": 1400,
+   "speed": 61.5,
+   "sight": 431,
+   "icon": "hoverriot.png",
+   "model": "hoverriot.s3o",
+   "weapon": {
+    "damage": 32.65,
+    "range": 345,
+    "reload": 0.1
+   },
+   "factory": "Hovercraft Platform",
+   "factoryId": "factoryhover"
+  },
+  {
+   "id": "bomberstrike",
+   "name": "Magpie",
+   "description": "Tactical Strike Bomber",
+   "cost": 200,
+   "health": 440,
+   "speed": 234,
+   "sight": 780,
+   "icon": "bomberstrike.png",
+   "model": "bomberstrike.s3o",
+   "weapon": {
+    "damage": 180,
+    "range": 660,
+    "reload": 1
+   },
+   "factory": "Airplane Plant",
+   "factoryId": "factoryplane"
+  },
+  {
+   "id": "shipcon",
+   "name": "Mariner",
+   "description": "Construction Ship",
+   "cost": 170,
+   "health": 1400,
+   "speed": 75,
+   "sight": 375,
+   "icon": "shipcon.png",
+   "model": "shipcon.s3o",
+   "factory": "Shipyard",
+   "factoryId": "factoryship"
+  },
+  {
+   "id": "vehcon",
+   "name": "Mason",
+   "description": "Construction Rover",
+   "cost": 120,
+   "health": 1000,
+   "speed": 69,
+   "sight": 300,
+   "icon": "vehcon.png",
+   "model": "corcv.s3o",
+   "factory": "Rover Assembly",
+   "factoryId": "factoryveh"
+  },
+  {
+   "id": "striderarty",
+   "name": "Merlin",
+   "description": "Heavy Saturation Artillery Strider",
+   "cost": 3500,
+   "health": 3140,
+   "speed": 36,
+   "sight": 660,
+   "icon": "striderarty.png",
+   "model": "catapult.s3o",
+   "weapon": {
+    "damage": 220.5,
+    "range": 1450,
+    "reload": 30
+   },
+   "factory": "Strider Hub",
+   "factoryId": "striderhub"
+  },
+  {
+   "id": "staticmex",
+   "name": "Metal Extractor",
+   "description": "Produces Metal",
+   "cost": 85,
+   "health": 560,
+   "sight": 273,
+   "icon": "staticmex.png",
+   "model": "AMETALEXTRACTORLVL1.S3O"
+  },
+  {
+   "id": "tankassault",
+   "name": "Minotaur",
+   "description": "Assault Tank",
+   "cost": 850,
+   "health": 7200,
+   "speed": 73.5,
+   "sight": 506,
+   "icon": "tankassault.png",
+   "model": "correap.s3o",
+   "weapon": {
+    "damage": 360,
+    "range": 360,
+    "reload": 4
+   },
+   "factory": "Tank Foundry",
+   "factoryId": "factorytank"
+  },
+  {
+   "id": "staticmissilesilo",
+   "name": "Missile Silo",
+   "description": "Produces Tactical Missiles",
+   "cost": 1200,
+   "health": 4000,
+   "sight": 273,
+   "icon": "staticmissilesilo.png",
+   "model": "missilesilo.s3o"
+  },
+  {
+   "id": "shipskirm",
+   "name": "Mistral",
+   "description": "Skirmisher Ship",
+   "cost": 220,
+   "health": 650,
+   "speed": 63,
+   "sight": 720,
+   "icon": "shipskirm.png",
+   "model": "shipskirm.s3o",
+   "weapon": {
+    "damage": 610,
+    "range": 610,
+    "reload": 7.5
+   },
+   "factory": "Shipyard",
+   "factoryId": "factoryship"
+  },
+  {
+   "id": "jumpskirm",
+   "name": "Moderator",
+   "description": "Disruptor Skirmisher Walker",
+   "cost": 240,
+   "health": 480,
+   "speed": 57,
+   "sight": 473,
+   "icon": "jumpskirm.png",
+   "model": "CORMORT.s3o",
+   "weapon": {
+    "damage": 460.1,
+    "range": 420,
+    "reload": 10
+   },
+   "factory": "Jumpbot Factory",
+   "factoryId": "factoryjump"
+  },
+  {
+   "id": "hoversonic",
+   "name": "Morningstar",
+   "description": "Antisub Hovercraft",
+   "cost": 300,
+   "health": 900,
+   "speed": 90,
+   "sight": 385,
+   "icon": "hoversonic.png",
+   "model": "hovershotgun.s3o",
+   "weapon": {
+    "damage": 175,
+    "range": 303,
+    "reload": 1.1
+   }
+  },
+  {
+   "id": "nebula",
+   "name": "Nebula",
+   "description": "Atmospheric Mothership",
+   "cost": 8000,
+   "health": 11000,
+   "speed": 99,
+   "sight": 633,
+   "icon": "nebula.png",
+   "model": "nebula.s3o",
+   "weapon": {
+    "damage": 450,
+    "range": 450,
+    "reload": 0.4
+   }
+  },
+  {
+   "id": "neebcomm",
+   "name": "Neeb Comm",
+   "description": "Ugly Turkey",
+   "cost": 1200,
+   "health": 2000,
+   "speed": 36,
+   "sight": 500,
+   "icon": "chickenbroodqueen.png",
+   "model": "chickenbroodqueen.s3o"
+  },
+  {
+   "id": "turretimpulse",
+   "name": "Newton",
+   "description": "Gravity Turret",
+   "cost": 200,
+   "health": 2000,
+   "sight": 554,
+   "icon": "turretimpulse.png",
+   "model": "corgrav.s3o",
+   "weapon": {
+    "damage": 0.7,
+    "range": 440,
+    "reload": 0.2
+   }
+  },
+  {
+   "id": "gunshipheavyskirm",
+   "name": "Nimbus",
+   "description": "Fire Support Gunship",
+   "cost": 760,
+   "health": 2800,
+   "speed": 99,
+   "sight": 740,
+   "icon": "gunshipheavyskirm.png",
+   "model": "stingray.s3o",
+   "weapon": {
+    "damage": 70,
+    "range": 600,
+    "reload": 0.433
+   },
+   "factory": "Gunship Plant",
+   "factoryId": "factorygunship"
+  },
+  {
+   "id": "bomberassault",
+   "name": "Odin",
+   "description": "Assault Bomber (Anti-Static)",
+   "cost": 1500,
+   "health": 5200,
+   "speed": 185,
+   "sight": 660,
+   "icon": "bomberassault.png",
+   "model": "zeppelin.dae",
+   "weapon": {
+    "damage": 2500,
+    "range": 180,
+    "reload": 1
+   },
+   "factory": "Airplane Plant",
+   "factoryId": "factoryplane"
+  },
+  {
+   "id": "tankriot",
+   "name": "Ogre",
+   "description": "Heavy Riot Support Tank",
+   "cost": 500,
+   "health": 1950,
+   "speed": 69,
+   "sight": 400,
+   "icon": "tankriot.png",
+   "model": "corbanish.s3o",
+   "weapon": {
+    "damage": 240.1,
+    "range": 320,
+    "reload": 0.3
+   },
+   "factory": "Tank Foundry",
+   "factoryId": "factorytank"
+  },
+  {
+   "id": "shieldriot",
+   "name": "Outlaw",
+   "description": "Riot Bot",
+   "cost": 250,
+   "health": 1100,
+   "speed": 60,
+   "sight": 347,
+   "icon": "shieldriot.png",
+   "model": "behethud.s3o",
+   "weapon": {
+    "damage": 30,
+    "range": 300,
+    "reload": 0.933
+   },
+   "factory": "Shieldbot Factory",
+   "factoryId": "factoryshield"
+  },
+  {
+   "id": "planescout",
+   "name": "Owl",
+   "description": "Radar/Sonar Scout Plane",
+   "cost": 340,
+   "health": 950,
+   "speed": 360,
+   "sight": 1400,
+   "icon": "planescout.png",
+   "model": "armpnix.s3o",
+   "factory": "Airplane Plant",
+   "factoryId": "factoryplane"
+  },
+  {
+   "id": "striderbantha",
+   "name": "Paladin",
+   "description": "Ranged Support Strider",
+   "cost": 10000,
+   "health": 32000,
+   "speed": 43.5,
+   "sight": 720,
+   "icon": "striderbantha.png",
+   "model": "Bantha.s3o",
+   "weapon": {
+    "damage": 3000.1,
+    "range": 950,
+    "reload": 10
+   },
+   "factory": "Strider Hub",
+   "factoryId": "striderhub"
+  },
+  {
+   "id": "statictempshield",
+   "name": "Pavise",
+   "description": "Temporary Shield",
+   "cost": 10,
+   "health": 500,
+   "sight": 240,
+   "icon": "statictempshield.png",
+   "model": "m-8_deploy.s3o",
+   "weapon": {
+    "damage": 3400
+   }
+  },
+  {
+   "id": "cloaksnipe",
+   "name": "Phantom",
+   "description": "Cloaked Skirmish/Anti-Heavy Artillery Bot",
+   "cost": 750,
+   "health": 560,
+   "speed": 42,
+   "sight": 400,
+   "icon": "cloaksnipe.png",
+   "model": "sharpshooter.s3o",
+   "weapon": {
+    "damage": 1500.1,
+    "range": 700,
+    "reload": 17
+   },
+   "factory": "Cloakbot Factory",
+   "factoryId": "factorycloak"
+  },
+  {
+   "id": "bomberriot",
+   "name": "Phoenix",
+   "description": "Saturation Napalm Bomber",
+   "cost": 520,
+   "health": 1400,
+   "speed": 231,
+   "sight": 780,
+   "icon": "bomberriot.png",
+   "model": "firestorm.s3o",
+   "weapon": {
+    "damage": 250,
+    "reload": 1
+   },
+   "factory": "Airplane Plant",
+   "factoryId": "factoryplane"
+  },
+  {
+   "id": "turretmissile",
+   "name": "Picket",
+   "description": "Light Missile Tower",
+   "cost": 95,
+   "health": 375,
+   "sight": 719,
+   "icon": "turretmissile.png",
+   "model": "lmt2.s3o",
+   "weapon": {
+    "damage": 104.001,
+    "range": 610,
+    "reload": 1.2
+   }
+  },
+  {
+   "id": "chicken_pigeon",
+   "name": "Pigeon",
+   "description": "Flying Spore Scout",
+   "cost": 0,
+   "health": 150,
+   "speed": 300,
+   "sight": 512,
+   "icon": "chicken_pigeon.png",
+   "model": "chicken_pigeon.s3o",
+   "weapon": {
+    "damage": 1000,
+    "range": 10,
+    "reload": 2
+   },
+   "factory": "Chicken Brood Queen",
+   "factoryId": "chickenbroodqueen"
+  },
+  {
+   "id": "jumpblackhole",
+   "name": "Placeholder",
+   "description": "Black Hole Launcher",
+   "cost": 250,
+   "health": 900,
+   "speed": 60,
+   "sight": 605,
+   "icon": "jumpblackhole.png",
+   "model": "freaker.s3o",
+   "weapon": {
+    "damage": 150,
+    "range": 475,
+    "reload": 14
+   },
+   "factory": "Jumpbot Factory",
+   "factoryId": "factoryjump"
+  },
+  {
+   "id": "hovershotgun",
+   "name": "Punisher",
+   "description": "Shotgun Hover",
+   "cost": 300,
+   "health": 900,
+   "speed": 90,
+   "sight": 385,
+   "icon": "hovershotgun.png",
+   "model": "hovershotgun.s3o",
+   "weapon": {
+    "damage": 50,
+    "range": 235,
+    "reload": 3
+   }
+  },
+  {
+   "id": "jumpscout",
+   "name": "Puppy",
+   "description": "Walking Missile",
+   "cost": 45,
+   "health": 80,
+   "speed": 105,
+   "sight": 640,
+   "icon": "jumpscout.png",
+   "model": "puppy.s3o",
+   "weapon": {
+    "damage": 410.1,
+    "range": 170,
+    "reload": 1.5
+   },
+   "factory": "Jumpbot Factory",
+   "factoryId": "factoryjump"
+  },
+  {
+   "id": "jumpraid",
+   "name": "Pyro",
+   "description": "Raider/Riot Jumper",
+   "cost": 220,
+   "health": 690,
+   "speed": 90,
+   "sight": 560,
+   "icon": "jumpraid.png",
+   "model": "m-5.s3o",
+   "weapon": {
+    "damage": 100,
+    "range": 240,
+    "reload": 0.133
+   },
+   "factory": "Jumpbot Factory",
+   "factoryId": "factoryjump"
+  },
+  {
+   "id": "seismic",
+   "name": "Quake",
+   "description": "Seismic Missile",
+   "cost": 400,
+   "health": 1000,
+   "sight": 0,
+   "icon": "seismic.png",
+   "model": "wep_seismic.s3o",
+   "weapon": {
+    "damage": 100,
+    "range": 6000,
+    "reload": 10
+   },
+   "factory": "Missile Silo",
+   "factoryId": "staticmissilesilo"
+  },
+  {
+   "id": "hovercon",
+   "name": "Quill",
+   "description": "Construction Hovercraft",
+   "cost": 125,
+   "health": 960,
+   "speed": 87,
+   "sight": 300,
+   "icon": "hovercon.png",
+   "model": "corch.s3o",
+   "factory": "Hovercraft Platform",
+   "factoryId": "factoryhover"
+  },
+  {
+   "id": "shieldarty",
+   "name": "Racketeer",
+   "description": "Disarming Artillery",
+   "cost": 330,
+   "health": 780,
+   "speed": 52.5,
+   "sight": 325,
+   "icon": "SHIELDARTY.png",
+   "model": "dominator.s3o",
+   "weapon": {
+    "damage": 2500,
+    "range": 940,
+    "reload": 10
+   },
+   "factory": "Shieldbot Factory",
+   "factoryId": "factoryshield"
+  },
+  {
+   "id": "staticradar",
+   "name": "Radar Tower",
+   "description": "Early Warning System",
+   "cost": 55,
+   "health": 80,
+   "sight": 800,
+   "icon": "staticradar.png",
+   "model": "ARADARLVL1.s3o",
+   "factory": "Athena",
+   "factoryId": "athena"
+  },
+  {
+   "id": "chicken_rafflesia",
+   "name": "Rafflesia",
+   "description": "Chicken Shield (Static)",
+   "cost": 0,
+   "health": 500,
+   "sight": 512,
+   "icon": "chicken_rafflesia.png",
+   "model": "chicken_rafflesia.s3o",
+   "weapon": {
+    "damage": 2500
+   }
+  },
+  {
+   "id": "planeheavyfighter",
+   "name": "Raptor",
+   "description": "Air Superiority Fighter",
+   "cost": 300,
+   "health": 1100,
+   "speed": 228,
+   "sight": 750,
+   "icon": "planeheavyfighter.png",
+   "model": "fighter2.s3o",
+   "weapon": {
+    "damage": 800,
+    "range": 800,
+    "reload": 0.1
+   },
+   "factory": "Airplane Plant",
+   "factoryId": "factoryplane"
+  },
+  {
+   "id": "vehassault",
+   "name": "Ravager",
+   "description": "Assault Rover",
+   "cost": 250,
+   "health": 2200,
+   "speed": 88.5,
+   "sight": 385,
+   "icon": "vehassault.png",
+   "model": "corraid.s3o",
+   "weapon": {
+    "damage": 320,
+    "range": 320,
+    "reload": 2
+   },
+   "factory": "Rover Assembly",
+   "factoryId": "factoryveh"
+  },
+  {
+   "id": "bomberprec",
+   "name": "Raven",
+   "description": "Precision Bomber (Anti-Sub)",
+   "cost": 300,
+   "health": 1000,
+   "speed": 246,
+   "sight": 780,
+   "icon": "bomberprec.png",
+   "model": "corshad.s3o",
+   "weapon": {
+    "damage": 140,
+    "range": 140,
+    "reload": 10
+   },
+   "factory": "Airplane Plant",
+   "factoryId": "factoryplane"
+  },
+  {
+   "id": "turretaalaser",
+   "name": "Razor",
+   "description": "Hardened Anti-Air Laser",
+   "cost": 280,
+   "health": 3000,
+   "sight": 660,
+   "icon": "turretaalaser.png",
+   "model": "aapopup.s3o",
+   "weapon": {
+    "damage": 10000,
+    "range": 1000,
+    "reload": 0.1
+   }
+  },
+  {
+   "id": "cloakriot",
+   "name": "Reaver",
+   "description": "Riot Bot",
+   "cost": 210,
+   "health": 820,
+   "speed": 52.5,
+   "sight": 350,
+   "icon": "cloakriot.png",
+   "model": "Spherewarrior.s3o",
+   "weapon": {
+    "damage": 70,
+    "range": 270,
+    "reload": 0.5
+   },
+   "factory": "Cloakbot Factory",
+   "factoryId": "factorycloak"
+  },
+  {
+   "id": "spiderskirm",
+   "name": "Recluse",
+   "description": "Skirmisher Spider (Indirect Fire)",
+   "cost": 280,
+   "health": 680,
+   "speed": 45,
+   "sight": 627,
+   "icon": "spiderskirm.png",
+   "model": "recluse.s3o",
+   "weapon": {
+    "damage": 135,
+    "range": 570,
+    "reload": 4
+   },
+   "factory": "Spider Factory",
+   "factoryId": "factoryspider"
+  },
+  {
+   "id": "commrecon1",
+   "name": "Recon Commander",
+   "description": "High Mobility Commander",
+   "cost": 1200,
+   "health": 1650,
+   "speed": 43.5,
+   "sight": 500,
+   "icon": "commrecon.png",
+   "model": "commrecon.s3o",
+   "weapon": {
+    "damage": 5.53,
+    "range": 400,
+    "reload": 0.1
+   }
+  },
+  {
+   "id": "dynrecon1",
+   "name": "Recon Commander",
+   "description": "High Mobility Commander",
+   "cost": 1200,
+   "health": 3250,
+   "speed": 40.5,
+   "sight": 500,
+   "icon": "commrecon.png",
+   "model": "commrecon.s3o"
+  },
+  {
+   "id": "spiderriot",
+   "name": "Redback",
+   "description": "Riot Spider",
+   "cost": 240,
+   "health": 980,
+   "speed": 52.5,
+   "sight": 366,
+   "icon": "spiderriot.png",
+   "model": "spiderriot.s3o",
+   "weapon": {
+    "damage": 310,
+    "range": 310,
+    "reload": 0.3
+   },
+   "factory": "Spider Factory",
+   "factoryId": "factoryspider"
+  },
+  {
+   "id": "shipcarrier",
+   "name": "Reef",
+   "description": "Aircraft Carrier (Bombardment), stockpiles disarm missiles at 5 m/s",
+   "cost": 3000,
+   "health": 7500,
+   "speed": 82.5,
+   "sight": 660,
+   "icon": "shipcarrier.png",
+   "model": "shipcarrier.dae",
+   "weapon": {
+    "damage": 15000,
+    "range": 3000,
+    "reload": 5
+   },
+   "factory": "Strider Hub",
+   "factoryId": "striderhub"
+  },
+  {
+   "id": "gunshipassault",
+   "name": "Revenant",
+   "description": "Heavy Raider/Assault Gunship",
+   "cost": 850,
+   "health": 4200,
+   "speed": 130.5,
+   "sight": 585,
+   "icon": "gunshipassault.png",
+   "model": "Black_Dawn.s3o",
+   "weapon": {
+    "damage": 210.5,
+    "range": 270,
+    "reload": 10
+   },
+   "factory": "Gunship Plant",
+   "factoryId": "factorygunship"
+  },
+  {
+   "id": "vehriot",
+   "name": "Ripper",
+   "description": "Riot Rover",
+   "cost": 240,
+   "health": 1020,
+   "speed": 63,
+   "sight": 350,
+   "icon": "vehriot.png",
+   "model": "corleveler_512.s3o",
+   "weapon": {
+    "damage": 285,
+    "range": 285,
+    "reload": 1.7
+   },
+   "factory": "Rover Assembly",
+   "factoryId": "factoryveh"
+  },
+  {
+   "id": "chicken_roc",
+   "name": "Roc",
+   "description": "Heavy Attack Flyer",
+   "cost": 0,
+   "health": 2500,
+   "speed": 90,
+   "sight": 750,
+   "icon": "chicken_roc.png",
+   "model": "chicken_roc.s3o",
+   "weapon": {
+    "damage": 500,
+    "range": 500,
+    "reload": 8
+   }
+  },
+  {
+   "id": "shieldskirm",
+   "name": "Rogue",
+   "description": "Skirmisher Bot (Indirect Fire)",
+   "cost": 125,
+   "health": 520,
+   "speed": 54,
+   "sight": 583,
+   "icon": "shieldskirm.png",
+   "model": "storm.s3o",
+   "weapon": {
+    "damage": 330,
+    "range": 530,
+    "reload": 7
+   },
+   "factory": "Shieldbot Factory",
+   "factoryId": "factoryshield"
+  },
+  {
+   "id": "cloakskirm",
+   "name": "Ronin",
+   "description": "Skirmisher Bot (Direct-Fire)",
+   "cost": 90,
+   "health": 400,
+   "speed": 84,
+   "sight": 523,
+   "icon": "cloakskirm.png",
+   "model": "sphererock.s3o",
+   "weapon": {
+    "damage": 455,
+    "range": 455,
+    "reload": 3.5
+   },
+   "factory": "Cloakbot Factory",
+   "factoryId": "factorycloak"
+  },
+  {
+   "id": "roost",
+   "name": "Roost",
+   "description": "Spawns Chicken",
+   "cost": 340,
+   "health": 1800,
+   "sight": 273,
+   "icon": "roost.png",
+   "model": "roost.s3o",
+   "weapon": {
+    "damage": 80,
+    "range": 600,
+    "reload": 3
+   }
+  },
+  {
+   "id": "factoryveh",
+   "name": "Rover Assembly",
+   "description": "Produces Rovers",
+   "health": 4000,
+   "sight": 273,
+   "icon": "factoryveh.png",
+   "model": "factoryveh.dae"
+  },
+  {
+   "id": "plateveh",
+   "name": "Rover Plate",
+   "description": "Parallel Unit Production",
+   "sight": 273,
+   "icon": "plateveh.png",
+   "model": "plate_veh.s3o"
+  },
+  {
+   "id": "amphriot",
+   "name": "Scallop",
+   "description": "Amphibious Riot Bot (Undersea Fire)",
+   "cost": 260,
+   "health": 1200,
+   "speed": 51,
+   "sight": 430,
+   "icon": "amphriot.png",
+   "model": "amphriot.s3o",
+   "weapon": {
+    "damage": 48.01,
+    "range": 270,
+    "reload": 2.6
+   },
+   "factory": "Amphbot Factory",
+   "factoryId": "factoryamph"
+  },
+  {
+   "id": "hoverskirm",
+   "name": "Scalpel",
+   "description": "Skirmisher/Anti-Heavy Hovercraft",
+   "cost": 220,
+   "health": 660,
+   "speed": 66,
+   "sight": 484,
+   "icon": "hoverskirm.png",
+   "model": "nsaclash.s3o",
+   "weapon": {
+    "damage": 320,
+    "range": 440,
+    "reload": 10
+   },
+   "factory": "Hovercraft Platform",
+   "factoryId": "factoryhover"
+  },
+  {
+   "id": "vehraid",
+   "name": "Scorcher",
+   "description": "Raider Rover",
+   "cost": 130,
+   "health": 480,
+   "speed": 111,
+   "sight": 560,
+   "icon": "vehraid.png",
+   "model": "corgator_512.s3o",
+   "weapon": {
+    "damage": 270,
+    "range": 262,
+    "reload": 0.1
+   },
+   "factory": "Rover Assembly",
+   "factoryId": "factoryveh"
+  },
+  {
+   "id": "striderscorpion",
+   "name": "Scorpion",
+   "description": "Cloaked Infiltration Strider",
+   "cost": 3000,
+   "health": 12000,
+   "speed": 39,
+   "sight": 517,
+   "icon": "striderscorpion.png",
+   "model": "scorpion.s3o",
+   "weapon": {
+    "damage": 70,
+    "range": 450,
+    "reload": 0.1
+   },
+   "factory": "Strider Hub",
+   "factoryId": "striderhub"
+  },
+  {
+   "id": "subtacmissile",
+   "name": "Scylla",
+   "description": "Tactical Nuke Missile Sub, Drains 20 m/s, 30 second stockpile",
+   "cost": 3000,
+   "health": 3000,
+   "speed": 83.7,
+   "sight": 660,
+   "icon": "subtacmissile.png",
+   "model": "subtacmissile.s3o",
+   "weapon": {
+    "damage": 3502.4,
+    "range": 3000,
+    "reload": 1
+   },
+   "factory": "Strider Hub",
+   "factoryId": "striderhub"
+  },
+  {
+   "id": "cloakheavyraid",
+   "name": "Scythe",
+   "description": "Cloaked Raider Bot",
+   "cost": 250,
+   "health": 820,
+   "speed": 90,
+   "sight": 425,
+   "icon": "cloakheavyraid.png",
+   "model": "spherepole.s3o",
+   "weapon": {
+    "damage": 200.1,
+    "range": 100,
+    "reload": 1.4
+   },
+   "factory": "Cloakbot Factory",
+   "factoryId": "factorycloak"
+  },
+  {
+   "id": "subraider",
+   "name": "Seawolf",
+   "description": "Raider Submarine (Anti-Sub, Undersea Fire)",
+   "cost": 220,
+   "health": 650,
+   "speed": 111,
+   "sight": 360,
+   "icon": "subraider.png",
+   "model": "subraider.s3o",
+   "weapon": {
+    "damage": 260.1,
+    "range": 220,
+    "reload": 2.4
+   },
+   "factory": "Shipyard",
+   "factoryId": "factoryship"
+  },
+  {
+   "id": "factoryshield",
+   "name": "Shieldbot Factory",
+   "description": "Produces Tough, Shielded Robots",
+   "health": 4000,
+   "sight": 273,
+   "icon": "factoryshield.png",
+   "model": "factory.s3o"
+  },
+  {
+   "id": "plateshield",
+   "name": "Shieldbot Plate",
+   "description": "Parallel Unit Production",
+   "sight": 273,
+   "icon": "plateshield.png",
+   "model": "plate_shield.s3o"
+  },
+  {
+   "id": "plateship",
+   "name": "Ship Plate",
+   "description": "Parallel Unit Production",
+   "sight": 273,
+   "icon": "plateship.png",
+   "model": "plate_ship.s3o"
+  },
+  {
+   "id": "factoryship",
+   "name": "Shipyard",
+   "description": "Produces Naval Units",
+   "health": 6000,
+   "sight": 273,
+   "icon": "FACTORYSHIP.png",
+   "model": "seafac.s3o"
+  },
+  {
+   "id": "empmissile",
+   "name": "Shockley",
+   "description": "EMP missile",
+   "cost": 600,
+   "health": 1000,
+   "sight": 0,
+   "icon": "empmissile.png",
+   "model": "wep_empmissile.s3o",
+   "weapon": {
+    "damage": 30002.4,
+    "range": 3500,
+    "reload": 3
+   },
+   "factory": "Missile Silo",
+   "factoryId": "staticmissilesilo"
+  },
+  {
+   "id": "shipheavyarty",
+   "name": "Shogun",
+   "description": "Battleship (Heavy Artillery)",
+   "cost": 5000,
+   "health": 8000,
+   "speed": 57,
+   "sight": 660,
+   "icon": "shipheavyarty.png",
+   "model": "shipheavyarty.s3o",
+   "weapon": {
+    "damage": 1600,
+    "range": 1600,
+    "reload": 12.5
+   },
+   "factory": "Strider Hub",
+   "factoryId": "striderhub"
+  },
+  {
+   "id": "benzcom1",
+   "name": "Siege Commander",
+   "description": "Standoff Combat Commander",
+   "cost": 1200,
+   "health": 2250,
+   "speed": 37.5,
+   "sight": 500,
+   "icon": "benzcom.png",
+   "model": "benzcom1.s3o",
+   "weapon": {
+    "damage": 70,
+    "range": 360,
+    "reload": 0.1
+   }
+  },
+  {
+   "id": "energysingu",
+   "name": "Singularity Reactor",
+   "description": "Large Powerplant - HAZARDOUS",
+   "cost": 4000,
+   "health": 4500,
+   "sight": 273,
+   "icon": "energysingu.png",
+   "model": "fus.s3o",
+   "weapon": {
+    "damage": 9500
+   }
+  },
+  {
+   "id": "shipassault",
+   "name": "Siren",
+   "description": "Riot/Assault Destroyer (Anti-Sub)",
+   "cost": 900,
+   "health": 7800,
+   "speed": 60,
+   "sight": 440,
+   "icon": "shipassault.png",
+   "model": "shipassault.s3o",
+   "weapon": {
+    "damage": 300,
+    "range": 290,
+    "reload": 1.1
+   },
+   "factory": "Shipyard",
+   "factoryId": "factoryship"
+  },
+  {
+   "id": "jumpbomb",
+   "name": "Skuttle",
+   "description": "Cloaked Jumping Anti-Heavy Bomb",
+   "cost": 550,
+   "health": 380,
+   "speed": 45.675,
+   "sight": 330,
+   "icon": "jumpbomb.png",
+   "model": "skuttle.s3o",
+   "weapon": {
+    "damage": 8002.4
+   },
+   "factory": "Jumpbot Factory",
+   "factoryId": "factoryjump"
+  },
+  {
+   "id": "slicer",
+   "name": "Slicer",
+   "description": "Melee Assault Walker",
+   "cost": 550,
+   "health": 4000,
+   "speed": 54,
+   "sight": 350,
+   "icon": "core_slicer.png",
+   "model": "slicer",
+   "weapon": {
+    "damage": 100,
+    "range": 55,
+    "reload": 0.1
+   }
+  },
+  {
+   "id": "cloakarty",
+   "name": "Sling",
+   "description": "Light Artillery Bot",
+   "cost": 100,
+   "health": 350,
+   "speed": 45,
+   "sight": 660,
+   "icon": "cloakarty.png",
+   "model": "cloakarty.s3o",
+   "weapon": {
+    "damage": 140.1,
+    "range": 860,
+    "reload": 6
+   },
+   "factory": "Cloakbot Factory",
+   "factoryId": "factorycloak"
+  },
+  {
+   "id": "shieldbomb",
+   "name": "Snitch",
+   "description": "Crawling Bomb (Burrows)",
+   "cost": 170,
+   "health": 60,
+   "speed": 108,
+   "sight": 240,
+   "icon": "shieldbomb.png",
+   "model": "logroach.s3o",
+   "weapon": {
+    "damage": 1200.8
+   },
+   "factory": "Shieldbot Factory",
+   "factoryId": "factoryshield"
+  },
+  {
+   "id": "energysolar",
+   "name": "Solar Collector",
+   "description": "Small Powerplant",
+   "cost": 70,
+   "health": 600,
+   "sight": 273,
+   "icon": "energysolar.png",
+   "model": "arm_solar.s3o"
+  },
+  {
+   "id": "staticsonar",
+   "name": "Sonar Station",
+   "description": "Locates Water Units",
+   "cost": 450,
+   "health": 750,
+   "sight": 640,
+   "icon": "staticsonar.png",
+   "model": "novasonar.s3o"
+  },
+  {
+   "id": "planelightscout",
+   "name": "Sparrow",
+   "description": "Light Scout/Radar Jammer Plane",
+   "cost": 230,
+   "health": 350,
+   "speed": 210,
+   "sight": 950,
+   "icon": "planelightscout.png",
+   "model": "planelightscout.s3o",
+   "weapon": {
+    "damage": 150.1
+   },
+   "factory": "Airplane Plant",
+   "factoryId": "factoryplane"
+  },
+  {
+   "id": "dronefighter",
+   "name": "Spicula",
+   "description": "Fighter Drone",
+   "cost": 100,
+   "health": 360,
+   "speed": 240,
+   "sight": 520,
+   "icon": "dronefighter.png",
+   "model": "fighterdrone.dae",
+   "weapon": {
+    "damage": 500,
+    "range": 500,
+    "reload": 0.2
+   }
+  },
+  {
+   "id": "factoryspider",
+   "name": "Spider Factory",
+   "description": "Produces Spiders",
+   "health": 4000,
+   "sight": 273,
+   "icon": "factoryspider.png",
+   "model": "factory3.s3o"
+  },
+  {
+   "id": "platespider",
+   "name": "Spider Plate",
+   "description": "Parallel Unit Production",
+   "sight": 273,
+   "icon": "platespider.png",
+   "model": "plate_spider.s3o"
+  },
+  {
+   "id": "chicken_spidermonkey",
+   "name": "Spidermonkey",
+   "description": "All-Terrain Support",
+   "cost": 0,
+   "health": 1500,
+   "speed": 66,
+   "sight": 700,
+   "icon": "chicken_spidermonkey.png",
+   "model": "chicken_spidermonkey.s3o",
+   "weapon": {
+    "damage": 600,
+    "range": 600,
+    "reload": 0.1
+   },
+   "factory": "Chicken Brood Queen",
+   "factoryId": "chickenbroodqueen"
+  },
+  {
+   "id": "chickens",
+   "name": "Spiker",
+   "description": "Skirmisher",
+   "cost": 0,
+   "health": 600,
+   "speed": 60,
+   "sight": 550,
+   "icon": "chickens.png",
+   "model": "chickens.s3o",
+   "weapon": {
+    "damage": 460,
+    "range": 460,
+    "reload": 3
+   },
+   "factory": "Chicken Brood Queen",
+   "factoryId": "chickenbroodqueen"
+  },
+  {
+   "id": "chicken_sporeshooter",
+   "name": "Sporeshooter",
+   "description": "All-Terrain Spores (Anti-Air/Skirm)",
+   "cost": 0,
+   "health": 1800,
+   "speed": 66,
+   "sight": 512,
+   "icon": "chicken_sporeshooter.png",
+   "model": "chicken_sporeshooter.s3o",
+   "weapon": {
+    "damage": 75,
+    "range": 600,
+    "reload": 6
+   },
+   "factory": "Chicken Brood Queen",
+   "factoryId": "chickenbroodqueen"
+  },
+  {
+   "id": "turretriot",
+   "name": "Stardust",
+   "description": "Anti-Swarm Turret",
+   "cost": 220,
+   "health": 1500,
+   "sight": 499,
+   "icon": "turretriot.png",
+   "model": "afury.s3o",
+   "weapon": {
+    "damage": 70,
+    "range": 410,
+    "reload": 0.1
+   }
+  },
+  {
+   "id": "mahlazer",
+   "name": "Starlight",
+   "description": "Planetary Energy Chisel",
+   "cost": 60000,
+   "health": 12000,
+   "sight": 660,
+   "icon": "mahlazer.png",
+   "model": "starlight.dae",
+   "weapon": {
+    "damage": 10000,
+    "range": 10000,
+    "reload": 20
+   }
+  },
+  {
+   "id": "turretheavylaser",
+   "name": "Stinger",
+   "description": "High-Energy Laser Tower",
+   "cost": 450,
+   "health": 2250,
+   "sight": 730,
+   "icon": "turretheavylaser.png",
+   "model": "turretheavylaser.dae",
+   "weapon": {
+    "damage": 8192,
+    "range": 620,
+    "reload": 4.5
+   }
+  },
+  {
+   "id": "staticstorage",
+   "name": "Storage",
+   "description": "Stores Metal and Energy (500)",
+   "cost": 100,
+   "health": 700,
+   "sight": 273,
+   "icon": "staticstorage.png",
+   "model": "pylon.s3o"
+  },
+  {
+   "id": "striderhub",
+   "name": "Strider Hub",
+   "description": "Constructs Striders",
+   "health": 2000,
+   "sight": 380,
+   "icon": "striderhub.png",
+   "model": "striderhub.s3o"
+  },
+  {
+   "id": "armcom1",
+   "name": "Strike Commander",
+   "description": "Mobile Assault Commander",
+   "cost": 1200,
+   "health": 2500,
+   "speed": 40.5,
+   "sight": 500,
+   "icon": "armcom.png",
+   "model": "armcom.s3o",
+   "weapon": {
+    "damage": 70,
+    "range": 300,
+    "reload": 0.1
+   }
+  },
+  {
+   "id": "commstrike1",
+   "name": "Strike Commander",
+   "description": "Mobile Assault Commander",
+   "cost": 1200,
+   "health": 2500,
+   "speed": 40.5,
+   "sight": 500,
+   "icon": "commstrike.png",
+   "model": "strikecom.dae",
+   "weapon": {
+    "damage": 70,
+    "range": 300,
+    "reload": 0.1
+   }
+  },
+  {
+   "id": "dynstrike1",
+   "name": "Strike Commander",
+   "description": "Mobile Assault Commander",
+   "cost": 1200,
+   "health": 4200,
+   "speed": 43.5,
+   "sight": 500,
+   "icon": "commstrike.png",
+   "model": "strikecom.dae"
+  },
+  {
+   "id": "turretsunlance",
+   "name": "Sunlance",
+   "description": "Anti-Tank Turret - Requires 25 Power",
+   "cost": 700,
+   "health": 5600,
+   "sight": 660,
+   "icon": "turretsunlance.png",
+   "model": "heavyturret.s3o",
+   "weapon": {
+    "damage": 1400,
+    "range": 750,
+    "reload": 4
+   }
+  },
+  {
+   "id": "commsupport1",
+   "name": "Support Commander",
+   "description": "Econ/Support Commander",
+   "cost": 1200,
+   "health": 2000,
+   "speed": 36,
+   "sight": 500,
+   "icon": "commsupport.png",
+   "model": "commsupport.s3o",
+   "weapon": {
+    "damage": 5.53,
+    "range": 450,
+    "reload": 0.1
+   }
+  },
+  {
+   "id": "planefighter",
+   "name": "Swift",
+   "description": "Multi-role Fighter",
+   "cost": 150,
+   "health": 300,
+   "speed": 390,
+   "sight": 520,
+   "icon": "planefighter.png",
+   "model": "fighter.s3o",
+   "weapon": {
+    "damage": 10000,
+    "range": 667,
+    "reload": 0.2
+   },
+   "factory": "Airplane Plant",
+   "factoryId": "factoryplane"
+  },
+  {
+   "id": "chickenf",
+   "name": "Talon",
+   "description": "Flying Spike Spitter",
+   "cost": 0,
+   "health": 1200,
+   "speed": 300,
+   "sight": 512,
+   "icon": "chickenf.png",
+   "model": "chickenf.s3o",
+   "weapon": {
+    "damage": 400,
+    "range": 400,
+    "reload": 1.5
+   },
+   "factory": "Chicken Brood Queen",
+   "factoryId": "chickenbroodqueen"
+  },
+  {
+   "id": "factorytank",
+   "name": "Tank Foundry",
+   "description": "Produces Heavy Tracked Vehicles",
+   "health": 4000,
+   "sight": 273,
+   "icon": "factorytank.png",
+   "model": "factorytank.s3o"
+  },
+  {
+   "id": "platetank",
+   "name": "Tank Plate",
+   "description": "Parallel Unit Production",
+   "sight": 273,
+   "icon": "platetank.png",
+   "model": "plate_tank.s3o"
+  },
+  {
+   "id": "spideraa",
+   "name": "Tarantula",
+   "description": "Anti-Air Spider",
+   "cost": 380,
+   "health": 1200,
+   "speed": 69,
+   "sight": 660,
+   "icon": "spideraa.png",
+   "model": "tarantula.s3o",
+   "weapon": {
+    "damage": 310.01,
+    "range": 1000,
+    "reload": 1.9
+   },
+   "factory": "Spider Factory",
+   "factoryId": "factoryspider"
+  },
+  {
+   "id": "statictele",
+   "name": "Teleporter",
+   "description": "Blank",
+   "cost": 1000,
+   "health": 5000,
+   "sight": 273,
+   "model": "pw_warpgate.dae",
+   "weapon": {
+    "damage": 1000000000,
+    "range": 72000,
+    "reload": 4
+   }
+  },
+  {
+   "id": "turretaaflak",
+   "name": "Thresher",
+   "description": "Anti-Air Flak Gun",
+   "cost": 450,
+   "health": 3000,
+   "sight": 660,
+   "icon": "turretaaflak.png",
+   "model": "corflak.s3o",
+   "weapon": {
+    "damage": 1000,
+    "range": 1000,
+    "reload": 0.5
+   }
+  },
+  {
+   "id": "shieldassault",
+   "name": "Thug",
+   "description": "Shielded Assault Bot",
+   "cost": 175,
+   "health": 960,
+   "speed": 57,
+   "sight": 420,
+   "icon": "shieldassault.png",
+   "model": "thud.s3o",
+   "weapon": {
+    "damage": 1200,
+    "range": 280,
+    "reload": 3.9
+   },
+   "factory": "Shieldbot Factory",
+   "factoryId": "factoryshield"
+  },
+  {
+   "id": "bomberdisarm",
+   "name": "Thunderbird",
+   "description": "Disarming Lightning Bomber",
+   "cost": 550,
+   "health": 1600,
+   "speed": 270,
+   "sight": 780,
+   "icon": "bomberdisarm.png",
+   "model": "stiletto.s3o",
+   "weapon": {
+    "damage": 650,
+    "range": 730,
+    "reload": 1
+   },
+   "factory": "Airplane Plant",
+   "factoryId": "factoryplane"
+  },
+  {
+   "id": "chicken_tiamat",
+   "name": "Tiamat",
+   "description": "Heavy Assault/Riot",
+   "cost": 0,
+   "health": 3650,
+   "speed": 69,
+   "sight": 256,
+   "icon": "chicken_tiamat.png",
+   "model": "chickenbroodqueen.s3o",
+   "weapon": {
+    "damage": 100,
+    "range": 267,
+    "reload": 0.133
+   },
+   "factory": "Chicken Brood Queen",
+   "factoryId": "chickenbroodqueen"
+  },
+  {
+   "id": "jumpaa",
+   "name": "Toad",
+   "description": "Heavy Anti-Air Jumper",
+   "cost": 500,
+   "health": 2100,
+   "speed": 60.5,
+   "sight": 900,
+   "icon": "jumpaa.png",
+   "model": "hunchback.s3o",
+   "weapon": {
+    "damage": 1040,
+    "range": 1040,
+    "reload": 0.1
+   },
+   "factory": "Jumpbot Factory",
+   "factoryId": "factoryjump"
+  },
+  {
+   "id": "tankheavyarty",
+   "name": "Tremor",
+   "description": "Heavy Saturation Artillery Tank",
+   "cost": 1600,
+   "health": 2045,
+   "speed": 37.5,
+   "sight": 660,
+   "icon": "tankheavyarty.png",
+   "model": "cortrem.s3o",
+   "weapon": {
+    "damage": 450,
+    "range": 1160,
+    "reload": 0.333
+   },
+   "factory": "Tank Foundry",
+   "factoryId": "factorytank"
+  },
+  {
+   "id": "gunshipaa",
+   "name": "Trident",
+   "description": "Anti-Air Gunship",
+   "cost": 270,
+   "health": 900,
+   "speed": 114,
+   "sight": 660,
+   "icon": "gunshipaa.png",
+   "model": "trifighter.s3o",
+   "weapon": {
+    "damage": 200.1,
+    "range": 750,
+    "reload": 1.2
+   },
+   "factory": "Gunship Plant",
+   "factoryId": "factorygunship"
+  },
+  {
+   "id": "staticnuke",
+   "name": "Trinity",
+   "description": "Strategic Nuclear Launcher, Drains 18 m/s, 3 minute stockpile",
+   "cost": 8000,
+   "health": 5000,
+   "sight": 660,
+   "icon": "staticnuke.png",
+   "model": "staticnuke.s3o",
+   "weapon": {
+    "damage": 11501.1,
+    "range": 72000,
+    "reload": 10
+   }
+  },
+  {
+   "id": "hoverskirm2",
+   "name": "Trisula",
+   "description": "Light Assault/Battle Hovercraft",
+   "cost": 180,
+   "health": 1300,
+   "speed": 75,
+   "sight": 450,
+   "icon": "hoverskirm2.png",
+   "model": "hoverskirm.s3o",
+   "weapon": {
+    "damage": 100,
+    "range": 360,
+    "reload": 4
+   }
+  },
+  {
+   "id": "striderantiheavy",
+   "name": "Ultimatum",
+   "description": "Cloaked Anti-Strider Walker (Undersea Fire)",
+   "cost": 2400,
+   "health": 2000,
+   "speed": 46.5,
+   "sight": 500,
+   "icon": "striderantiheavy.png",
+   "model": "noruas.s3o",
+   "weapon": {
+    "damage": 2000.1,
+    "range": 250,
+    "reload": 2
+   },
+   "factory": "Strider Hub",
+   "factoryId": "striderhub"
+  },
+  {
+   "id": "turrettorp",
+   "name": "Urchin",
+   "description": "Torpedo Launcher (Anti-Sub)",
+   "cost": 120,
+   "health": 1020,
+   "sight": 653,
+   "icon": "turrettorp.png",
+   "model": "torpedo launcher.s3o",
+   "weapon": {
+    "damage": 190,
+    "range": 550,
+    "reload": 3.2
+   }
+  },
+  {
+   "id": "shieldaa",
+   "name": "Vandal",
+   "description": "Anti-Air Bot",
+   "cost": 90,
+   "health": 650,
+   "speed": 81,
+   "sight": 660,
+   "icon": "shieldaa.png",
+   "model": "crasher.s3o",
+   "weapon": {
+    "damage": 72,
+    "range": 900,
+    "reload": 2
+   },
+   "factory": "Shieldbot Factory",
+   "factoryId": "factoryshield"
+  },
+  {
+   "id": "assaultcruiser",
+   "name": "Vanquisher",
+   "description": "Heavy Cruiser (Assault)",
+   "cost": 1600,
+   "health": 9600,
+   "speed": 81,
+   "sight": 600,
+   "icon": "assaultcruiser.png",
+   "model": "cremcrus.s3o",
+   "weapon": {
+    "damage": 400,
+    "range": 400,
+    "reload": 0.1
+   }
+  },
+  {
+   "id": "spideremp",
+   "name": "Venom",
+   "description": "Lightning Riot Spider",
+   "cost": 190,
+   "health": 740,
+   "speed": 84,
+   "sight": 440,
+   "icon": "spideremp.png",
+   "model": "venom.s3o",
+   "weapon": {
+    "damage": 65.01,
+    "range": 240,
+    "reload": 36
+   },
+   "factory": "Spider Factory",
+   "factoryId": "factoryspider"
+  },
+  {
+   "id": "droneheavyslow",
+   "name": "Viper",
+   "description": "Advanced Battle Drone",
+   "cost": 35,
+   "health": 430,
+   "speed": 150,
+   "sight": 500,
+   "icon": "droneheavyslow.png",
+   "model": "battledrone.s3o",
+   "weapon": {
+    "damage": 200,
+    "range": 200,
+    "reload": 2
+   }
+  },
+  {
+   "id": "gunshipcon",
+   "name": "Wasp",
+   "description": "Heavy Gunship Constructor",
+   "cost": 300,
+   "health": 1500,
+   "speed": 72,
+   "sight": 375,
+   "icon": "GUNSHIPCON.png",
+   "model": "bumblebee.dae",
+   "factory": "Gunship Plant",
+   "factoryId": "factorygunship"
+  },
+  {
+   "id": "spidercon",
+   "name": "Weaver",
+   "description": "Construction Spider",
+   "cost": 170,
+   "health": 980,
+   "speed": 54,
+   "sight": 375,
+   "icon": "spidercon.png",
+   "model": "weaver.s3o",
+   "factory": "Spider Factory",
+   "factoryId": "factoryspider"
+  },
+  {
+   "id": "tankcon",
+   "name": "Welder",
+   "description": "Armed Construction Tank",
+   "cost": 185,
+   "health": 1700,
+   "speed": 63,
+   "sight": 300,
+   "icon": "tankcon.png",
+   "model": "welder.s3o",
+   "weapon": {
+    "damage": 50,
+    "range": 235,
+    "reload": 0.2
+   },
+   "factory": "Tank Foundry",
+   "factoryId": "factorytank"
+  },
+  {
+   "id": "chicken_dragon",
+   "name": "White Dragon",
+   "description": "Prime Assault Chicken",
+   "cost": 0,
+   "health": 32000,
+   "speed": 63,
+   "sight": 1200,
+   "icon": "chicken_dragon.png",
+   "model": "chicken_dragon.s3o",
+   "weapon": {
+    "damage": 700,
+    "range": 700,
+    "reload": 8
+   },
+   "factory": "Chicken Brood Queen",
+   "factoryId": "chickenbroodqueen"
+  },
+  {
+   "id": "spiderantiheavy",
+   "name": "Widow",
+   "description": "Cloaked Scout/Anti-Heavy",
+   "cost": 280,
+   "health": 270,
+   "speed": 76.5,
+   "sight": 550,
+   "icon": "spiderantiheavy.png",
+   "model": "infiltrator.s3o",
+   "weapon": {
+    "damage": 8000.1,
+    "range": 120,
+    "reload": 35
+   },
+   "factory": "Spider Factory",
+   "factoryId": "factoryspider"
+  },
+  {
+   "id": "energywind",
+   "name": "Wind/Tidal Generator",
+   "description": "Small Powerplant",
+   "cost": 35,
+   "health": 150,
+   "sight": 273,
+   "icon": "energywind.png",
+   "model": "arm_wind_generator.s3o"
+  },
+  {
+   "id": "chickenwurm",
+   "name": "Wurm",
+   "description": "Burrowing Flamer (Assault/Riot)",
+   "cost": 0,
+   "health": 1500,
+   "speed": 54,
+   "sight": 384,
+   "icon": "chickenwurm.png",
+   "model": "chickenwurm.s3o",
+   "weapon": {
+    "damage": 300,
+    "range": 300,
+    "reload": 6
+   },
+   "factory": "Chicken Brood Queen",
+   "factoryId": "chickenbroodqueen"
+  },
+  {
+   "id": "zenith",
+   "name": "Zenith",
+   "description": "Meteor Controller",
+   "cost": 38000,
+   "health": 9000,
+   "sight": 660,
+   "icon": "zenith.png",
+   "model": "zenith.s3o",
+   "weapon": {
+    "damage": 1.2,
+    "range": 20000,
+    "reload": 0.2
+   }
+  },
+  {
+   "id": "missileslow",
+   "name": "Zeno",
+   "description": "Slow Homing Missile - High single-target slow damage with lingering damage over time",
+   "cost": 400,
+   "health": 1000,
+   "sight": 0,
+   "icon": "missileslow.png",
+   "model": "slowmissile.dae",
+   "weapon": {
+    "damage": 10000,
+    "range": 6000,
+    "reload": 10
+   },
+   "factory": "Missile Silo",
+   "factoryId": "staticmissilesilo"
+  },
+  {
+   "id": "shipaa",
+   "name": "Zephyr",
+   "description": "Anti-Air Frigate",
+   "cost": 400,
+   "health": 2200,
+   "speed": 85.2,
+   "sight": 660,
+   "icon": "shipaa.png",
+   "model": "shipaa.s3o",
+   "weapon": {
+    "damage": 10000,
+    "range": 1000,
+    "reload": 0.1
+   },
+   "factory": "Shipyard",
+   "factoryId": "factoryship"
+  }
+ ]
+}
