@@ -499,18 +499,9 @@ jobs:
           fi
 
           notes=$(cat <<'EOF'
-          Unsigned development build of Shiro, from commit ${{ github.sha }}.
+          Development build of Shiro, from commit ${{ github.sha }}
 
-          Per-user install, no admin prompt. Windows SmartScreen will warn about an
-          unknown publisher - that is the missing code signature, not a problem with
-          the download.
-
-          Needs an existing Zero-K installation for the engine. Shiro downloads
-          games and maps itself, including the community content pr-downloader
-          cannot reach.
-
-          Linux packages are built but have never been run by anybody. Reports welcome.
-          EOF
+          Please report bugs using github issues.
           )
 
           # Updated in place rather than deleted and recreated: a delete that
