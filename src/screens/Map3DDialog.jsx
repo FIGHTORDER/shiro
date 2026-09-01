@@ -46,7 +46,7 @@ function Slider({ label, value, min, max, step, onChange, hint, readout }) {
       </span>
       <input type="range" min={min} max={max} step={step} value={value}
         onChange={e => onChange(Number(e.target.value))}
-        style={{ width: "100%", accentColor: "var(--accent)" }} />
+        style={{ width: "100%", accentColor: "var(--text-hi)" }} />
     </label>
   );
 }

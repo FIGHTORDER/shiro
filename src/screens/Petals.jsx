@@ -31,7 +31,12 @@ const PETALS = Array.from({ length: COUNT }, (_, i) => {
     delay: -((i * 13) % 24),
     drift: (i % 2 ? 1 : -1) * (18 + ((i * 5) % 26)),
     spin: (i % 3 ? 1 : -1) * (180 + ((i * 17) % 220)),
-    tone: i % 2 === 0 ? "var(--petal-a)" : "var(--petal-b)",
+    /* A skin may set these; the base theme does not, and a bare var() with no
+       definition is an invalid colour rather than a default one. The fallback
+       makes the unskinned look deliberate. */
+    tone: i % 2 === 0
+      ? "var(--petal-a, var(--w-12))"
+      : "var(--petal-b, var(--w-06))",
   };
 });
 

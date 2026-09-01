@@ -615,6 +615,18 @@ export default function SettingsScreen({ me, install, installError, engine, sett
             <Button variant="quiet" size="sm"
               onClick={() => { if (onSettings) onSettings({ installRoot: root.trim() || undefined });
                 if (onRedetect) onRedetect(); }}>Apply</Button>
+            {/* Clearing must not depend on being able to edit the field. A
+                Linux tester could not empty it, which left them unable to undo
+                an override that was blocking detection - a dead end reachable
+                by pressing one button and not leavable by pressing any. */}
+            {root && (
+              <Button variant="quiet" size="sm"
+                onClick={() => {
+                  setRoot("");
+                  if (onSettings) onSettings({ installRoot: undefined });
+                  if (onRedetect) onRedetect();
+                }}>Clear</Button>
+            )}
             {onRedetect && <Button variant="ghost" size="sm" onClick={onRedetect}>Re-detect</Button>}
           </div>
           {onPreview && (

@@ -24,6 +24,7 @@ import ExternalLink from "lucide/dist/esm/icons/external-link.js";
 import Eye from "lucide/dist/esm/icons/eye.js";
 import Flag from "lucide/dist/esm/icons/flag.js";
 import Github from "lucide/dist/esm/icons/github.js";
+import Globe from "lucide/dist/esm/icons/globe.js";
 import Grid from "lucide/dist/esm/icons/grid-3x3.js";
 import History from "lucide/dist/esm/icons/history.js";
 import Image from "lucide/dist/esm/icons/image.js";
@@ -75,6 +76,7 @@ export const ICONS = {
   "eye": Eye,
   "flag": Flag,
   "github": Github,
+  "globe": Globe,
   "grid": Grid,
   "history": History,
   "image": Image,

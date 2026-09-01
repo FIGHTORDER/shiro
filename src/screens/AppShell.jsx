@@ -23,6 +23,11 @@ export const NAV = [
      Last but one, so appearing shifts one icon rather than five, and so it
      sits beside the screen it is installed from. */
   { id: "campaigns", icon: "book-open", label: "Campaigns", whenInstalled: true },
+  /* Zero-K's own galaxy campaign, which is a different thing to the item above
+     - that one is community missions built in Splaunch. Shown only when the
+       content is actually readable, by the same argument: the campaign lives in
+       the game's files, so a player with no Zero-K has nothing behind it. */
+  { id: "galaxy", icon: "globe", label: "Galaxy", whenGalaxy: true },
   { id: "apps", icon: "package", label: "Add-ons" }
 ];
 
@@ -55,11 +60,13 @@ export function TitleBar({ version = "0.1.0", updateReady, inbox }) {
   );
 }
 
-export function NavRail({ view, onView, inRoom, hasCampaigns }) {
+export function NavRail({ view, onView, inRoom, hasCampaigns, hasGalaxy }) {
   /* Kept visible while it is the screen being looked at, so removing the last
      campaign from Add-ons does not pull the rail out from under somebody who
      is standing on it. App.jsx moves them off; until it does, the item stays. */
-  const items = NAV.filter(n => !n.whenInstalled || hasCampaigns || view === n.id);
+  const items = NAV.filter(n =>
+    (!n.whenInstalled || hasCampaigns || view === n.id)
+    && (!n.whenGalaxy || hasGalaxy || view === n.id));
   return (
     <nav style={{ width: "var(--shell-nav)", flex: "0 0 auto", display: "flex", flexDirection: "column",
       alignItems: "center", gap: "var(--sp-2)", padding: "var(--sp-4) 0",
@@ -120,7 +127,7 @@ export function StatusBar({ connection = "online", users, engine, game, onReconn
 }
 
 export default function AppShell({ view, onView, inRoom, connection, users, engine, game, onReconnect, attempt, children, overlay,
-  version, updateReady, inbox, skin, hasCampaigns }) {
+  version, updateReady, inbox, skin, hasCampaigns, hasGalaxy }) {
   /* Read off the document rather than passed in: the value arrives with the
      skin's stylesheet, which for a downloaded skin lands after this renders. */
   const [wantsPetals, setWantsPetals] = React.useState(false);
@@ -150,7 +157,8 @@ export default function AppShell({ view, onView, inRoom, connection, users, engi
       {wantsPetals && <Petals />}
       <TitleBar version={version} updateReady={updateReady} inbox={inbox} />
       <div style={{ flex: 1, display: "flex", minHeight: 0 }}>
-        <NavRail view={view} onView={onView} inRoom={inRoom} hasCampaigns={hasCampaigns} />
+        <NavRail view={view} onView={onView} inRoom={inRoom} hasCampaigns={hasCampaigns}
+          hasGalaxy={hasGalaxy} />
         <main style={{ flex: 1, minWidth: 0, minHeight: 0, display: "flex" }}>{children}</main>
       </div>
       <StatusBar connection={connection} users={users} engine={engine} game={game} onReconnect={onReconnect} attempt={attempt} />

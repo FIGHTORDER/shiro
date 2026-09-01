@@ -502,6 +502,7 @@ jobs:
           Development build of Shiro, from commit ${{ github.sha }}
 
           Please report bugs using github issues.
+          EOF
           )
 
           # Updated in place rather than deleted and recreated: a delete that

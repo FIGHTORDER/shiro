@@ -280,7 +280,7 @@ function UiSkinsPanel() {
       {failed && (
         <span style={{ padding: "var(--sp-4) var(--sp-5)", boxShadow: "var(--rule-inset)",
           font: "var(--w-regular) var(--size-tiny)/1.45 var(--font-core)",
-          color: "var(--danger)" }}>{failed}</span>
+          color: "var(--signal-danger)" }}>{failed}</span>
       )}
       <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
         {state.skins.map(sk => {
@@ -434,7 +434,7 @@ function CampaignsPanel({ onChanged }) {
         <span role="alert" style={{ padding: "var(--sp-4) var(--sp-5)",
           boxShadow: "var(--rule-inset)",
           font: "var(--w-regular) var(--size-tiny)/1.45 var(--font-core)",
-          color: "var(--danger)" }}>{failed}</span>
+          color: "var(--signal-danger)" }}>{failed}</span>
       )}
 
       <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
@@ -602,7 +602,7 @@ function AddFromSource({ onInstalled }) {
 
       {error && (
         <span style={{ font: "var(--w-regular) var(--size-tiny)/1.4 var(--font-core)",
-          color: "var(--danger)" }}>{error}</span>
+          color: "var(--signal-danger)" }}>{error}</span>
       )}
 
       {preview && (
@@ -620,7 +620,7 @@ function AddFromSource({ onInstalled }) {
 
           {blocked && (
             <span style={{ font: "var(--w-regular) var(--size-tiny)/1.45 var(--font-core)",
-              color: "var(--danger)" }}>
+              color: "var(--signal-danger)" }}>
               Cannot install: {preview.refused.join("; ")}
             </span>
           )}
@@ -744,7 +744,7 @@ function WidgetsPanel() {
       {failed && (
         <span style={{ padding: "var(--sp-4) var(--sp-5)", boxShadow: "var(--rule-inset)",
           font: "var(--w-regular) var(--size-tiny)/1.45 var(--font-core)",
-          color: "var(--danger)" }}>{failed}</span>
+          color: "var(--signal-danger)" }}>{failed}</span>
       )}
       <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
         {state.widgets.map(w => (

@@ -52,7 +52,8 @@
     "shortDescription": "A lobby client for Zero-K",
     "resources": [
       "resources/sprofiler/*",
-      "resources/steam/steam_api64.dll"
+      "resources/steam/steam_api64.dll",
+      "resources/campaign/**/*"
     ],
     "externalBin": [
       "binaries/shiro-steam"

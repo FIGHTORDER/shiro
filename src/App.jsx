@@ -17,6 +17,7 @@ import FriendsScreen from "./screens/FriendsScreen.jsx";
 import ProfileScreen from "./screens/ProfileScreen.jsx";
 import AppsScreen from "./screens/AppsScreen.jsx";
 import CampaignScreen from "./screens/CampaignScreen.jsx";
+import GalaxyScreen from "./screens/GalaxyScreen.jsx";
 import CodexScreen from "./screens/CodexScreen.jsx";
 import Replays from "./screens/ReplaysScreen.jsx";
 import SettingsScreen from "./screens/SettingsScreen.jsx";
@@ -51,6 +52,7 @@ import { appVersion } from "./net/update.ts";
 import { catalogue, statuses as appStatuses, launchApp, installApp, uninstallApp } from "./net/apps.ts";
 import { openExternal } from "./net/external.ts";
 import { campaignList, playMission, finishMission } from "./net/campaigns.ts";
+import * as galaxy from "./net/galaxy.ts";
 import { steamAvailable, steamTicket } from "./net/steam.ts";
 import { profileUrl } from "./net/zkweb.ts";
 import { managedState, managedRoot, installEngine, removeManaged, onEngine,
@@ -187,6 +189,13 @@ export default function App() {
      before any screen is. Empty in a browser tab, where there is no install to
      read and nothing to launch. */
   const [campaigns, setCampaigns] = React.useState([]);
+  /* Zero-K's galaxy campaign, read out of the install rather than shipped.
+     Undefined until asked for: the read runs Lua over 71 files, so it happens
+     when the screen is first wanted and not at startup. */
+  const [galaxyData, setGalaxyData] = React.useState(undefined);
+  const [galaxySave, setGalaxySave] = React.useState(undefined);
+  const [galaxyBusy, setGalaxyBusy] = React.useState(false);
+  const [galaxyError, setGalaxyError] = React.useState(undefined);
   const [campaignBusy, setCampaignBusy] = React.useState(undefined);
   const [campaignError, setCampaignError] = React.useState(undefined);
   const refreshCampaigns = React.useCallback(() => {
@@ -805,6 +814,34 @@ export default function App() {
     if (view === "campaigns" && campaigns.length === 0) setView("apps");
   }, [view, campaigns.length]);
 
+  /* Read the galaxy campaign the first time somebody opens the screen.
+     Rust caches it, so a second visit is free; this only avoids paying for it
+     on a launch that never goes near the campaign. `live` gates it because
+     there is no install to read outside Tauri. */
+  const loadGalaxy = React.useCallback(() => {
+    setGalaxyError(undefined);
+    return Promise.all([
+      galaxy.readCampaign(settings.installRoot),
+      galaxy.galaxySave(),
+    ]).then(([campaign, save]) => {
+      setGalaxyData(campaign);
+      setGalaxySave(save);
+    }).catch(e => {
+      setGalaxyData({ planets: [] });
+      setGalaxyError(String(e));
+    });
+  }, [settings.installRoot]);
+
+  /* Once, when there is an install to read - not when the screen opens. The
+     nav item is gated on there being a campaign, so waiting for the screen
+     would mean the item never appears and the screen is unreachable. Half a
+     second of Lua on a background tick, cached in Rust afterwards. */
+  React.useEffect(() => {
+    if (!live || galaxyData !== undefined) return undefined;
+    const timer = setTimeout(loadGalaxy, 0);
+    return () => clearTimeout(timer);
+  }, [live, galaxyData, loadGalaxy]);
+
   const shell = {
     version: appVer,
     skin: settings.skin,
@@ -1000,6 +1037,25 @@ export default function App() {
       chatHeight={settings.roomChatHeight}
       onChatHeight={h => useSettings.getState().set({ roomChatHeight: h })}
       onStart={startRoom} />
+  );
+  else if (view === "galaxy") body = (
+    <GalaxyScreen campaign={galaxyData} save={galaxySave}
+      busy={galaxyBusy} error={galaxyError}
+      onRefresh={() => { setGalaxyData(undefined); loadGalaxy(); }}
+      onDifficulty={d => galaxy.setDifficulty(d).then(setGalaxySave)
+        .catch(e => setGalaxyError(String(e)))}
+      onRestart={() => galaxy.restartCampaign().then(setGalaxySave)
+        .catch(e => setGalaxyError(String(e)))}
+      onPlay={planetId => {
+        setGalaxyError(undefined);
+        setGalaxyBusy(true);
+        /* Logged out is fine, exactly as it is for Splaunch missions: this runs
+           offline against the local install and the server never hears about
+           it. The name is only what the start script calls the player. */
+        galaxy.playPlanet(planetId, me || "Player", settings.installRoot)
+          .catch(e => setGalaxyError(String(e)))
+          .finally(() => setGalaxyBusy(false));
+      }} />
   );
   else if (view === "codex") body = <CodexScreen gameVersion={shell.game} />;
   else if (view === "replays") body = <Replays me={live ? me : "demo"} installRoot={settings.installRoot} />;
@@ -1529,6 +1585,7 @@ export default function App() {
   return (
     <AppShell view={view} inRoom={Boolean(liveRoom || room)} {...shell}
       hasCampaigns={campaigns.length > 0}
+      hasGalaxy={(galaxyData?.planets?.length ?? 0) > 0}
       /* Battles, pressed from the debriefing while still in a room, means the
          room - that is where the match came from and where the next one starts.
          Only from there: once you are in the room, Battles means the list

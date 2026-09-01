@@ -48,12 +48,16 @@
 //! to answer nothing.
 
 use std::collections::{HashMap, HashSet};
-use std::io::Read;
 use std::path::{Path, PathBuf};
 
 use serde::Serialize;
 
 use crate::install;
+use crate::rapid;
+// Only the tests below reach the pool directly; the module reads through
+// `rapid` itself.
+#[cfg(test)]
+use crate::rapid::{hex, pool_path};
 
 /// One AI a person could add to a team.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -390,72 +394,34 @@ struct Package {
     units: HashSet<String>,
 }
 
-/// A corrupt or hostile `.sdp` must not be decompressed without bound. Zero-K's
-/// index is about 400 kB; this is room for an archive many times its size.
-const MAX_INDEX: u64 = 64 * 1024 * 1024;
-
-/// A `LuaAI.lua` or `modinfo.lua` is a couple of kilobytes.
-const MAX_BODY: u64 = 4 * 1024 * 1024;
-
-fn gunzip(path: &Path, limit: u64) -> Result<Vec<u8>, String> {
-    let file = std::fs::File::open(path).map_err(|e| format!("{}: {e}", path.display()))?;
-    let mut out = Vec::new();
-    flate2::read::GzDecoder::new(file)
-        .take(limit)
-        .read_to_end(&mut out)
-        .map_err(|e| format!("{}: {e}", path.display()))?;
-    Ok(out)
+/// Build the parts of a package `ais.rs` cares about from its index.
+///
+/// The `.sdp` and pool formats themselves live in `rapid.rs`. They used to live
+/// here, and were copied out when the campaign reader needed the same two
+/// things - which is the duplication `tools/zk-archive.mjs` was created to stop
+/// on the JavaScript side, arriving on this one.
+fn package_from(index: &rapid::Index) -> Package {
+    let mut pkg = Package {
+        lua_ai: index.hash("luaai.lua").map(str::to_string),
+        modinfo: index.hash("modinfo.lua").map(str::to_string),
+        units: HashSet::new(),
+    };
+    for (name, _) in index.under("units/") {
+        if let Some(unit) = name.strip_prefix("units/").and_then(|n| n.strip_suffix(".lua")) {
+            // Zero-K files units in subdirectories; the engine keys them by the
+            // file's own name either way.
+            pkg.units.insert(unit.rsplit('/').next().unwrap_or(unit).to_string());
+        }
+    }
+    pkg
 }
 
 fn read_index(path: &Path) -> Result<Package, String> {
-    let raw = gunzip(path, MAX_INDEX)?;
-    let mut pkg = Package::default();
-    let mut i = 0usize;
-    while i < raw.len() {
-        let len = raw[i] as usize;
-        i += 1;
-        // 16 bytes of md5, 4 of crc32, 4 of size. A truncated record means a
-        // truncated file, and half an index is not an answer.
-        let end = i + len + 24;
-        if end > raw.len() {
-            return Err(format!("{} ends inside a record", path.display()));
-        }
-        let name = String::from_utf8_lossy(&raw[i..i + len]).to_ascii_lowercase();
-        let hash = hex(&raw[i + len..i + len + 16]);
-        i = end;
-
-        match name.as_str() {
-            "luaai.lua" => pkg.lua_ai = Some(hash),
-            "modinfo.lua" => pkg.modinfo = Some(hash),
-            _ => {
-                if let Some(unit) = name.strip_prefix("units/").and_then(|n| n.strip_suffix(".lua"))
-                {
-                    // Zero-K files units in subdirectories; the engine keys them
-                    // by the file's own name either way.
-                    pkg.units.insert(unit.rsplit('/').next().unwrap_or(unit).to_string());
-                }
-            }
-        }
-    }
-    Ok(pkg)
-}
-
-fn hex(bytes: &[u8]) -> String {
-    bytes.iter().map(|b| format!("{b:02x}")).collect()
-}
-
-/// Where the pool keeps one file's body.
-fn pool_path(root: &Path, hash: &str) -> Option<PathBuf> {
-    if hash.len() != 32 || !hash.bytes().all(|c| c.is_ascii_hexdigit()) {
-        return None;
-    }
-    Some(root.join("pool").join(&hash[..2]).join(format!("{}.gz", &hash[2..])))
+    Ok(package_from(&rapid::read_index(path)?))
 }
 
 fn pool_text(root: &Path, hash: &str) -> Option<String> {
-    let path = pool_path(root, hash)?;
-    let raw = gunzip(&path, MAX_BODY).ok()?;
-    Some(String::from_utf8_lossy(&raw).into_owned())
+    rapid::pool_text(root, hash)
 }
 
 /// The name a lobby would use for the archive this `modinfo.lua` describes.
@@ -502,14 +468,10 @@ struct Chosen {
 /// and the newest archive in one can be a game of its own.
 fn game_package(root: &Path, game: Option<&str>) -> Option<Chosen> {
     let wanted = game.map(fold).filter(|g| !g.is_empty());
-    let mut newest: Option<(std::time::SystemTime, Package, Option<String>)> = None;
+    let mut newest: Option<(Package, Option<String>)> = None;
 
-    let entries = std::fs::read_dir(root.join("packages")).ok()?;
-    for entry in entries.flatten() {
-        let path = entry.path();
-        if path.extension().and_then(|e| e.to_str()) != Some("sdp") {
-            continue;
-        }
+    // Newest first, so the first candidate is already the fallback.
+    for path in rapid::packages(root) {
         let Ok(pkg) = read_index(&path) else { continue };
         if pkg.lua_ai.is_none() {
             continue;
@@ -525,15 +487,11 @@ fn game_package(root: &Path, game: Option<&str>) -> Option<Chosen> {
                 return Some(Chosen { pkg, name: named, matched: true });
             }
         }
-        let when = entry
-            .metadata()
-            .and_then(|m| m.modified())
-            .unwrap_or(std::time::UNIX_EPOCH);
-        if newest.as_ref().map_or(true, |(seen, _, _)| when >= *seen) {
-            newest = Some((when, pkg, named));
+        if newest.is_none() {
+            newest = Some((pkg, named));
         }
     }
-    newest.map(|(_, pkg, name)| Chosen { pkg, name, matched: wanted.is_none() })
+    newest.map(|(pkg, name)| Chosen { pkg, name, matched: wanted.is_none() })
 }
 
 // ----------------------------------------------------------- the engine ---

@@ -56,12 +56,36 @@ pub struct Installed {
     /// folded one; putting a name into a start script wants the archive's,
     /// exactly as the engine indexes it.
     names: HashMap<String, String>,
+    /// Archive files sitting in `maps/` that the engine has not scanned,
+    /// keyed by a tighter fold of their filename. See `has`.
+    ///
+    /// Deliberately a second index rather than more entries in `names`: what is
+    /// known about these is that a file exists, not what the engine will call
+    /// it, and only the first of those may be used to skip a download.
+    unscanned: HashMap<String, String>,
 }
 
 impl Installed {
+    /// Is this archive here, as far as anything can tell?
+    ///
+    /// The engine's cache first, then the files it has not scanned yet.
+    ///
+    /// That second tier exists because of a real report: 264 maps on disk, 263
+    /// in the cache, and the one map that had arrived since the last scan was
+    /// downloaded again on every join. A map installed by the Zero-K client
+    /// after the engine last started is invisible until it next starts, and
+    /// "download it again" is not a good answer to "you already have it".
+    ///
+    /// **Presence only.** `resolve` does not consult this, and must not: what a
+    /// file is called on disk is not what the engine will index it as, and a
+    /// wrong `Mapname` in a start script is the failure this module exists to
+    /// avoid. Skipping a download is recoverable; naming the wrong map is not.
     pub fn has(&self, name: &str) -> bool {
         let key = fold(name);
-        !key.is_empty() && self.names.contains_key(&key)
+        if key.is_empty() {
+            return false;
+        }
+        self.names.contains_key(&key) || self.unscanned.contains_key(&tight(&key))
     }
 
     pub fn len(&self) -> usize {
@@ -117,6 +141,57 @@ fn fold(name: &str) -> String {
         .collect::<Vec<_>>()
         .join(" ")
         .to_lowercase()
+}
+
+/// A fold tight enough to match a filename against a display name.
+///
+/// `Argent Strata 1.1` and `ArgentStrata1.1.sd7` are the same map written two
+/// ways, and nothing softer than dropping every separator brings them together.
+///
+/// This is exactly what [`fold`] refuses to do, and for a good reason - it
+/// makes `Zero-K v1.14.8.0` and `Zero K v1 14 8 0` the same string. Digits
+/// survive, so versions still separate: `nuclearwinterv1` and `nuclearwinterv2`
+/// stay different, which is the distinction that matters for maps. It is used
+/// only for the presence check, never to name anything.
+fn tight(name: &str) -> String {
+    name.chars().filter(|c| c.is_ascii_alphanumeric()).flat_map(|c| c.to_lowercase()).collect()
+}
+
+/// Archive extensions the engine reads.
+const ARCHIVES: [&str; 3] = ["sd7", "sdz", "sdd"];
+
+/// Map archives on disk, whether or not the engine knows about them.
+///
+/// Only `maps/`: a game the engine has not scanned is a different problem, and
+/// a wrong guess about which game is playing is far more damaging than a
+/// re-downloaded map.
+///
+/// A stem that two files share is dropped rather than guessed at. Two maps
+/// whose names differ only in punctuation are unusual; picking the wrong one to
+/// call "already installed" would leave the engine waiting for a map nobody
+/// has, so ambiguity falls back to downloading.
+fn unscanned_maps(root: &Path) -> HashMap<String, String> {
+    let mut seen: HashMap<String, Option<String>> = HashMap::new();
+    let Ok(entries) = std::fs::read_dir(root.join("maps")) else { return HashMap::new() };
+    for entry in entries.flatten() {
+        let path = entry.path();
+        let is_archive = path
+            .extension()
+            .and_then(|e| e.to_str())
+            .is_some_and(|e| ARCHIVES.iter().any(|a| e.eq_ignore_ascii_case(a)));
+        if !is_archive {
+            continue;
+        }
+        let Some(stem) = path.file_stem().and_then(|f| f.to_str()) else { continue };
+        let key = tight(stem);
+        if key.is_empty() {
+            continue;
+        }
+        seen.entry(key)
+            .and_modify(|slot| *slot = None)
+            .or_insert_with(|| Some(stem.to_string()));
+    }
+    seen.into_iter().filter_map(|(k, v)| Some((k, v?))).collect()
 }
 
 /// Every `ArchiveCache*.lua` under a data directory.
@@ -261,13 +336,31 @@ pub fn forget(root: &Path) {
 fn stamps(root: &Path) -> Vec<Stamp> {
     let mut files = cache_files(root);
     files.push(root.join(DOWNLOADED));
+    /* The maps directory itself, because a file appearing in it changes the
+       answer now that `has` looks there. */
+    files.push(root.join("maps"));
     files.sort();
     files
         .into_iter()
         .map(|path| {
             let meta = std::fs::metadata(&path).ok();
             let when = meta.as_ref().and_then(|m| m.modified().ok()).unwrap_or(UNIX_EPOCH);
-            let size = meta.map(|m| m.len()).unwrap_or(0);
+            /* For a directory, how many entries it holds rather than its length,
+               which is a constant nobody can use.
+             *
+             * A directory's mtime does move when an entry is added - but only to
+             * the resolution the filesystem keeps, and a map that lands within
+             * the same tick as the previous reading leaves it unchanged. The
+             * memo then answers from a reading taken before the map existed,
+             * and the map is invisible until the entry expires. Counting the
+             * entries changes the stamp whether or not the clock did. */
+            let size = match meta {
+                Some(m) if m.is_dir() => {
+                    std::fs::read_dir(&path).map(|d| d.flatten().count() as u64).unwrap_or(0)
+                }
+                Some(m) => m.len(),
+                None => 0,
+            };
             (path, when, size)
         })
         .collect()
@@ -302,6 +395,7 @@ pub fn installed(root: &Path) -> Installed {
     for name in read_downloaded(root) {
         out.insert(&name);
     }
+    out.unscanned = unscanned_maps(root);
 
     if let Ok(mut memo) = MEMO.lock() {
         memo.get_or_insert_with(HashMap::new)
@@ -313,6 +407,101 @@ pub fn installed(root: &Path) -> Installed {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A maps directory holding these files and nothing else.
+    fn with_maps(name: &str, files: &[&str]) -> PathBuf {
+        let root = std::env::temp_dir().join(format!("shiro-archives-{name}"));
+        let _ = std::fs::remove_dir_all(&root);
+        std::fs::create_dir_all(root.join("maps")).unwrap();
+        for f in files {
+            std::fs::write(root.join("maps").join(f), b"an archive as far as this is concerned")
+                .unwrap();
+        }
+        root
+    }
+
+    #[test]
+    fn a_map_the_engine_has_not_scanned_still_counts_as_here() {
+        /* The reported bug: 264 maps on disk, 263 in the engine's cache, and
+           the one that arrived since the last scan was downloaded again every
+           single join. */
+        let root = with_maps("unscanned", &["centerrockv12.sd7", "nuclear_winter_v1.sd7"]);
+        let have = installed(&root);
+        assert!(have.has("centerrockv12"), "a map on disk was called missing");
+        // And the same map named the way a battle would name it.
+        assert!(have.has("Center Rock v1.2"), "spacing and punctuation must not matter here");
+        assert!(have.has("Nuclear Winter v1"));
+    }
+
+    #[test]
+    fn a_version_is_still_a_difference() {
+        /* The whole reason `fold` refuses to strip punctuation. Dropping
+           separators must not go so far as to merge two versions of a map,
+           because then the engine is sent looking for one nobody has. */
+        let root = with_maps("versions", &["nuclear_winter_v1.sd7"]);
+        let have = installed(&root);
+        assert!(have.has("Nuclear Winter v1"));
+        assert!(!have.has("Nuclear Winter v2"), "v2 is not v1");
+    }
+
+    #[test]
+    fn two_files_that_fold_alike_are_both_ignored() {
+        /* Skipping a download for a map that is not really there leaves the
+           engine waiting for something nobody has, so an ambiguous match falls
+           back to downloading rather than guessing. */
+        let root = with_maps("ambiguous", &["some map.sd7", "Some_Map.sd7"]);
+        let have = installed(&root);
+        assert!(!have.has("Some Map"), "an ambiguous stem must not claim a map");
+    }
+
+    #[test]
+    fn only_archives_count_and_only_in_maps() {
+        let root = with_maps("kinds", &["real.sd7", "notes.txt", "half.sd7.part"]);
+        let have = installed(&root);
+        assert!(have.has("real"));
+        assert!(!have.has("notes"), "a text file is not a map");
+        assert!(!have.has("half"), "a part file is not a map");
+    }
+
+    #[test]
+    fn resolve_never_answers_from_a_filename() {
+        /* Presence may be guessed from a filename; a name for the start script
+           may not. `Mapname` has to be what the engine indexes the archive as,
+           and a stem is not that. */
+        let root = with_maps("resolve", &["centerrockv12.sd7"]);
+        let have = installed(&root);
+        assert!(have.has("centerrockv12"));
+        assert_eq!(have.resolve("centerrockv12"), None, "a stem is not an archive name");
+    }
+
+    #[test]
+    fn a_map_added_in_the_same_instant_is_still_noticed() {
+        /* The reading is memoised on the files it was built from, and a
+           directory's mtime only moves to whatever resolution the filesystem
+           keeps. A map landing in the same tick as the previous reading left
+           the stamp identical, so the memo answered from before it existed -
+           which is the original "downloads a map it already has" wearing a
+           different hat. Counting entries makes the stamp move regardless. */
+        let root = with_maps("memo-tick", &["first.sd7"]);
+        assert!(installed(&root).has("first"));
+        // No sleep: the point is that this works without waiting for a clock.
+        std::fs::write(root.join("maps").join("second.sd7"), b"x").unwrap();
+        assert!(installed(&root).has("second"), "a map added immediately was missed");
+        std::fs::remove_file(root.join("maps").join("second.sd7")).unwrap();
+        assert!(!installed(&root).has("second"), "a map removed immediately was still claimed");
+    }
+
+    #[test]
+    fn a_map_appearing_later_is_noticed_despite_the_memo() {
+        /* The reading is memoised on the files it was built from. A map that
+           lands afterwards has to move that stamp, or the answer stays wrong
+           for as long as the memo lives - which is the same bug again. */
+        let root = with_maps("memo-newmap", &["first.sd7"]);
+        assert!(installed(&root).has("first"));
+        assert!(!installed(&root).has("second"));
+        std::fs::write(root.join("maps").join("second.sd7"), b"x").unwrap();
+        assert!(installed(&root).has("second"), "a new map was not noticed");
+    }
 
     #[test]
     fn a_name_without_its_version_resolves_to_the_archive_that_has_one() {
@@ -404,10 +593,17 @@ mod tests {
         );
 
         let found = installed(&root);
-        // The point of the whole module: the name the server uses is not
-        // recoverable from the file name.
         assert!(found.has("Argent Strata 1.1"));
-        assert!(!found.has("ArgentStrata1.1"));
+        /* The point of the whole module: the name the server uses is not
+           recoverable from the file name. That still holds where it matters -
+           `resolve` will not answer from a stem, because a start script needs
+           the name the engine indexes.
+           This used to assert that `has` refused the filename form too. It no
+           longer does, on purpose: presence may be read off a file so that a
+           map the engine has not scanned yet is not downloaded again. The two
+           claims were tangled together in one assertion; only the second was
+           ever load-bearing. */
+        assert_eq!(found.resolve("ArgentStrata1.1"), None);
         let _ = std::fs::remove_dir_all(&root);
     }
 

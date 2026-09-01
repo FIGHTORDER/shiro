@@ -726,11 +726,17 @@ mod tests {
     #[test]
     #[ignore = "needs a campaign file and a Zero-K install"]
     fn a_real_campaign_binds_to_a_real_install() {
-        let file = std::env::var("SHIRO_TEST_CAMPAIGN")
-            .expect("set SHIRO_TEST_CAMPAIGN to a .shirocamp");
-        let root = PathBuf::from(
-            std::env::var("SHIRO_TEST_ZK_ROOT").expect("set SHIRO_TEST_ZK_ROOT"),
-        );
+        /* Skipped rather than failed when its inputs are absent: `--ignored`
+           runs every ignored test, so panicking here reports a failure to
+           anyone running an unrelated one. */
+        let (Ok(file), Ok(root)) = (
+            std::env::var("SHIRO_TEST_CAMPAIGN"),
+            std::env::var("SHIRO_TEST_ZK_ROOT"),
+        ) else {
+            eprintln!("skipped: set SHIRO_TEST_CAMPAIGN and SHIRO_TEST_ZK_ROOT");
+            return;
+        };
+        let root = PathBuf::from(root);
         let bytes = std::fs::read(&file).expect("could not read the campaign");
 
         let dir = std::env::temp_dir().join("shiro-campaign-e2e");

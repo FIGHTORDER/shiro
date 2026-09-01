@@ -37,6 +37,11 @@ flate2 = "1"
 # TCP keepalive: tokio does not expose the socket option itself.
 socket2 = { version = "0.6", features = ["all"] }
 base64 = "0.22"
+# The galaxy campaign is Lua tables, and the only honest way to read a Lua table
+# is to run Lua. Sandboxed and dropped immediately - see campaignpack.rs.
+# `lua51` because that is the dialect Spring and Chobby are; 5.4 would be
+# subtly wrong rather than loudly. Vendored so the build needs no system Lua.
+mlua = { version = "0.12", features = ["lua51", "vendored"] }
 # Zero-K's own content service, for the maps and mods pr-downloader cannot
 # reach. Blocking, because it runs on the same worker thread that already waits
 # on pr-downloader; rustls rather than native TLS so the Linux CI build does not

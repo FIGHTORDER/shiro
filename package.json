@@ -24,7 +24,7 @@
     "check:widgets": "node tools/gen-stock-widgets.mjs --check",
     "gen:modoptions": "node tools/gen-modoptions.mjs",
     "typecheck": "tsc --noEmit",
-    "check:names": "node tools/check-names.mjs",
+    "check:names": "node tools/check-names.mjs && node tools/check-tokens.mjs",
     "fetch:apps": "node tools/fetch-bundled-apps.mjs",
     "test:demo": "node tools/e2e/demo.mjs",
     "build:steam": "node tools/build-steam-helper.mjs",

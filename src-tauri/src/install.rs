@@ -54,9 +54,57 @@ pub fn make_managed(root: &Path) -> Result<(), String> {
 /// Directories that make a folder recognisably a Zero-K data dir rather than
 /// some unrelated folder that happens to be called Zero-K. `engine` alone is
 /// not enough - a bare engine checkout has one too.
+/// Is there a directory called this, whatever case it is written in?
+///
+/// `root.join("engine").is_dir()` is enough on Windows and macOS, where the
+/// filesystem folds case for you. On Linux it is not, and a Zero-K whose
+/// directories happen to be capitalised differently is invisible - which is a
+/// bug that cannot happen on the machine most of this is written on.
+///
+/// The exact name is tried first, because that is the case that always hits and
+/// it costs one syscall. Only a miss pays for a directory listing.
+fn has_dir(root: &Path, name: &str) -> bool {
+    if root.join(name).is_dir() {
+        return true;
+    }
+    let Ok(entries) = std::fs::read_dir(root) else { return false };
+    entries.flatten().any(|e| {
+        e.file_name().to_str().is_some_and(|n| n.eq_ignore_ascii_case(name))
+            && e.path().is_dir()
+    })
+}
+
 fn has_zk_content(root: &Path) -> bool {
-    root.join("engine").is_dir()
-        && (root.join("games").is_dir() || root.join("pool").is_dir() || root.join("packages").is_dir())
+    has_dir(root, "engine")
+        && (has_dir(root, "games") || has_dir(root, "pool") || has_dir(root, "packages"))
+}
+
+/// Why a directory is not an install, in words a person can act on.
+///
+/// "Looked in: <twelve paths>" tells somebody where we searched and nothing
+/// about what we found, so a report comes back as "it did not detect it" and
+/// the next step is a guess. This says which of the two conditions each
+/// candidate failed, which turns the same report into an answer.
+///
+/// Worth the detail because this is the one bug that cannot be reproduced from
+/// here: a Steam install on Linux is somebody else's directory layout on
+/// somebody else's machine.
+fn why_not(root: &Path) -> &'static str {
+    if !root.exists() {
+        return "not there";
+    }
+    if !root.is_dir() {
+        return "not a directory";
+    }
+    if std::fs::read_dir(root).is_err() {
+        return "cannot be read";
+    }
+    match (has_dir(root, "engine"), has_dir(root, "games") || has_dir(root, "pool") || has_dir(root, "packages")) {
+        (false, false) => "no engine/ and no games, pool or packages",
+        (false, true) => "has game content but no engine/",
+        (true, false) => "has engine/ but no games, pool or packages",
+        (true, true) => "looks like an install",
+    }
 }
 
 /// Is this a Zero-K data directory?
@@ -153,6 +201,20 @@ fn steam_roots() -> Vec<PathBuf> {
     if let Some(home) = home_dir() {
         roots.push(home.join(".local/share/Steam"));
         roots.push(home.join(".steam/steam"));
+        /* Steam's own canonical symlink. It is what Valve tells other software
+           to follow, and on a Debian or Arch package install it is sometimes
+           the only one of these that resolves. */
+        roots.push(home.join(".steam/root"));
+        // What the Debian package lays down, which Ubuntu users get by default.
+        roots.push(home.join(".steam/debian-installation"));
+        /* Flatpak, which is how a large share of Linux users now install Steam -
+           every Steam Deck, and the recommended route on Fedora and Arch. Shiro
+           itself ships as an AppImage and a deb rather than a Flatpak, so it is
+           not sandboxed and can read this. */
+        roots.push(home.join(".var/app/com.valvesoftware.Steam/.local/share/Steam"));
+        roots.push(home.join(".var/app/com.valvesoftware.Steam/.steam/steam"));
+        // Snap, for the Ubuntu installs that took that route instead.
+        roots.push(home.join("snap/steam/common/.local/share/Steam"));
         roots.push(home.join("Library/Application Support/Steam"));
     }
     roots
@@ -247,18 +309,73 @@ fn candidates_with(managed: Option<&Path>) -> Vec<(PathBuf, String)> {
 /// any other candidate rather than trusted, so a typo says "that is not a
 /// Zero-K folder" instead of failing later at the engine.
 pub fn detect_with(override_root: Option<&str>) -> Result<Install, String> {
-    if let Some(root) = override_root.map(str::trim).filter(|r| !r.is_empty()) {
-        let path = PathBuf::from(root);
-        if looks_like_zk_root(&path) {
-            let source = if is_managed(&path) { "Shiro" } else { "settings" };
-            return Ok(Install { root: path, source: source.into() });
-        }
-        return Err(format!(
-            "{} is not a Zero-K installation - no engine/ with games, maps or pool beside it.",
-            path.display()
-        ));
+    let Some(root) = override_root.map(str::trim).filter(|r| !r.is_empty()) else {
+        return detect();
+    };
+    let path = PathBuf::from(root);
+    /* Only searched when the saved path cannot answer on its own, so the
+       ordinary case is still one look at one directory. */
+    if is_filled(&path) {
+        return decide_override(&path, None);
     }
-    detect()
+    decide_override(&path, detect().ok())
+}
+
+/// What a saved install path means, given what else is on the machine.
+///
+/// Pure so it can be tested: which of these branches is taken depends on
+/// directories that exist or do not on the machine running the test, and the
+/// policy is the part worth pinning down.
+///
+/// The case this exists for: `is_filled` and the two passes in `choose` keep a
+/// managed install that was prepared and never filled from shadowing a real
+/// Zero-K. **That reasoning was skipped entirely whenever a path was saved in
+/// settings**, because detection returned before any of it ran -
+/// `looks_like_zk_root` counts a managed directory from the moment it exists,
+/// so a download that never arrived was handed back as the install and a
+/// working Steam copy was never looked for.
+///
+/// The saved path still wins when it is real, and is still never silently
+/// swapped for somewhere else - being told which directory is in use is the
+/// point of setting one. What changed is that the search happens, and the
+/// answer says where a usable install actually is.
+fn decide_override(path: &Path, found: Option<Install>) -> Result<Install, String> {
+    let source = || if is_managed(path) { "Shiro" } else { "settings" }.to_string();
+    if is_filled(path) {
+        return Ok(Install { root: path.to_path_buf(), source: source() });
+    }
+    /* Past here the path is not usable as it stands. The only way it can still
+       "look like" a Zero-K is by carrying the managed marker: for anything
+       else, looking like one means having the content, and that is what
+       `is_filled` just answered. So this is a managed directory with nothing in
+       it yet, or a path that is simply wrong. */
+    match (is_managed(path), found) {
+        // Mid-download, and nothing better anywhere. A real state, not an error.
+        (true, None) => Ok(Install { root: path.to_path_buf(), source: source() }),
+
+        /* An empty managed directory is not somebody's choice of install - it
+           is where Shiro's own installer was going to put one, written to
+           settings by pressing a button. When the download never arrived and
+           there is a real Zero-K on the machine, using the real one is what the
+           person wanted; being told to go and clear a text field is not. */
+        (true, Some(other)) => Ok(other),
+
+        /* A path somebody typed is a decision. A wrong one is reported rather
+           than quietly replaced, or Shiro would launch from somewhere they did
+           not pick and never say so. */
+        (false, Some(other)) => Err(format!(
+            "{} is not a Zero-K installation - {}.\nThere is one at {} - clear the install path \
+             in Settings to use it.",
+            path.display(),
+            why_not(path),
+            other.root.display()
+        )),
+        (false, None) => Err(format!(
+            "{} is not a Zero-K installation - {}.",
+            path.display(),
+            why_not(path)
+        )),
+    }
 }
 
 /// Pick an install out of a probed list.
@@ -297,7 +414,7 @@ pub fn detect() -> Result<Install, String> {
         "No Zero-K installation found.\nLooked in:\n{}",
         probed
             .iter()
-            .map(|(p, _)| format!("  {}", p.display()))
+            .map(|(p, _)| format!("  {} - {}", p.display(), why_not(p)))
             .collect::<Vec<_>>()
             .join("\n")
     ))
@@ -382,6 +499,150 @@ mod tests {
         std::fs::create_dir_all(dir.join("pool")).unwrap();
         dir
     }
+
+    #[test]
+    fn a_zero_k_is_found_whatever_case_its_folders_are_written_in() {
+        /* On Windows and macOS the filesystem folds case, so `engine` finds
+           `Engine` for free and this can never fail there. On Linux it can, and
+           a Zero-K whose directories are capitalised differently was simply
+           invisible - which is the shape of "Linux cannot see my Steam
+           install". Run this on Linux for it to mean anything. */
+        let dir = temp("case");
+        let engine = dir.join("Engine").join(engine_platform()).join("2025.06.21");
+        std::fs::create_dir_all(&engine).unwrap();
+        std::fs::write(engine.join(engine_exe()), b"x").unwrap();
+        std::fs::create_dir_all(dir.join("Pool")).unwrap();
+
+        assert!(has_dir(&dir, "engine"), "engine not found as Engine");
+        assert!(has_dir(&dir, "pool"), "pool not found as Pool");
+        assert!(has_zk_content(&dir), "a differently cased Zero-K reads as not one");
+        assert!(looks_like_zk_root(&dir));
+    }
+
+    #[test]
+    fn the_exact_case_still_works_and_a_missing_folder_is_still_missing() {
+        let dir = temp("case-exact");
+        std::fs::create_dir_all(dir.join("engine")).unwrap();
+        assert!(has_dir(&dir, "engine"));
+        // The fallback must not turn "absent" into "present".
+        assert!(!has_dir(&dir, "pool"));
+        assert!(!has_zk_content(&dir), "an engine alone is not an install");
+        // Nor may a file of the right name pass as a directory.
+        std::fs::write(dir.join("pool"), b"not a directory").unwrap();
+        assert!(!has_dir(&dir, "pool"), "a file named pool is not the pool");
+    }
+
+    #[test]
+    fn an_empty_managed_folder_gives_way_to_a_real_install() {
+        /* Shiro's own installer writes the managed path into settings when the
+           button is pressed. If the download never lands, that setting was
+           never a choice about which Zero-K to use - so a real one wins, and
+           nobody has to find and clear a text field to get their game back.
+           This is the case a Linux tester hit with a working Steam copy. */
+        let empty = temp("managed-empty");
+        std::fs::write(empty.join(MANAGED_MARKER), b"").unwrap();
+        let steam = Install { root: PathBuf::from("/steam/Zero-K"), source: "Steam".into() };
+
+        let picked = decide_override(&empty, Some(steam)).expect("the real install is used");
+        assert_eq!(picked.root, PathBuf::from("/steam/Zero-K"));
+        assert_eq!(picked.source, "Steam");
+    }
+
+    #[test]
+    fn a_path_somebody_typed_is_still_never_swapped_out_from_under_them() {
+        /* The other half of the same rule. A directory chosen by hand is a
+           decision, so a wrong one is reported rather than quietly replaced -
+           otherwise Shiro would launch from somewhere the person did not pick
+           and never say so. */
+        let typed = temp("typed-wrong");
+        let steam = Install { root: PathBuf::from("/steam/Zero-K"), source: "Steam".into() };
+        let e = decide_override(&typed, Some(steam)).unwrap_err();
+        assert!(e.contains("is not a Zero-K installation"), "{e}");
+        assert!(e.contains("/steam/Zero-K"), "and it names the alternative: {e}");
+    }
+
+    #[test]
+    fn a_saved_path_that_is_real_is_used_and_never_swapped() {
+        let real = a_working_install("override-real");
+        let elsewhere = Install { root: PathBuf::from("/elsewhere"), source: "Steam".into() };
+        // Even with another install on the machine, the saved one wins.
+        let found = decide_override(&real, Some(elsewhere)).unwrap();
+        assert_eq!(found.root, real);
+        assert_eq!(found.source, "settings");
+        assert_eq!(detect_with(real.to_str()).unwrap().root, real);
+    }
+
+    #[test]
+    fn a_saved_path_that_is_wrong_says_why_and_not_merely_that_it_is_wrong() {
+        let junk = temp("override-junk");
+        let e = decide_override(&junk, None).unwrap_err();
+        assert!(e.contains("is not a Zero-K installation"), "{e}");
+        assert!(e.contains("no engine/"), "the reason has to be in it: {e}");
+        assert_eq!(detect_with(junk.to_str()).unwrap_err(), e);
+    }
+
+    #[test]
+    fn the_failure_says_what_was_wrong_with_each_place_it_looked() {
+        /* The bug this exists for cannot be reproduced here - it is somebody
+           else's Steam layout on somebody else's machine - so the message has
+           to carry the diagnosis back on its own. */
+        let missing = std::env::temp_dir().join("shiro-install-nowhere-at-all");
+        let _ = std::fs::remove_dir_all(&missing);
+        assert_eq!(why_not(&missing), "not there");
+
+        let empty = temp("why-empty");
+        assert_eq!(why_not(&empty), "no engine/ and no games, pool or packages");
+
+        let content_only = temp("why-content");
+        std::fs::create_dir_all(content_only.join("games")).unwrap();
+        assert_eq!(why_not(&content_only), "has game content but no engine/");
+
+        let engine_only = temp("why-engine");
+        std::fs::create_dir_all(engine_only.join("engine")).unwrap();
+        assert_eq!(why_not(&engine_only), "has engine/ but no games, pool or packages");
+
+        let both = temp("why-both");
+        std::fs::create_dir_all(both.join("engine")).unwrap();
+        std::fs::create_dir_all(both.join("pool")).unwrap();
+        assert_eq!(why_not(&both), "looks like an install");
+
+        // A file where a directory should be is named as such, not as absent.
+        let file = temp("why-file").join("thing");
+        std::fs::write(&file, b"x").unwrap();
+        assert_eq!(why_not(&file), "not a directory");
+    }
+
+    #[test]
+    fn a_directory_that_cannot_be_listed_is_not_a_zero_k() {
+        // The fallback reads the directory; one that is not there must say no
+        // rather than panic.
+        let gone = std::env::temp_dir().join("shiro-install-does-not-exist-at-all");
+        let _ = std::fs::remove_dir_all(&gone);
+        assert!(!has_dir(&gone, "engine"));
+        assert!(!has_zk_content(&gone));
+    }
+
+    #[test]
+    fn the_steam_roots_cover_how_linux_actually_installs_steam() {
+        /* Flatpak is how a large share of Linux users install Steam - every
+           Steam Deck, and the recommended route on Fedora and Arch - and it was
+           missing entirely. So were Steam's own `root` symlink and the Debian
+           package's directory. */
+        let Some(home) = home_dir() else { return };
+        let roots = steam_roots();
+        let has = |p: &str| roots.iter().any(|r| *r == home.join(p));
+        for expected in [
+            ".local/share/Steam",
+            ".steam/steam",
+            ".steam/root",
+            ".steam/debian-installation",
+            ".var/app/com.valvesoftware.Steam/.local/share/Steam",
+            "snap/steam/common/.local/share/Steam",
+        ] {
+            assert!(has(expected), "steam_roots is missing {expected}");
+        }
+    }
+
 
     fn probe(entries: &[(&Path, &str)]) -> Vec<(PathBuf, String)> {
         entries.iter().map(|(p, s)| (p.to_path_buf(), s.to_string())).collect()

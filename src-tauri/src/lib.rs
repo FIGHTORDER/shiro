@@ -3,6 +3,11 @@ use tauri::Manager;
 mod ais;
 mod archives;
 mod campaigns;
+mod campaignpack;
+mod customkey;
+mod campaignscript;
+mod galaxy;
+mod rapid;
 mod content;
 mod engine;
 mod engine_settings;
@@ -124,6 +129,15 @@ pub fn run() {
             uiskins::zks_uiskin_status,
             uiskins::zks_uiskin_install,
             uiskins::zks_uiskin_remove,
+            campaignpack::zks_read_campaign,
+            galaxy::zks_galaxy_save,
+            galaxy::zks_galaxy_set_difficulty,
+            galaxy::zks_galaxy_finish,
+            galaxy::zks_galaxy_unlock,
+            galaxy::zks_galaxy_read_codex,
+            galaxy::zks_galaxy_set_loadout,
+            galaxy::zks_galaxy_restart,
+            galaxy::zks_galaxy_play,
             campaigns::zks_campaign_catalogue,
             campaigns::zks_campaign_list,
             campaigns::zks_campaign_install,
