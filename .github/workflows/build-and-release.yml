@@ -229,15 +229,26 @@ jobs:
         run: cargo test
 
       # No "fetch the bundled apps" step here, unlike the Windows job. The only
-      # bundled app is Sprofiler.exe, and src-tauri/tauri.linux.conf.json clears
-      # bundle.resources on Linux so the .deb/.rpm/.AppImage do not carry a
-      # Windows binary they cannot run. Fetching it would be nine megabytes
-      # downloaded, hashed and then packaged into nothing.
+      # bundled app is Sprofiler.exe, and src-tauri/tauri.linux.conf.json does
+      # not list it, so the .deb/.rpm/.AppImage do not carry a Windows binary
+      # they cannot run. Fetching it would be nine megabytes downloaded, hashed
+      # and then packaged into nothing. That file does list Steam's own
+      # library, which Linux does need.
 
       - name: Build
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          # linuxdeploy resolves the dependencies of every ELF it is given and
+          # refuses the whole bundle if one cannot be found. The Steam helper
+          # links `libsteam_api.so`, which lives on no system path, so the
+          # loader is pointed at the copy `build:steam` staged.
+          #
+          # Without this the Linux job fails at bundling with
+          # "Could not find dependency: libsteam_api.so", which is what
+          # 37d9ce0 and 90cfc20 did. There is no Windows equivalent: that
+          # bundler does not walk imports.
+          LD_LIBRARY_PATH: ${{ github.workspace }}/src-tauri/resources/steam
         run: |
           if [ -n "$TAURI_SIGNING_PRIVATE_KEY" ]; then
             echo "Signing key present - building updater artifacts."
