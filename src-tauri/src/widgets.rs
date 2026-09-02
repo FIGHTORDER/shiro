@@ -788,6 +788,21 @@ fn encode(text: &str) -> Vec<u8> {
     out
 }
 
+/// Switch raw widgets on in `ZK_data.lua`, if they are not on already.
+///
+/// Anything written straight into `LuaUI/Widgets/` is invisible to Zero-K until
+/// this is set, so every caller that places one has to do this too or it has
+/// written a file that will never load. Shared rather than repeated because the
+/// skin installer did not do it and reported success anyway.
+pub fn turn_on_local_widgets(root: &Path) -> Result<(), String> {
+    let data = read_or(root, DATA_FILE, empty_data)?;
+    let next = enable_local_widgets(&data)?;
+    if next != data {
+        write_config(root, DATA_FILE, &next)?;
+    }
+    Ok(())
+}
+
 fn read_or(root: &Path, rel: &str, fallback: fn() -> String) -> Result<String, String> {
     let path = zk_path(root, rel);
     match std::fs::read(&path) {
@@ -1435,11 +1450,7 @@ fn install_blocking(
     )?;
 
     // Raw widgets have to be switched on at all, or none of the above loads.
-    let data = read_or(&found.root, DATA_FILE, empty_data)?;
-    let next = enable_local_widgets(&data)?;
-    if next != data {
-        write_config(&found.root, DATA_FILE, &next)?;
-    }
+    turn_on_local_widgets(&found.root)?;
 
     // What the pack says about its own widgets, if it shipped an order list.
     // Only names it actually ships are taken, so a pack cannot switch off a

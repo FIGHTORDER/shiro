@@ -303,3 +303,44 @@ test("a rating needs the replay, so an archive row has none until it is opened",
   assert.equal(rowRating(rowFromReplay(game())), 2623);
   assert.equal(rowRating(rowFromArchive({ id: 1, players: 8, bots: false })), undefined);
 });
+
+/* The bridge sends `null`, not `undefined`.
+ *
+ * `replays.rs` derives plain `Serialize` with no `skip_serializing_if`, so
+ * every `Option::None` arrives as JSON `null`. The fixtures above use
+ * `undefined`, which is what let a real defect sit under passing tests. */
+const nulled = (over: Record<string, unknown>): ReplayPlayer =>
+  ({ name: "x", spectator: false, bot: false, ...over }) as unknown as ReplayPlayer;
+
+test("an unrated player is left out of the average rather than counted as zero", () => {
+  /* Every `[aiN]` section has no elo, so this is most games: without it a
+     2000-rated human beside three bots reports 500. */
+  const withBots = game({
+    players: [
+      nulled({ name: "Qrow", ally: 0, elo: 2000 }),
+      nulled({ name: "Bot A", ally: 1, elo: null, bot: true }),
+      nulled({ name: "Bot B", ally: 1, elo: null, bot: true }),
+      nulled({ name: "Bot C", ally: 1, elo: null, bot: true }),
+    ],
+  });
+  assert.equal(averageRating(withBots), 2000);
+});
+
+test("a null ally is not a side, and not an opponent", () => {
+  const odd = game({
+    players: [
+      nulled({ name: "Qrow", ally: 0, elo: 1500 }),
+      nulled({ name: "Nobody", ally: null }),
+    ],
+  });
+  assert.deepEqual(sides(odd).map(s => s.ally), [0], "a null ally must not become a side");
+  assert.deepEqual(opponents(odd, "Qrow"), [], "nor an opponent");
+});
+
+test("a null ally on your own row is undecided rather than a loss", () => {
+  const odd = game({
+    players: [nulled({ name: "Qrow", ally: null })],
+    winners: [0],
+  });
+  assert.equal(outcomeFor(odd, "Qrow"), "undecided");
+});

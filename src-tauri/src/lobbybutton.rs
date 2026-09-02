@@ -75,6 +75,45 @@ pub fn raise(app: &tauri::AppHandle) {
     }
 }
 
+/// The widget's file name in `LuaUI/Widgets/`.
+///
+/// The `shiro_` prefix is the one the widget installer uses, so the widgets
+/// panel already recognises this as ours and will offer to take it back out.
+const WIDGET_NAME: &str = "shiro_lobby_button.lua";
+
+/// Put the widget in place, so that there is a button to press.
+///
+/// Nothing did this. `supervise` primed and polled for the file five times a
+/// second for the length of every game, and the only thing that writes it is a
+/// widget that only a developer running `tools/install-lobby-button.mjs` had:
+/// for everybody else the feature did not exist.
+///
+/// Only into an install Shiro manages, which is the same rule the loading
+/// screen addon follows. A player's own Zero-K is theirs, and writing widgets
+/// into it uninvited is not Shiro's to do.
+///
+/// Allowed to fail for the same reason as the loading screen: a game is worth
+/// more than a button, and a read-only install should still start.
+pub fn place(root: &Path) {
+    if !crate::install::is_managed(root) {
+        return;
+    }
+    let dir = root.join("LuaUI").join("Widgets");
+    if std::fs::create_dir_all(&dir).is_err() {
+        return;
+    }
+    let lua = include_str!("lobbybutton/shiro_lobby_button.lua");
+    if let Err(e) = std::fs::write(dir.join(WIDGET_NAME), lua) {
+        eprintln!("could not place the lobby button: {e}");
+        return;
+    }
+    // Zero-K ignores LuaUI/Widgets until this is set, so without it the file
+    // above is one that never loads.
+    if let Err(e) = crate::widgets::turn_on_local_widgets(root) {
+        eprintln!("could not switch local widgets on for the lobby button: {e}");
+    }
+}
+
 /// How often the file is looked at while a game is running.
 ///
 /// Fast enough that the button feels like a button, and one `stat` of one small
@@ -90,6 +129,32 @@ mod tests {
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(dir.join("LuaUI")).unwrap();
         dir
+    }
+
+    /// The widget is only useful if something puts it where the engine looks.
+    #[test]
+    fn the_widget_is_placed_into_an_install_shiro_manages() {
+        let root = temp("place");
+        // What marks an install as Shiro's own.
+        std::fs::write(root.join(crate::install::MANAGED_MARKER), "").unwrap();
+
+        place(&root);
+
+        let widget = root.join("LuaUI").join("Widgets").join(WIDGET_NAME);
+        assert!(widget.is_file(), "nothing writes the file the poll waits for");
+        let lua = std::fs::read_to_string(&widget).unwrap();
+        assert!(lua.contains(SIGNAL), "the placed widget writes a different file");
+        let data = std::fs::read_to_string(root.join("LuaUI/Config/ZK_data.lua"))
+            .expect("raw widgets were never switched on, so it would never load");
+        assert!(data.contains("useLocalWidgets"), "{data}");
+    }
+
+    /// Somebody else's Zero-K is not ours to write widgets into.
+    #[test]
+    fn an_install_shiro_does_not_manage_is_left_alone() {
+        let root = temp("unmanaged");
+        place(&root);
+        assert!(!root.join("LuaUI").join("Widgets").join(WIDGET_NAME).exists());
     }
 
     fn press(root: &Path, body: &str) {

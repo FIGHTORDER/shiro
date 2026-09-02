@@ -34,7 +34,7 @@
    "icon": "staticshield.png",
    "model": "m-8.s3o",
    "weapon": {
-    "damage": 3600
+    "damage": 10
    }
   },
   {
@@ -92,7 +92,7 @@
    "icon": "spideremp.png",
    "model": "spideranarchid.s3o",
    "weapon": {
-    "damage": 30,
+    "damage": 5,
     "range": 270,
     "reload": 0.1
    }
@@ -183,7 +183,7 @@
    "icon": "shieldshield.png",
    "model": "m-8.s3o",
    "weapon": {
-    "damage": 3600
+    "damage": 10
    },
    "factory": "Shieldbot Factory",
    "factoryId": "factoryshield"
@@ -222,7 +222,7 @@
    "icon": "veharty.png",
    "model": "corwolv.s3o",
    "weapon": {
-    "damage": 750,
+    "damage": 20,
     "range": 750,
     "reload": 5.6
    },
@@ -240,7 +240,7 @@
    "icon": "shieldraid.png",
    "model": "mbot.s3o",
    "weapon": {
-    "damage": 50,
+    "damage": 8.48,
     "range": 232,
     "reload": 0.1
    },
@@ -258,7 +258,7 @@
    "icon": "chickenc.png",
    "model": "chickenc.s3o",
    "weapon": {
-    "damage": 400,
+    "damage": 140,
     "range": 400,
     "reload": 3
    },
@@ -276,7 +276,7 @@
    "icon": "corcom.png",
    "model": "corcomAlt.s3o",
    "weapon": {
-    "damage": 70,
+    "damage": 0,
     "range": 290,
     "reload": 0.1
    }
@@ -291,7 +291,7 @@
    "icon": "staticheavyarty.png",
    "model": "armbrtha.s3o",
    "weapon": {
-    "damage": 5600,
+    "damage": 2002.4,
     "range": 5600,
     "reload": 8
    }
@@ -307,7 +307,7 @@
    "icon": "gunshipbomb.png",
    "model": "f-1.s3o",
    "weapon": {
-    "damage": 10000,
+    "damage": 250,
     "range": 10,
     "reload": 5.6
    },
@@ -325,7 +325,7 @@
    "icon": "chicken_blimpy.png",
    "model": "chicken_blimpy.s3o",
    "weapon": {
-    "damage": 1000,
+    "damage": 0,
     "range": 300,
     "reload": 0.5
    },
@@ -361,7 +361,7 @@
    "icon": "chickenblobber.png",
    "model": "chickenblobber.s3o",
    "weapon": {
-    "damage": 1350,
+    "damage": 180,
     "range": 1350,
     "reload": 8
    },
@@ -415,7 +415,7 @@
    "icon": "amphsupport.png",
    "model": "amphdeploy.s3o",
    "weapon": {
-    "damage": 645,
+    "damage": 165.1,
     "range": 645,
     "reload": 1.9
    },
@@ -433,7 +433,7 @@
    "icon": "amphfloater.png",
    "model": "can.s3o",
    "weapon": {
-    "damage": 450,
+    "damage": 150.1,
     "range": 450,
     "reload": 1.8
    },
@@ -527,7 +527,7 @@
    "icon": "chickenbroodqueen.png",
    "model": "chickenbroodqueen.s3o",
    "weapon": {
-    "damage": 120,
+    "damage": 40,
     "range": 120,
     "reload": 0.4
    }
@@ -543,7 +543,7 @@
    "icon": "chickenflyerqueen.png",
    "model": "chickenflyerqueen.s3o",
    "weapon": {
-    "damage": 500,
+    "damage": 180,
     "range": 500,
     "reload": 10
    }
@@ -559,7 +559,7 @@
    "icon": "chickenflyerqueen.png",
    "model": "chickenflyerqueen.s3o",
    "weapon": {
-    "damage": 500,
+    "damage": 180,
     "range": 500,
     "reload": 10
    }
@@ -604,7 +604,7 @@
    "icon": "wolverine_mine.png",
    "model": "claw.s3o",
    "weapon": {
-    "damage": 70,
+    "damage": 34.01,
     "range": 115,
     "reload": 20
    }
@@ -673,7 +673,7 @@
    "icon": "cremcom.png",
    "model": "cremcom.s3o",
    "weapon": {
-    "damage": 70,
+    "damage": 0,
     "range": 300,
     "reload": 0.1
    }
@@ -731,7 +731,7 @@
    "icon": "jumpcon.png",
    "model": "behe_coroner.s3o",
    "weapon": {
-    "damage": 30,
+    "damage": 15,
     "range": 240,
     "reload": 2
    },
@@ -749,7 +749,7 @@
    "icon": "shieldcon.png",
    "model": "conbot.s3o",
    "weapon": {
-    "damage": 900
+    "damage": 10
    },
    "factory": "Shieldbot Factory",
    "factoryId": "factoryshield"
@@ -764,7 +764,7 @@
    "icon": "staticjammer.png",
    "model": "radarjammer.dae",
    "weapon": {
-    "damage": 1000000000,
+    "damage": 0,
     "range": 72000,
     "reload": 4
    },
@@ -782,7 +782,7 @@
    "icon": "shipriot.png",
    "model": "shipriot.s3o",
    "weapon": {
-    "damage": 50,
+    "damage": 23,
     "range": 300,
     "reload": 2
    },
@@ -849,7 +849,7 @@
    "icon": "shipscout.png",
    "model": "shipscout.s3o",
    "weapon": {
-    "damage": 70,
+    "damage": 35,
     "range": 265,
     "reload": 2
    },
@@ -919,7 +919,7 @@
    "icon": "striderdante.png",
    "model": "dante.s3o",
    "weapon": {
-    "damage": 100,
+    "damage": 15,
     "range": 320,
     "reload": 0.133
    },
@@ -954,7 +954,7 @@
    "icon": "turretheavy.png",
    "model": "DDM.s3o",
    "weapon": {
-    "damage": 430,
+    "damage": 51.1,
     "range": 417,
     "reload": 0.1
    }
@@ -970,7 +970,7 @@
    "icon": "striderdetriment.png",
    "model": "detriment.s3o",
    "weapon": {
-    "damage": 4000,
+    "damage": 200.1,
     "range": 550,
     "reload": 2
    },
@@ -988,7 +988,7 @@
    "icon": "chicken_digger.png",
    "model": "chicken_digger.s3o",
    "weapon": {
-    "damage": 60,
+    "damage": 40,
     "range": 60,
     "reload": 1.2
    },
@@ -1006,7 +1006,7 @@
    "icon": "shieldscout.png",
    "model": "clogger.s3o",
    "weapon": {
-    "damage": 10000,
+    "damage": 48,
     "range": 50,
     "reload": 1.9
    },
@@ -1023,7 +1023,7 @@
    "icon": "raveparty.png",
    "model": "raveparty.s3o",
    "weapon": {
-    "damage": 9600,
+    "damage": 3500.1,
     "range": 9600,
     "reload": 3.5
    }
@@ -1068,7 +1068,7 @@
    "icon": "vehcapture.png",
    "model": "corvrad_big.s3o",
    "weapon": {
-    "damage": 30,
+    "damage": 22,
     "range": 450,
     "reload": 1
    },
@@ -1086,7 +1086,7 @@
    "icon": "tankheavyassault.png",
    "model": "terraTank.s3o",
    "weapon": {
-    "damage": 400,
+    "damage": 10,
     "range": 800,
     "reload": 0.2
    }
@@ -1183,7 +1183,7 @@
    "icon": "shiparty.png",
    "model": "shiparty.s3o",
    "weapon": {
-    "damage": 1200,
+    "damage": 600.01,
     "range": 1200,
     "reload": 7.3
    },
@@ -1218,7 +1218,7 @@
    "icon": "tankaa.png",
    "model": "corsent.s3o",
    "weapon": {
-    "damage": 900,
+    "damage": 90,
     "range": 900,
     "reload": 0.4
    },
@@ -1251,7 +1251,7 @@
    "icon": "shieldfelon.png",
    "model": "shieldfelon.s3o",
    "weapon": {
-    "damage": 1800,
+    "damage": 9.79,
     "range": 435,
     "reload": 0.166
    },
@@ -1269,7 +1269,7 @@
    "icon": "vehsupport.png",
    "model": "cormist_512.s3o",
    "weapon": {
-    "damage": 70,
+    "damage": 40.01,
     "range": 600,
     "reload": 0.766
    },
@@ -1287,7 +1287,7 @@
    "icon": "dronelight.png",
    "model": "attackdrone.s3o",
    "weapon": {
-    "damage": 150,
+    "damage": 32,
     "range": 150,
     "reload": 0.8
    }
@@ -1303,7 +1303,7 @@
    "icon": "jumparty.png",
    "model": "firewalker.s3o",
    "weapon": {
-    "damage": 300,
+    "damage": 68,
     "range": 900,
     "reload": 12
    },
@@ -1339,7 +1339,7 @@
    "icon": "spiderscout.png",
    "model": "arm_flea.s3o",
    "weapon": {
-    "damage": 50,
+    "damage": 12,
     "range": 150,
     "reload": 0.233
    },
@@ -1426,7 +1426,7 @@
    "icon": "satellite.png",
    "model": "starlight_satellite.dae",
    "weapon": {
-    "damage": 10500,
+    "damage": 800,
     "range": 10500,
     "reload": 20
    }
@@ -1476,7 +1476,7 @@
    "icon": "cloakaa.png",
    "model": "spherejeth.s3o",
    "weapon": {
-    "damage": 720,
+    "damage": 20.001,
     "range": 720,
     "reload": 0.3
    },
@@ -1494,7 +1494,7 @@
    "icon": "amphassault.png",
    "model": "amphassault.s3o",
    "weapon": {
-    "damage": 8192,
+    "damage": 750.1,
     "range": 600,
     "reload": 6
    },
@@ -1523,7 +1523,7 @@
    "icon": "dronecarry.png",
    "model": "carrydrone.s3o",
    "weapon": {
-    "damage": 30,
+    "damage": 12,
     "range": 250,
     "reload": 1
    }
@@ -1607,7 +1607,7 @@
    "icon": "gunshipheavytrans.png",
    "model": "largeTransport.s3o",
    "weapon": {
-    "damage": 50,
+    "damage": 10,
     "range": 312,
     "reload": 0.2
    },
@@ -1625,7 +1625,7 @@
    "icon": "spiderassault.png",
    "model": "hermit.s3o",
    "weapon": {
-    "damage": 350,
+    "damage": 141,
     "range": 350,
     "reload": 2.6
    },
@@ -1711,7 +1711,7 @@
    "icon": "napalmmissile.png",
    "model": "wep_napalm.s3o",
    "weapon": {
-    "damage": 220,
+    "damage": 151,
     "range": 3500,
     "reload": 10
    },
@@ -1742,7 +1742,7 @@
    "icon": "jumpassault.png",
    "model": "corcan.s3o",
    "weapon": {
-    "damage": 10000,
+    "damage": 300.1,
     "range": 122,
     "reload": 1
    },
@@ -1760,7 +1760,7 @@
    "icon": "jumpsumo.png",
    "model": "m-9.s3o",
    "weapon": {
-    "damage": 70,
+    "damage": 0,
     "range": 440,
     "reload": 0.1
    },
@@ -1813,7 +1813,7 @@
    "icon": "tankraid.png",
    "model": "logkoda.s3o",
    "weapon": {
-    "damage": 90,
+    "damage": 40,
     "range": 210,
     "reload": 0.5
    },
@@ -1831,7 +1831,7 @@
    "icon": "gunshipkrow.png",
    "model": "krow.s3o",
    "weapon": {
-    "damage": 8192,
+    "damage": 110,
     "range": 395,
     "reload": 0.4
    },
@@ -1859,7 +1859,7 @@
    "icon": "hoverarty.png",
    "model": "penetrator_lordmuffe.s3o",
    "weapon": {
-    "damage": 8192,
+    "damage": 3000.1,
     "range": 980,
     "reload": 23
    },
@@ -1893,7 +1893,7 @@
    "icon": "chicken_leaper.png",
    "model": "chicken_leaper.s3o",
    "weapon": {
-    "damage": 8000,
+    "damage": 50,
     "range": 100,
     "reload": 1
    },
@@ -1974,7 +1974,7 @@
    "icon": "chickenr.png",
    "model": "chickenr.s3o",
    "weapon": {
-    "damage": 950,
+    "damage": 240,
     "range": 950,
     "reload": 6
    },
@@ -1992,7 +1992,7 @@
    "icon": "amphlaunch.png",
    "model": "behecrash.s3o",
    "weapon": {
-    "damage": 620,
+    "damage": 0,
     "range": 620,
     "reload": 18
    },
@@ -2027,7 +2027,7 @@
    "icon": "turretlaser.png",
    "model": "lotustest2.s3o",
    "weapon": {
-    "damage": 30,
+    "damage": 7.5,
     "range": 460,
     "reload": 0.1
    }
@@ -2042,7 +2042,7 @@
    "icon": "turretantiheavy.png",
    "model": "arm_annihilator.s3o",
    "weapon": {
-    "damage": 8192,
+    "damage": 4000.1,
     "range": 1200,
     "reload": 10
    }
@@ -2148,7 +2148,7 @@
    "icon": "tankassault.png",
    "model": "correap.s3o",
    "weapon": {
-    "damage": 360,
+    "damage": 320.1,
     "range": 360,
     "reload": 4
    },
@@ -2176,7 +2176,7 @@
    "icon": "shipskirm.png",
    "model": "shipskirm.s3o",
    "weapon": {
-    "damage": 610,
+    "damage": 200,
     "range": 610,
     "reload": 7.5
    },
@@ -2228,7 +2228,7 @@
    "icon": "nebula.png",
    "model": "nebula.s3o",
    "weapon": {
-    "damage": 450,
+    "damage": 40,
     "range": 450,
     "reload": 0.4
    }
@@ -2254,7 +2254,7 @@
    "icon": "turretimpulse.png",
    "model": "corgrav.s3o",
    "weapon": {
-    "damage": 0.7,
+    "damage": 0.001,
     "range": 440,
     "reload": 0.2
    }
@@ -2270,7 +2270,7 @@
    "icon": "gunshipheavyskirm.png",
    "model": "stingray.s3o",
    "weapon": {
-    "damage": 70,
+    "damage": 20,
     "range": 600,
     "reload": 0.433
    },
@@ -2372,7 +2372,7 @@
    "icon": "statictempshield.png",
    "model": "m-8_deploy.s3o",
    "weapon": {
-    "damage": 3400
+    "damage": 10
    }
   },
   {
@@ -2404,7 +2404,7 @@
    "icon": "bomberriot.png",
    "model": "firestorm.s3o",
    "weapon": {
-    "damage": 250,
+    "damage": 40,
     "reload": 1
    },
    "factory": "Airplane Plant",
@@ -2436,7 +2436,7 @@
    "icon": "chicken_pigeon.png",
    "model": "chicken_pigeon.s3o",
    "weapon": {
-    "damage": 1000,
+    "damage": 0,
     "range": 10,
     "reload": 2
    },
@@ -2454,7 +2454,7 @@
    "icon": "jumpblackhole.png",
    "model": "freaker.s3o",
    "weapon": {
-    "damage": 150,
+    "damage": 0,
     "range": 475,
     "reload": 14
    },
@@ -2472,7 +2472,7 @@
    "icon": "hovershotgun.png",
    "model": "hovershotgun.s3o",
    "weapon": {
-    "damage": 50,
+    "damage": 32,
     "range": 235,
     "reload": 3
    }
@@ -2506,7 +2506,7 @@
    "icon": "jumpraid.png",
    "model": "m-5.s3o",
    "weapon": {
-    "damage": 100,
+    "damage": 9.2,
     "range": 240,
     "reload": 0.133
    },
@@ -2523,7 +2523,7 @@
    "icon": "seismic.png",
    "model": "wep_seismic.s3o",
    "weapon": {
-    "damage": 100,
+    "damage": 20,
     "range": 6000,
     "reload": 10
    },
@@ -2583,7 +2583,7 @@
    "icon": "chicken_rafflesia.png",
    "model": "chicken_rafflesia.s3o",
    "weapon": {
-    "damage": 2500
+    "damage": 10
    }
   },
   {
@@ -2597,7 +2597,7 @@
    "icon": "planeheavyfighter.png",
    "model": "fighter2.s3o",
    "weapon": {
-    "damage": 800,
+    "damage": 10,
     "range": 800,
     "reload": 0.1
    },
@@ -2615,7 +2615,7 @@
    "icon": "vehassault.png",
    "model": "corraid.s3o",
    "weapon": {
-    "damage": 320,
+    "damage": 210,
     "range": 320,
     "reload": 2
    },
@@ -2633,7 +2633,7 @@
    "icon": "bomberprec.png",
    "model": "corshad.s3o",
    "weapon": {
-    "damage": 140,
+    "damage": 0,
     "range": 140,
     "reload": 10
    },
@@ -2650,7 +2650,7 @@
    "icon": "turretaalaser.png",
    "model": "aapopup.s3o",
    "weapon": {
-    "damage": 10000,
+    "damage": 14.9,
     "range": 1000,
     "reload": 0.1
    }
@@ -2666,7 +2666,7 @@
    "icon": "cloakriot.png",
    "model": "Spherewarrior.s3o",
    "weapon": {
-    "damage": 70,
+    "damage": 45,
     "range": 270,
     "reload": 0.5
    },
@@ -2702,7 +2702,7 @@
    "icon": "commrecon.png",
    "model": "commrecon.s3o",
    "weapon": {
-    "damage": 5.53,
+    "damage": 0,
     "range": 400,
     "reload": 0.1
    }
@@ -2729,7 +2729,7 @@
    "icon": "spiderriot.png",
    "model": "spiderriot.s3o",
    "weapon": {
-    "damage": 310,
+    "damage": 80.01,
     "range": 310,
     "reload": 0.3
    },
@@ -2783,7 +2783,7 @@
    "icon": "vehriot.png",
    "model": "corleveler_512.s3o",
    "weapon": {
-    "damage": 285,
+    "damage": 250.2,
     "range": 285,
     "reload": 1.7
    },
@@ -2801,7 +2801,7 @@
    "icon": "chicken_roc.png",
    "model": "chicken_roc.s3o",
    "weapon": {
-    "damage": 500,
+    "damage": 200,
     "range": 500,
     "reload": 8
    }
@@ -2835,7 +2835,7 @@
    "icon": "cloakskirm.png",
    "model": "sphererock.s3o",
    "weapon": {
-    "damage": 455,
+    "damage": 180,
     "range": 455,
     "reload": 3.5
    },
@@ -2921,7 +2921,7 @@
    "icon": "vehraid.png",
    "model": "corgator_512.s3o",
    "weapon": {
-    "damage": 270,
+    "damage": 30,
     "range": 262,
     "reload": 0.1
    },
@@ -2939,7 +2939,7 @@
    "icon": "striderscorpion.png",
    "model": "scorpion.s3o",
    "weapon": {
-    "damage": 70,
+    "damage": 0,
     "range": 450,
     "reload": 0.1
    },
@@ -3062,7 +3062,7 @@
    "icon": "shipheavyarty.png",
    "model": "shipheavyarty.s3o",
    "weapon": {
-    "damage": 1600,
+    "damage": 501.1,
     "range": 1600,
     "reload": 12.5
    },
@@ -3080,7 +3080,7 @@
    "icon": "benzcom.png",
    "model": "benzcom1.s3o",
    "weapon": {
-    "damage": 70,
+    "damage": 0,
     "range": 360,
     "reload": 0.1
    }
@@ -3109,7 +3109,7 @@
    "icon": "shipassault.png",
    "model": "shipassault.s3o",
    "weapon": {
-    "damage": 300,
+    "damage": 170.01,
     "range": 290,
     "reload": 1.1
    },
@@ -3229,7 +3229,7 @@
    "icon": "dronefighter.png",
    "model": "fighterdrone.dae",
    "weapon": {
-    "damage": 500,
+    "damage": 33,
     "range": 500,
     "reload": 0.2
    }
@@ -3262,7 +3262,7 @@
    "icon": "chicken_spidermonkey.png",
    "model": "chicken_spidermonkey.s3o",
    "weapon": {
-    "damage": 600,
+    "damage": 30,
     "range": 600,
     "reload": 0.1
    },
@@ -3280,7 +3280,7 @@
    "icon": "chickens.png",
    "model": "chickens.s3o",
    "weapon": {
-    "damage": 460,
+    "damage": 180,
     "range": 460,
     "reload": 3
    },
@@ -3315,7 +3315,7 @@
    "icon": "turretriot.png",
    "model": "afury.s3o",
    "weapon": {
-    "damage": 70,
+    "damage": 45,
     "range": 410,
     "reload": 0.1
    }
@@ -3330,7 +3330,6 @@
    "icon": "mahlazer.png",
    "model": "starlight.dae",
    "weapon": {
-    "damage": 10000,
     "range": 10000,
     "reload": 20
    }
@@ -3345,7 +3344,7 @@
    "icon": "turretheavylaser.png",
    "model": "turretheavylaser.dae",
    "weapon": {
-    "damage": 8192,
+    "damage": 850.1,
     "range": 620,
     "reload": 4.5
    }
@@ -3380,7 +3379,7 @@
    "icon": "armcom.png",
    "model": "armcom.s3o",
    "weapon": {
-    "damage": 70,
+    "damage": 0,
     "range": 300,
     "reload": 0.1
    }
@@ -3396,7 +3395,7 @@
    "icon": "commstrike.png",
    "model": "strikecom.dae",
    "weapon": {
-    "damage": 70,
+    "damage": 0,
     "range": 300,
     "reload": 0.1
    }
@@ -3438,7 +3437,7 @@
    "icon": "commsupport.png",
    "model": "commsupport.s3o",
    "weapon": {
-    "damage": 5.53,
+    "damage": 0,
     "range": 450,
     "reload": 0.1
    }
@@ -3454,7 +3453,7 @@
    "icon": "planefighter.png",
    "model": "fighter.s3o",
    "weapon": {
-    "damage": 10000,
+    "damage": 7.1,
     "range": 667,
     "reload": 0.2
    },
@@ -3472,7 +3471,7 @@
    "icon": "chickenf.png",
    "model": "chickenf.s3o",
    "weapon": {
-    "damage": 400,
+    "damage": 160,
     "range": 400,
     "reload": 1.5
    },
@@ -3523,7 +3522,7 @@
    "sight": 273,
    "model": "pw_warpgate.dae",
    "weapon": {
-    "damage": 1000000000,
+    "damage": 0,
     "range": 72000,
     "reload": 4
    }
@@ -3538,7 +3537,7 @@
    "icon": "turretaaflak.png",
    "model": "corflak.s3o",
    "weapon": {
-    "damage": 1000,
+    "damage": 132,
     "range": 1000,
     "reload": 0.5
    }
@@ -3554,7 +3553,7 @@
    "icon": "shieldassault.png",
    "model": "thud.s3o",
    "weapon": {
-    "damage": 1200,
+    "damage": 10,
     "range": 280,
     "reload": 3.9
    },
@@ -3590,7 +3589,7 @@
    "icon": "chicken_tiamat.png",
    "model": "chickenbroodqueen.s3o",
    "weapon": {
-    "damage": 100,
+    "damage": 12,
     "range": 267,
     "reload": 0.133
    },
@@ -3608,7 +3607,7 @@
    "icon": "jumpaa.png",
    "model": "hunchback.s3o",
    "weapon": {
-    "damage": 1040,
+    "damage": 7.8,
     "range": 1040,
     "reload": 0.1
    },
@@ -3626,7 +3625,7 @@
    "icon": "tankheavyarty.png",
    "model": "cortrem.s3o",
    "weapon": {
-    "damage": 450,
+    "damage": 145,
     "range": 1160,
     "reload": 0.333
    },
@@ -3677,7 +3676,7 @@
    "icon": "hoverskirm2.png",
    "model": "hoverskirm.s3o",
    "weapon": {
-    "damage": 100,
+    "damage": 40,
     "range": 360,
     "reload": 4
    }
@@ -3744,7 +3743,7 @@
    "icon": "assaultcruiser.png",
    "model": "cremcrus.s3o",
    "weapon": {
-    "damage": 400,
+    "damage": 0,
     "range": 400,
     "reload": 0.1
    }
@@ -3820,7 +3819,7 @@
    "icon": "tankcon.png",
    "model": "welder.s3o",
    "weapon": {
-    "damage": 50,
+    "damage": 8.64,
     "range": 235,
     "reload": 0.2
    },
@@ -3838,7 +3837,7 @@
    "icon": "chicken_dragon.png",
    "model": "chicken_dragon.s3o",
    "weapon": {
-    "damage": 700,
+    "damage": 500,
     "range": 700,
     "reload": 8
    },
@@ -3884,7 +3883,7 @@
    "icon": "chickenwurm.png",
    "model": "chickenwurm.s3o",
    "weapon": {
-    "damage": 300,
+    "damage": 50,
     "range": 300,
     "reload": 6
    },
@@ -3901,7 +3900,7 @@
    "icon": "zenith.png",
    "model": "zenith.s3o",
    "weapon": {
-    "damage": 1.2,
+    "damage": 0.001,
     "range": 20000,
     "reload": 0.2
    }
@@ -3934,7 +3933,7 @@
    "icon": "shipaa.png",
    "model": "shipaa.s3o",
    "weapon": {
-    "damage": 10000,
+    "damage": 12.7,
     "range": 1000,
     "reload": 0.1
    },

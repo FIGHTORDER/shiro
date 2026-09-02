@@ -60,3 +60,24 @@ test("nearly every unit has a picture to draw", () => {
   assert.ok(declared > units.units.length * 0.9,
     `only ${declared} of ${units.units.length} units name a picture`);
 });
+
+test("no weapon reports a damage figure that could not be one", () => {
+  /* The damage parser used to read the 400 characters after `damage = {`,
+     which runs past the closing brace. Aegis reported its shield capacity
+     (3600) and the Cornea jammer reported 1000000000. The ceiling here is well
+     above the real top - Shockley is about 30000 - so it catches a value that
+     came from outside the table without arguing about balance. */
+  const loud = units.units
+    .filter(u => u.weapon?.damage !== undefined && u.weapon.damage > 100000)
+    .map(u => `${u.name}: ${u.weapon?.damage}`);
+  assert.deepEqual(loud, [], "these damage figures did not come from a damage table");
+});
+
+test("a shield is not a weapon with thousands of damage", () => {
+  // The specific pair the old parser got wrong, by name rather than by rule.
+  for (const id of ["staticshield", "shieldshield"]) {
+    const u = units.units.find(x => x.id === id);
+    if (!u?.weapon?.damage) continue;
+    assert.ok(u.weapon.damage < 1000, `${id} reports ${u.weapon.damage} damage`);
+  }
+});

@@ -75,8 +75,10 @@ pub struct Commander {
 #[derive(Debug, Clone, Default)]
 pub struct Context {
     pub player_name: String,
-    /// The archive name the engine indexes Zero-K under, e.g. `Zero-K v1.14.8.0`.
-    /// A script naming anything else stops at an unknown game.
+    /// The archive name the engine indexes the game under, e.g.
+    /// `Zero-K v1.14.8.0`. A script naming anything else stops at an unknown
+    /// game, so this is resolved against the install before it gets here -
+    /// including when a planet asks for a mutator rather than plain Zero-K.
     pub game_name: String,
     /// Every unit in the game, for `disabledunits`. Empty means the AI gets
     /// nothing disabled - see `circuit_disable_string`.
@@ -521,9 +523,15 @@ pub fn build(
 
     // ------------------------------------------------------------- scalars ---
 
-    let game_type =
-        game_config.get("gameName").and_then(Json::as_str).unwrap_or(&ctx.game_name).to_string();
-    root.set("gametype", game_type);
+    /* `ctx.game_name`, never the planet's own `gameName`.
+     *
+     * A planet may name a mutator instead of plain Zero-K - planet 69 wants
+     * "Quick Rocket Tutorial", planet 71 "Super Extreme Kodachi Rally" - and
+     * that is a name a person wrote, not the name the engine indexes an archive
+     * under. Written through, the engine stops at an unknown game, and the
+     * pre-flight check never fired because only the map was being resolved.
+     * Resolving it is the caller's job, exactly as it is for the map. */
+    root.set("gametype", ctx.game_name.clone());
     root.set("mapname", map_name);
     root.set("myplayername", &*ctx.player_name);
     root.set("nohelperais", "0");
@@ -839,6 +847,26 @@ mod tests {
         assert!(s.ends_with('}'));
         assert_eq!(s.matches('{').count(), s.matches('}').count(), "balanced");
         assert!(!s.contains("]]"), "FixScript collapses these");
+    }
+
+    #[test]
+    fn a_planet_naming_a_mutator_writes_the_resolved_game_not_the_planets_wording() {
+        /* Planets 69 and 71 name mutators - "Quick Rocket Tutorial" and "Super
+           Extreme Kodachi Rally". Those are names a person wrote, not archive
+           names, and writing one through produced a script the engine refused
+           with nothing in the pre-flight to explain it, because only the map
+           was being resolved. The caller resolves and hands the result down. */
+        let mut p = planet();
+        p["gameConfig"]["gameName"] = serde_json::json!("Quick Rocket Tutorial");
+        let mut c = ctx();
+        c.game_name = "Quick Rocket Tutorial v1.2".into();
+
+        let s = build(1, &p, &prog(), &c).expect("builds");
+        assert_eq!(
+            get(&s, "Game", "gametype").as_deref(),
+            Some("Quick Rocket Tutorial v1.2"),
+            "the planet's own wording reached the script"
+        );
     }
 
     /// Every real planet, through the real reader, into a real script.

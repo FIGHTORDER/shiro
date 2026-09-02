@@ -16,9 +16,10 @@ import { HOME, clampView, focus, place, planetAt, radius, zoomAt } from "./galax
  * net/galaxy.ts (which planets are reachable). What is left here is drawing and
  * event plumbing.
  *
- * The content is not ours and is not shipped: it is read out of the zkmenu
- * package the player's own Zero-K downloaded, so this screen is empty on a
- * machine with no install and says so rather than looking broken. */
+ * The content is not ours: it is read out of the zkmenu package the player's
+ * own Zero-K downloaded, falling back to the copy Shiro bundles when there is
+ * no install to read. The screen still handles an empty campaign and says so
+ * rather than looking broken. */
 
 const label = {
   font: "var(--w-regular) var(--size-micro)/1 var(--font-core)",
@@ -84,7 +85,7 @@ function Stat({ name, value }) {
 }
 
 export default function GalaxyScreen({
-  campaign, save, busy, error, onPlay, onDifficulty, onRestart, onRefresh,
+  campaign, save, busy, error, onPlay, onDifficulty, onRestart, onRefresh, onCaptured,
 }) {
   const planets = campaign?.planets ?? [];
   const [selected, setSelected] = React.useState(undefined);
@@ -382,6 +383,20 @@ export default function GalaxyScreen({
                 {busy ? "Starting..." : chosenState === "locked" ? "Not reachable yet"
                   : chosenState === "captured" ? "Play again" : "Start mission"}
               </Button>
+
+              {/* Marked by hand, the way a Splaunch campaign marks a mission.
+                  Shiro is not in the game and the engine tells it nothing about
+                  the outcome, so the alternative to asking is guessing - and a
+                  campaign that quietly refuses to advance is worse than one
+                  that asks. Only offered once, because capturing a planet opens
+                  its neighbours and taking that back would strand the player
+                  somewhere the graph says they cannot reach. */}
+              {onCaptured && chosenState === "open" && (
+                <Button variant="secondary" disabled={busy}
+                  onClick={() => onCaptured(chosen.id, chosen.planet)}>
+                  I captured this planet
+                </Button>
+              )}
               {onRestart && (
                 <Button size="sm" onClick={onRestart}>Restart the campaign</Button>
               )}

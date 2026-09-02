@@ -1042,6 +1042,19 @@ export default function App() {
     <GalaxyScreen campaign={galaxyData} save={galaxySave}
       busy={galaxyBusy} error={galaxyError}
       onRefresh={() => { setGalaxyData(undefined); loadGalaxy(); }}
+      /* Recording a win is two steps and both have to land: the planet is
+         captured, which opens its neighbours, and its reward is unlocked, which
+         is what the next mission is played with. Sequential rather than
+         parallel - each returns the whole save, and the second must be written
+         over the first rather than racing it. */
+      onCaptured={(planetId, planet) => {
+        setGalaxyError(undefined);
+        setGalaxyBusy(true);
+        galaxy.finishPlanet(planetId, true, [])
+          .then(() => galaxy.applyReward(planet?.completionReward, galaxyData?.levelRequirement))
+          .then(setGalaxySave, e => setGalaxyError(String(e?.message ?? e)))
+          .finally(() => setGalaxyBusy(false));
+      }}
       onDifficulty={d => galaxy.setDifficulty(d).then(setGalaxySave)
         .catch(e => setGalaxyError(String(e)))}
       onRestart={() => galaxy.restartCampaign().then(setGalaxySave)

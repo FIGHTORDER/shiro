@@ -94,7 +94,7 @@ export function outcomeFor(replay: Replay, me: string | undefined): Outcome {
   );
   if (!mine) return "watched";
   if (!replay.winners.length) return "undecided";
-  if (mine.ally === undefined) return "undecided";
+  if (mine.ally == null) return "undecided";
   return replay.winners.includes(mine.ally) ? "won" : "lost";
 }
 
@@ -102,7 +102,7 @@ export function outcomeFor(replay: Replay, me: string | undefined): Outcome {
 export function sides(replay: Replay): { ally: number; players: ReplayPlayer[] }[] {
   const by = new Map<number, ReplayPlayer[]>();
   for (const p of replay.players) {
-    if (p.spectator || p.ally === undefined) continue;
+    if (p.spectator || p.ally == null) continue;
     const list = by.get(p.ally) ?? [];
     list.push(p);
     by.set(p.ally, list);
@@ -117,7 +117,7 @@ export function teammates(replay: Replay, me: string | undefined): ReplayPlayer[
   const mine = me
     ? replay.players.find(p => !p.spectator && p.name.toLowerCase() === me.toLowerCase())
     : undefined;
-  if (!mine || mine.ally === undefined) return [];
+  if (!mine || mine.ally == null) return [];
   return replay.players.filter(
     p => !p.spectator && p.ally === mine.ally && p.name !== mine.name,
   );
@@ -127,8 +127,8 @@ export function opponents(replay: Replay, me: string | undefined): ReplayPlayer[
   const mine = me
     ? replay.players.find(p => !p.spectator && p.name.toLowerCase() === me.toLowerCase())
     : undefined;
-  if (!mine || mine.ally === undefined) return [];
-  return replay.players.filter(p => !p.spectator && p.ally !== undefined && p.ally !== mine.ally);
+  if (!mine || mine.ally == null) return [];
+  return replay.players.filter(p => !p.spectator && p.ally != null && p.ally !== mine.ally);
 }
 
 // ------------------------------------------------------- shape of the match ---
@@ -162,12 +162,19 @@ export function playerCount(replay: Replay): number {
 /**
  * The average rating, over the players who have one.
  *
+ * `!= null` rather than `!== undefined`, here and wherever a field that came
+ * from a Rust `Option` is tested. `replays.rs` derives plain `Serialize`, so a
+ * `None` crosses the bridge as JSON `null`, and `null !== undefined` is true -
+ * so an unrated player passed the filter and then contributed `0`. Every AI
+ * section in a start script has no `elo`, which is most Zero-K games: one
+ * 2000-rated human against three bots read as 500.
+ *
  * Rounded, and absent rather than zero when nobody was rated - an unranked
  * game is not a game full of beginners, and showing 0 in a rating column says
  * exactly that.
  */
 export function averageRating(replay: Replay): number | undefined {
-  const rated = replay.players.filter(p => !p.spectator && p.elo !== undefined);
+  const rated = replay.players.filter(p => !p.spectator && p.elo != null);
   if (!rated.length) return undefined;
   return Math.round(rated.reduce((sum, p) => sum + (p.elo ?? 0), 0) / rated.length);
 }

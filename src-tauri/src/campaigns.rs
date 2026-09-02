@@ -37,6 +37,7 @@
 //! the interface, and it is why the catalogue is compiled in and hashed rather
 //! than fetched, exactly as `APPS.md` §8 requires.
 
+use std::io::Read;
 use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
@@ -222,11 +223,18 @@ fn read_progress(dir: &Path) -> Progress {
         .unwrap_or_default()
 }
 
+/// Record progress, through a temporary file.
+///
+/// Written in place, a crash partway through left `progress.json` truncated,
+/// and `read_progress` reports a truncated file as no progress at all - so an
+/// interrupted write did not lose the last mission, it lost the campaign.
 fn write_progress(dir: &Path, progress: &Progress) -> Result<(), String> {
     let text = serde_json::to_string_pretty(progress)
         .map_err(|e| format!("could not record progress: {e}"))?;
-    std::fs::write(dir.join("progress.json"), text)
-        .map_err(|e| format!("could not record progress: {e}"))
+    let path = dir.join("progress.json");
+    let temp = path.with_extension("json.part");
+    std::fs::write(&temp, text).map_err(|e| format!("could not record progress: {e}"))?;
+    std::fs::rename(&temp, &path).map_err(|e| format!("could not record progress: {e}"))
 }
 
 // ------------------------------------------------------------- status -----
@@ -292,6 +300,13 @@ fn host_allowed(url: &str) -> bool {
 ///
 /// Only the three extensions a campaign is made of are kept. An archive
 /// carrying anything else is not a campaign and the rest of it is not unpacked.
+/// The most any single entry may become once inflated.
+///
+/// A campaign is text: a manifest and a handful of start scripts. This is three
+/// orders of magnitude more than one needs and still small enough that nothing
+/// can fill a disk with it.
+const MAX_UNPACKED: u64 = 64 * 1024 * 1024;
+
 fn unpack(bytes: &[u8], into: &Path) -> Result<(), String> {
     let mut zip = zip::ZipArchive::new(std::io::Cursor::new(bytes))
         .map_err(|e| format!("that is not a campaign file: {e}"))?;
@@ -318,7 +333,15 @@ fn unpack(bytes: &[u8], into: &Path) -> Result<(), String> {
         }
         let mut out = std::fs::File::create(into.join(&name))
             .map_err(|e| format!("could not write {name}: {e}"))?;
-        std::io::copy(&mut f, &mut out).map_err(|e| format!("could not write {name}: {e}"))?;
+        /* Bounded on the way out as well as on the way in. The download is
+           capped at its compressed size, and compressed size says nothing about
+           what comes out: a few kilobytes of zeroes inflate to gigabytes, and
+           this used to copy all of them onto the player's disk. */
+        let written = std::io::copy(&mut Read::by_ref(&mut f).take(MAX_UNPACKED + 1), &mut out)
+            .map_err(|e| format!("could not write {name}: {e}"))?;
+        if written > MAX_UNPACKED {
+            return Err(format!("{name} is far larger unpacked than a campaign file is"));
+        }
         wrote = true;
     }
     if !wrote {
@@ -342,9 +365,19 @@ fn adopt(dir: &Path, staging: &Path) -> Result<Campaign, String> {
     /* Progress belongs to the player rather than to the campaign, so a reinstall
        or an update keeps it. */
     let kept = read_progress(&home);
-    let _ = std::fs::remove_dir_all(&home);
-    std::fs::rename(staging, &home)
-        .map_err(|e| format!("could not put the campaign in place: {e}"))?;
+    /* The old campaign moves aside rather than being deleted: a rename can fail
+       on Windows for a file another process still holds, and deleting first
+       meant a failure there left neither the old campaign nor the new one. */
+    let old = home.with_extension("old");
+    let _ = std::fs::remove_dir_all(&old);
+    let displaced = std::fs::rename(&home, &old).is_ok();
+    if let Err(e) = std::fs::rename(staging, &home) {
+        if displaced {
+            let _ = std::fs::rename(&old, &home);
+        }
+        return Err(format!("could not put the campaign in place: {e}"));
+    }
+    let _ = std::fs::remove_dir_all(&old);
     if !kept.done.is_empty() {
         write_progress(&home, &kept)?;
     }
@@ -510,7 +543,11 @@ pub fn zks_campaign_remove(app: tauri::AppHandle, id: String) -> Result<(), Stri
 }
 
 /// Start a mission.
-#[tauri::command]
+///
+/// `command(async)` because this probes the filesystem for the install, stats
+/// every archive in the cache and then spawns the engine; on the main thread
+/// the webview is frozen for all of it. Its siblings are all async already.
+#[tauri::command(async)]
 pub fn zks_campaign_play(
     app: tauri::AppHandle,
     game: tauri::State<'_, Game>,

@@ -67,26 +67,64 @@ const rootArg = args.indexOf("--root") >= 0 ? args[args.indexOf("--root") + 1] :
 /** The unit's internal name: the table key, not the filename. */
 function tableKey(src) {
   const m = src.match(/return\s*{\s*([A-Za-z0-9_]+)\s*=/);
-  if (m) return m[1].toLowerCase();
-  const m2 = src.match(/^\s*local\s+[A-Za-z0-9_]+\s*=\s*{/m);
-  return m2 ? undefined : undefined;
+  return m ? m[1].toLowerCase() : undefined;
 }
 
 /** The first weapon's numbers, which is the one a player means by "the weapon". */
+/**
+ * The headline damage: the largest entry of the weapon's `damage` table.
+ *
+ * `damage` is a table of armour classes. Reading it needs the table's real
+ * end, which is the whole of this function.
+ *
+ * The first version took the 400 characters after `damage = {` and reported the
+ * largest number in them, which walks straight past the closing brace into
+ * whatever follows. The committed dataset showed what that costs: Aegis and
+ * Aspis reported `damage: 3600`, which is their *shield capacity*, and the
+ * Cornea jammer reported `1000000000`. Sixteen units carried a damage figure
+ * with no range. Worse, `codex-changes.json` diffs on these, so a shield
+ * rebalance would have been logged as a damage change.
+ */
+function damageOf(body) {
+  const at = body.search(/damage\s*=\s*{/i);
+  if (at < 0) return undefined;
+  const open = body.indexOf("{", at);
+  /* To the matching brace, counting depth: the table is flat today, but a
+     nested one would silently truncate at the first `}` otherwise. */
+  let depth = 0;
+  let end = -1;
+  for (let i = open; i < body.length; i++) {
+    if (body[i] === "{") depth++;
+    else if (body[i] === "}") {
+      depth--;
+      if (depth === 0) { end = i; break; }
+    }
+  }
+  if (end < 0) return undefined;
+  const table = body.slice(open + 1, end);
+
+  /* The largest entry in the table, which is the number a reader wants: an
+     anti-air weapon is `{default = 15.01, planes = 150.1}`, and reporting 15
+     for a Razor would be true of the wrong target. Elsewhere the classes agree
+     - the Impaler is `{default = 20, planes = 20}` - so this differs only where
+     the difference is the point.
+
+     Taking the max was never the bug. Taking it from 400 characters that ran
+     past the closing brace was: that is where Aegis got its shield capacity as
+     damage and the Cornea jammer got a billion. */
+  const nums = [...table.matchAll(/=\s*([\d.]+)/g)]
+    .map(m => Number(m[1]))
+    .filter(Number.isFinite);
+  return nums.length ? Math.max(...nums) : undefined;
+}
+
 function firstWeapon(src) {
   const at = src.search(/weaponDefs\s*=/i);
   if (at < 0) return undefined;
   const body = src.slice(at);
   const range = field(body, "range");
   const reload = field(body, "reloadtime");
-  // `damage` is a table of armour classes; the default entry is the headline.
-  const dmgAt = body.search(/damage\s*=\s*{/i);
-  let damage;
-  if (dmgAt >= 0) {
-    const block = body.slice(dmgAt, dmgAt + 400);
-    const nums = [...block.matchAll(/=\s*([\d.]+)/g)].map(m => Number(m[1])).filter(Number.isFinite);
-    damage = nums.length ? Math.max(...nums) : undefined;
-  }
+  const damage = damageOf(body);
   if (range === undefined && damage === undefined) return undefined;
   return { damage, range, reload };
 }

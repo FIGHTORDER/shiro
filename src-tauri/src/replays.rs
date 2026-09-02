@@ -44,7 +44,7 @@
 //! summary shows needs it.
 
 use std::fs::File;
-use std::io::Read;
+use std::io::{Read, Seek, SeekFrom};
 use std::path::{Path, PathBuf};
 
 use flate2::read::GzDecoder;
@@ -245,6 +245,27 @@ impl Replay {
     }
 }
 
+/// Open a demo for reading, compressed or not.
+///
+/// Both extensions are offered and only one used to work: everything wrapped
+/// the file in a `GzDecoder`, so a plain `.sdf` failed on its first read, came
+/// back as an empty buffer, and was skipped from the list without a word. The
+/// two gzip magic bytes are what tells them apart - a `.sdf` starts with the
+/// demo's own magic, and neither extension is trusted to say which it is,
+/// because a hand-renamed file is the ordinary case here.
+fn demo_reader(path: &Path) -> std::io::Result<Box<dyn Read>> {
+    let mut file = File::open(path)?;
+    let mut magic = [0u8; 2];
+    let compressed = match file.read_exact(&mut magic) {
+        Ok(()) => magic == [0x1f, 0x8b],
+        // Shorter than two bytes, so it is not a demo either way. Let the
+        // caller's own parse be the one that says so.
+        Err(_) => false,
+    };
+    file.seek(SeekFrom::Start(0))?;
+    Ok(if compressed { Box::new(GzDecoder::new(file)) } else { Box::new(file) })
+}
+
 /// Inflate at most `want` bytes, stopping early rather than reading the rest.
 ///
 /// A demo is one gzip member, so there is no seeking to the statistics without
@@ -252,7 +273,7 @@ impl Replay {
 /// listing proportional to the number of files rather than to their size.
 fn read_prefix(path: &Path, want: usize) -> std::io::Result<Vec<u8>> {
     let mut out = vec![0u8; want];
-    let mut dec = GzDecoder::new(File::open(path)?);
+    let mut dec = demo_reader(path)?;
     let mut filled = 0usize;
     while filled < want {
         match dec.read(&mut out[filled..]) {
@@ -348,20 +369,48 @@ pub fn read(path: &Path) -> Option<Replay> {
     })
 }
 
-/// The winning ally teams, from the prefix when it reaches, or by inflating to
-/// the offset when it does not.
+/// An ally team is a small number and there are never many. The engine's own
+/// ceiling is far below this; the cap exists so a header cannot ask for a
+/// buffer, not to describe the game.
+const MAX_WINNERS: usize = 256;
+
+/// The winning ally teams, from the prefix when it reaches, or by inflating
+/// past the demo stream when it does not.
+///
+/// **Nothing here allocates from a header field.** The first version asked
+/// `read_prefix` for `at + size` bytes, which is `vec![0u8; that]` up front -
+/// and `at` is past the demo stream, so an ordinary game reserved and inflated
+/// the whole recording to read one byte, while a corrupt `demoStreamSize` of
+/// `0x7fffffff` reserved two gigabytes. An allocation failure *aborts* the
+/// process rather than unwinding, so `spawn_blocking` could not have caught it,
+/// and replays arrive from the site by download.
+///
+/// The offset is now walked with `io::copy` into a sink, which reads the stream
+/// in fixed-size pieces and holds none of it. Only `size` bytes are ever
+/// allocated, and only after it is capped.
 fn read_winners(path: &Path, at: usize, size: usize, prefix: &[u8]) -> Vec<usize> {
-    if size == 0 {
+    if size == 0 || size > MAX_WINNERS {
         return Vec::new();
     }
-    if at + size <= prefix.len() {
-        return prefix[at..at + size].iter().map(|&b| b as usize).collect();
-    }
-    match read_prefix(path, at + size) {
-        Ok(buf) if buf.len() >= at + size => {
-            buf[at..at + size].iter().map(|&b| b as usize).collect()
+    if let Some(end) = at.checked_add(size) {
+        if end <= prefix.len() {
+            return prefix[at..end].iter().map(|&b| b as usize).collect();
         }
-        _ => Vec::new(),
+    } else {
+        return Vec::new();
+    }
+
+    let Ok(mut dec) = demo_reader(path) else { return Vec::new() };
+    /* Reads and throws away, in whatever chunks `copy` chooses. A stream
+       shorter than the header claims copies fewer bytes and the read below
+       then fails, which is the same outcome as any other malformed demo. */
+    if std::io::copy(&mut Read::by_ref(&mut dec).take(at as u64), &mut std::io::sink()).is_err() {
+        return Vec::new();
+    }
+    let mut out = vec![0u8; size];
+    match dec.read_exact(&mut out) {
+        Ok(()) => out.into_iter().map(|b| b as usize).collect(),
+        Err(_) => Vec::new(),
     }
 }
 
@@ -403,11 +452,26 @@ pub struct ReplayStats {
 
 /// The statistics block. Reads the whole file, so it is for opening one replay
 /// rather than for listing.
+/// A demo this large is not one this reads. The biggest real recordings are
+/// tens of megabytes; this bounds the inflate so a small file cannot expand
+/// without limit.
+const MAX_INFLATED: u64 = 1024 * 1024 * 1024;
+
+/// More teams than the engine can field. Used only to refuse a header, never
+/// to reserve anything.
+const MAX_TEAMS: usize = 255;
+
 pub fn stats(path: &Path) -> Option<ReplayStats> {
     let mut raw = Vec::new();
-    GzDecoder::new(File::open(path).ok()?).read_to_end(&mut raw).ok()?;
+    /* Bounded: a gzip bomb is a small file that inflates forever, and this one
+       arrives by download. */
+    demo_reader(path)
+        .ok()?
+        .take(MAX_INFLATED)
+        .read_to_end(&mut raw)
+        .ok()?;
     let h = header(&raw)?;
-    if h.team_stat_elem_size < 80 || h.num_teams == 0 {
+    if h.team_stat_elem_size < 80 || h.num_teams == 0 || h.num_teams > MAX_TEAMS {
         return None;
     }
 
@@ -417,7 +481,11 @@ pub fn stats(path: &Path) -> Option<ReplayStats> {
         + h.player_stat_size
         + h.winners_size;
     /* Each team's sample count comes first, all of them, then the samples. */
-    let mut counts = Vec::with_capacity(h.num_teams);
+    /* Grown rather than reserved. `num_teams` is a header field, and
+       `with_capacity` on one is an allocation an attacker chooses the size of -
+       and a failed allocation aborts rather than unwinding. It is bounded above
+       anyway, but not reserving is the property worth keeping. */
+    let mut counts = Vec::new();
     for _ in 0..h.num_teams {
         if at + 4 > raw.len() {
             return None;
@@ -430,7 +498,7 @@ pub fn stats(path: &Path) -> Option<ReplayStats> {
         at += 4;
     }
 
-    let mut teams = Vec::with_capacity(h.num_teams);
+    let mut teams = Vec::new();
     for (team, &count) in counts.iter().enumerate() {
         let mut s = TeamSeries { team, other: vec![Vec::new(); 12], ..Default::default() };
         for i in 0..count {
@@ -574,7 +642,9 @@ fn playable(path: &str) -> Result<PathBuf, String> {
 /// desynchronises or refuses to load. `find_engine` validates the version
 /// before it becomes a path and says plainly when that engine is not here,
 /// which is the honest answer - Shiro does not silently substitute one.
-#[tauri::command]
+/// `command(async)` because this probes for the install, looks for the engine
+/// and spawns it, none of which belongs on the thread drawing the window.
+#[tauri::command(async)]
 pub fn zks_watch_replay(
     app: tauri::AppHandle,
     game: tauri::State<'_, crate::launch::Game>,
@@ -657,6 +727,91 @@ mod tests {
         // disagree about it often enough to matter.
         assert!(playable(file.to_str().unwrap()).is_ok());
         let _ = std::fs::remove_file(&file);
+    }
+
+    /// An uncompressed `.sdf` is offered by the scanner, so it has to read.
+    ///
+    /// Every read wrapped the file in a `GzDecoder`, so a plain demo failed on
+    /// its first read, produced an empty buffer, and was dropped from the list
+    /// with no error anywhere - the extension was advertised and never worked.
+    #[test]
+    fn an_uncompressed_demo_reads_as_well_as_a_compressed_one() {
+        let dir = std::env::temp_dir().join("shiro-replays-plain");
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+
+        let mut demo = vec![0u8; 352];
+        demo[..MAGIC.len()].copy_from_slice(MAGIC);
+        demo[20..24].copy_from_slice(&352i32.to_le_bytes());
+
+        let plain = dir.join("match.sdf");
+        std::fs::write(&plain, &demo).unwrap();
+        let zipped = dir.join("match.sdfz");
+        let mut gz = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::fast());
+        std::io::Write::write_all(&mut gz, &demo).unwrap();
+        std::fs::write(&zipped, gz.finish().unwrap()).unwrap();
+
+        let from_plain = read(&plain).expect("a .sdf must read");
+        let from_zipped = read(&zipped).expect("a .sdfz must read");
+        assert_eq!(from_plain.winners, from_zipped.winners);
+        assert_eq!(from_plain.duration, from_zipped.duration);
+        assert_eq!(from_plain.engine, from_zipped.engine);
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    /// A header that claims a two-gigabyte demo stream must not reserve one.
+    ///
+    /// This is the shape that aborted the process: `read_winners` used to ask
+    /// for `at + size` bytes up front, and `at` is past the demo stream. A
+    /// failed allocation aborts rather than unwinds, so nothing above could
+    /// have caught it, and these files arrive by download from the site.
+    ///
+    /// The test cannot observe an abort - it would take the runner with it - so
+    /// what it asserts is the reachable consequence: a demo whose header points
+    /// far beyond the file reads as one with no recorded winner, promptly.
+    #[test]
+    fn a_header_claiming_a_huge_stream_reserves_nothing() {
+        let dir = std::env::temp_dir().join("shiro-replays-huge");
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("huge.sdfz");
+
+        let mut demo = vec![0u8; 352];
+        demo[..MAGIC.len()].copy_from_slice(MAGIC);
+        let put = |d: &mut Vec<u8>, at: usize, v: i32| {
+            d[at..at + 4].copy_from_slice(&v.to_le_bytes());
+        };
+        put(&mut demo, 20, 352);           // headerSize
+        let after_id = 16 + 4 + 4 + 256 + 16 + 8;
+        put(&mut demo, after_id, 0);       // scriptSize
+        put(&mut demo, after_id + 4, i32::MAX); // demoStreamSize - the bomb
+        put(&mut demo, after_id + 20, 0);  // playerStatSize
+        put(&mut demo, after_id + 28, 1);  // numTeams
+        put(&mut demo, after_id + 44, 1);  // winningAllyTeamsSize
+
+        let mut gz = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::fast());
+        std::io::Write::write_all(&mut gz, &demo).unwrap();
+        std::fs::write(&path, gz.finish().unwrap()).unwrap();
+
+        let started = std::time::Instant::now();
+        let replay = read(&path).expect("the header is well formed, so it reads");
+        assert!(replay.winners.is_empty(), "a stream that is not there names no winner");
+        assert!(
+            started.elapsed() < std::time::Duration::from_secs(5),
+            "reading took {:?} - it is walking something it should have refused",
+            started.elapsed()
+        );
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    /// A winners field wide enough to be a buffer request is refused outright.
+    #[test]
+    fn an_absurd_winners_count_is_not_a_buffer_size() {
+        let prefix = [0u8; 8];
+        assert!(read_winners(Path::new("nowhere"), 0, MAX_WINNERS + 1, &prefix).is_empty());
+        // And the ordinary case still reads out of the prefix without touching disk.
+        let prefix = [0u8, 0, 3, 0];
+        assert_eq!(read_winners(Path::new("nowhere"), 2, 1, &prefix), vec![3]);
     }
 
     #[test]

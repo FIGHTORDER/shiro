@@ -5,18 +5,34 @@
 //! planet files, and converts what they return to JSON. Everything after that
 //! is ordinary data.
 //!
-//! ## Why the content is read and not vendored
+//! ## Why the content is read and not generated
 //!
 //! Generating this at build time would be cheaper - run Lua once in CI, commit
 //! the JSON, the way `gen-codex.mjs` does for units - and it is deliberately
-//! not done. It would mean copying 3 MB of Zero-K's campaign writing into this
-//! repository, and Chobby declares no licence. Reading it at runtime out of a
-//! package the player's own install fetched is a different act from
-//! redistributing it: nothing is copied anywhere, and a player with no Zero-K
-//! sees an empty campaign rather than one Shiro brought with it.
+//! not done, for two reasons that outlive the licensing question below.
 //!
-//! That is the whole reason the interpreter is here, so it is worth being clear
-//! that it is a licensing decision and not a technical one.
+//! The player's own install is the newer copy. Zero-K ships campaign changes in
+//! the `zkmenu` rapid package on its own schedule, and a player who has the new
+//! planets should play the new planets rather than whatever CI last saw. Baking
+//! the JSON in would pin the campaign to Shiro's release cadence.
+//!
+//! It is also not one campaign. The reader takes any package with this shape,
+//! which is what lets a third-party campaign be read at all; a committed JSON
+//! would only ever be Zero-K's.
+//!
+//! ## On shipping a copy
+//!
+//! An earlier version of this note said the content could not be bundled
+//! because Chobby declares no licence. That was checked with Zero-K's
+//! developers and is wrong: content in the Zero-K and infrastructure
+//! repositories is open source, and Chobby has been shared and forked for long
+//! enough that Zero-K itself builds on it. So a copy does ship, under
+//! `src-tauri/resources/campaign`, and `tauri.conf.json` bundles it.
+//!
+//! It is a fallback, not the source: `campaign_source` prefers the player's
+//! install and reaches for the bundled copy only when there is nothing to read.
+//! That way a machine with no Zero-K still has a campaign to look at, and a
+//! machine with Zero-K reads the version it actually has.
 //!
 //! ## The sandbox
 //!
@@ -42,8 +58,9 @@
 use std::cell::Cell;
 use std::path::Path;
 use std::rc::Rc;
+use std::time::{Duration, Instant};
 
-use mlua::{Lua, Table, Value};
+use mlua::{HookTriggers, Lua, Table, Value, VmState};
 use serde_json::{Map, Value as Json};
 
 use crate::install;
@@ -90,12 +107,57 @@ const ENTRY: &str = "campaign/sample/planetdefs.lua";
 const REMOVED: [&str; 8] =
     ["io", "os", "package", "require", "dofile", "loadfile", "load", "loadstring"];
 
+/// How long a whole campaign read may take before it is abandoned.
+///
+/// The real package takes about half a second, so this is generous by twenty
+/// times over. It is a wall clock rather than an instruction count because what
+/// goes wrong is measured in wall clock: the tab spins and never stops.
+const DEADLINE: Duration = Duration::from_secs(10);
+
+/// How often the deadline is checked, in Lua instructions.
+///
+/// Small enough that a tight empty loop is caught in milliseconds, large enough
+/// that the check is not the cost of the read.
+const CHECK_EVERY: u32 = 100_000;
+
+/// The most memory one read may hold.
+///
+/// `("x"):rep(2^30)` asks for a gigabyte in one call and gets an error here
+/// instead of the host's allocator.
+const MEMORY: usize = 256 * 1024 * 1024;
+
 /// A fresh interpreter with the escape hatches removed.
 ///
 /// `LUA_DIRNAME` is set because Chobby's own files read it to build paths, and
 /// a nil there is a concatenation error rather than a missing feature.
+///
+/// The time and memory limits are here because this content arrives over the
+/// network: it is fetched by rapid from a package the player's own install
+/// pulled down, so it is not ours and it is not reviewed. Nothing it can do
+/// reaches outside the interpreter, but `while true do end` costs nothing to
+/// write and, unbounded, ends the read forever - the blocking thread never
+/// returns, the campaign tab never stops spinning, and every retry pins another
+/// thread. A refusal with a reason is the honest outcome.
 fn sandbox() -> Result<Lua, String> {
+    sandbox_until(Instant::now() + DEADLINE)
+}
+
+/// `sandbox`, with the deadline named, so a test can use a short one.
+fn sandbox_until(until: Instant) -> Result<Lua, String> {
     let lua = Lua::new();
+    lua.set_memory_limit(MEMORY).map_err(|e| e.to_string())?;
+
+    lua.set_hook(HookTriggers::new().every_nth_instruction(CHECK_EVERY), move |_, _| {
+        if Instant::now() >= until {
+            return Err(mlua::Error::RuntimeError(format!(
+                "the campaign took longer than {}s to read and was stopped",
+                DEADLINE.as_secs()
+            )));
+        }
+        Ok(VmState::Continue)
+    })
+    .map_err(|e| e.to_string())?;
+
     let globals = lua.globals();
     for gone in REMOVED {
         globals.set(gone, Value::Nil).map_err(|e| e.to_string())?;
@@ -374,6 +436,15 @@ pub fn read_campaign_from(source: Source) -> Result<Json, String> {
     if count == 0 {
         return Err("the campaign loaded but has no planets".into());
     }
+
+    /* Carried alongside the planets so the interface can work out a commander
+       level from experience without a second round trip. Absent rather than
+       fatal: a campaign with no commander configuration still has planets to
+       play, and the level simply stays where it is. */
+    let mut json = json;
+    if let (Some(obj), Ok(levels)) = (json.as_object_mut(), read_level_requirements(source)) {
+        obj.insert("levelRequirement".into(), Json::from(levels));
+    }
     Ok(json)
 }
 
@@ -394,6 +465,55 @@ const UNIT_INFO: &str = "luamenu/configs/gameconfig/zk/gameunitinformation.lua";
 /// the list upstream itself diffs against. They are not guaranteed to be the
 /// same set, and being wrong here shows up as an AI that can build something
 /// the mission meant to withhold.
+/// The campaign's commander configuration.
+const COMM_CONFIG: &str = "campaign/sample/commconfig.lua";
+
+/// Experience needed for each commander level, level 1 first.
+///
+/// The table is a local in `commConfig.lua` and only reachable through the
+/// `GetLevelRequirement` function it returns, so this calls that function
+/// rather than reading a field - a function is exactly what `to_json` drops.
+///
+/// Level 0 is free and is not in the list. The campaign's own curve is
+/// 500 / 1200 / 2500 / 5000 / 8500 / 12000, and it is read rather than written
+/// down here because it is campaign data: another campaign may pace it
+/// differently, and a number copied into Rust would quietly stop matching.
+pub fn read_level_requirements(source: Source) -> Result<Vec<i64>, String> {
+    let lua = sandbox()?;
+    install_vfs(&lua, source.clone())?;
+    install_chobby_stub(&lua)?;
+    strict_globals(&lua)?;
+
+    let Some(text) = source(COMM_CONFIG) else {
+        return Err("the package has no commConfig.lua".into());
+    };
+    let value: Value =
+        lua.load(&text).set_name(COMM_CONFIG).eval().map_err(|e| first_line(&e.to_string()))?;
+    let Value::Table(config) = value else {
+        return Err("commConfig.lua did not return a table".into());
+    };
+    let get: mlua::Function = config
+        .get("GetLevelRequirement")
+        .map_err(|_| "commConfig.lua has no GetLevelRequirement".to_string())?;
+
+    let mut out = Vec::new();
+    /* Upwards until the campaign stops naming one. Bounded because this asks a
+       function from the package how far to go, and a package should not be able
+       to decide how long we loop. */
+    for level in 1..=64i64 {
+        match get.call::<Option<i64>>(level) {
+            Ok(Some(need)) => out.push(need),
+            _ => break,
+        }
+    }
+    drop(lua);
+
+    if out.is_empty() {
+        return Err("commConfig.lua names no level requirements".into());
+    }
+    Ok(out)
+}
+
 pub fn read_unit_names(source: Source) -> Result<Vec<String>, String> {
     let lua = sandbox()?;
     install_vfs(&lua, source.clone())?;
@@ -711,6 +831,20 @@ mod tests {
             planets.len()
         );
 
+        /* The commander's experience curve, read out of `commConfig.lua` by
+           calling its own function. Without it the interface cannot turn
+           experience into a level, and the commander stays at 0 forever. */
+        let levels: Vec<i64> = json["levelRequirement"]
+            .as_array()
+            .expect("no level requirements")
+            .iter()
+            .filter_map(serde_json::Value::as_i64)
+            .collect();
+        println!("level requirements: {levels:?}");
+        assert!(levels.len() >= 5, "only {} levels", levels.len());
+        assert!(levels.windows(2).all(|w| w[0] < w[1]), "the curve has to increase");
+        assert_eq!(levels[0], 500, "the campaign's first level costs 500");
+
         /* The graph, which is what `planetDefs` is run for rather than read.
            Not `initialPlanets`: no planet file sets `startingPlanetCaptured`,
            so upstream leaves that empty and asserting on it tests this test
@@ -821,6 +955,33 @@ mod tests {
             std::fs::write(&to, serde_json::to_vec_pretty(&json).unwrap()).expect("dump");
             println!("dumped to {to}");
         }
+    }
+
+    #[test]
+    fn a_planet_that_never_finishes_is_stopped() {
+        /* The campaign is Lua fetched by rapid out of a package the player's
+           own install pulled down - not ours, not reviewed. `while true do end`
+           used to end the read permanently: the blocking thread never returned,
+           the tab spun forever, and every retry pinned another thread. */
+        let started = Instant::now();
+        let lua = sandbox_until(started + Duration::from_millis(200)).expect("sandbox");
+        let err = lua.load("while true do end").exec().expect_err("must not run forever");
+        assert!(err.to_string().contains("was stopped"), "{err}");
+        assert!(started.elapsed() < Duration::from_secs(5), "the hook did not fire promptly");
+    }
+
+    #[test]
+    fn a_planet_cannot_eat_the_hosts_memory() {
+        // `("x"):rep(2^30)` asks for a gigabyte in one call.
+        let lua = sandbox().expect("sandbox");
+        let err = lua
+            .load("local s = ('x'):rep(2 ^ 30)")
+            .exec()
+            .expect_err("must not be allowed to grow without bound");
+        assert!(
+            matches!(err, mlua::Error::MemoryError(_)) || err.to_string().contains("memory"),
+            "{err}"
+        );
     }
 
     #[test]

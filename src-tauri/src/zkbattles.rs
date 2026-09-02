@@ -38,6 +38,8 @@
 //! replay and parses it, which is the same code path a local replay takes and
 //! depends on no markup whatsoever. The HTML is only ever the index.
 
+use std::io::Read;
+
 use serde::Serialize;
 
 /// The site's own battle list, which is also its search form.
@@ -646,9 +648,23 @@ pub fn download_replay(id: u64, install_root: Option<&str>) -> Result<std::path:
     let part = dir.join(format!("{name}.part"));
     let mut sink = std::fs::File::create(&part)
         .map_err(|e| format!("could not write to the demos folder: {e}"))?;
-    let copied = std::io::copy(&mut response, &mut sink)
-        .map_err(|e| format!("the download stopped: {e}"))?;
+    /* Capped here as well as by the declared length above: a chunked response
+       declares no length at all, so the check above never fires for one and the
+       body was copied to disk until it stopped or the disk did. Reading one
+       byte past the cap is what tells the two apart. */
+    let copied = std::io::copy(&mut Read::by_ref(&mut response).take(MAX_REPLAY + 1), &mut sink);
     drop(sink);
+    let copied = match copied {
+        Ok(n) => n,
+        Err(e) => {
+            let _ = std::fs::remove_file(&part);
+            return Err(format!("the download stopped: {e}"));
+        }
+    };
+    if copied > MAX_REPLAY {
+        let _ = std::fs::remove_file(&part);
+        return Err("that download is too large to be a replay".into());
+    }
     if copied == 0 {
         let _ = std::fs::remove_file(&part);
         return Err("the download was empty".into());

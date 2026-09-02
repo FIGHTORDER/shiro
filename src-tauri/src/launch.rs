@@ -487,6 +487,11 @@ fn start(
        match file written before that check describes a match nothing loaded -
        and sits there until something else launches. */
     tell_the_loading_screen(&install.root, req.match_info.as_ref());
+    /* Beside it and for the same reason: the supervisor below polls for this
+       widget's file for the length of every game, so the widget has to be
+       there. Refreshed on every launch rather than once, so an update to it
+       reaches an install that already has the old one. */
+    crate::lobbybutton::place(&install.root);
 
     match cmd.spawn() {
         Ok(child) => Ok((child, install.root)),

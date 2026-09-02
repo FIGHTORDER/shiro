@@ -23,7 +23,7 @@
 //! for Splaunch missions - the player says whether they won - and the same
 //! answer applies for the same reason.
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use serde_json::Value as Json;
 use tauri::{AppHandle, Manager, State};
@@ -128,12 +128,33 @@ fn save_path(app: &AppHandle) -> Result<PathBuf, String> {
 ///
 /// A save that will not parse is replaced by a fresh one rather than refused.
 /// The alternative is a campaign tab that shows an error and cannot be used at
-/// all, which is a worse answer than a campaign that has forgotten - and the
-/// old file is left on disk either way.
+/// all, which is a worse answer than a campaign that has forgotten - but the
+/// unreadable file is moved aside first rather than left where it is. Every
+/// command reads, changes and writes, so leaving it in place meant the next
+/// difficulty change wrote a default save over the only copy and the campaign
+/// was gone for good; set aside, it is still there to be looked at.
 pub fn load(app: &AppHandle) -> Save {
     let Ok(path) = save_path(app) else { return Save::default() };
     let Ok(text) = std::fs::read_to_string(&path) else { return Save::default() };
-    serde_json::from_str(&text).unwrap_or_default()
+    match serde_json::from_str(&text) {
+        Ok(save) => save,
+        Err(_) => {
+            set_aside(&path);
+            Save::default()
+        }
+    }
+}
+
+/// Move an unreadable save out of the way of the write that is about to happen.
+///
+/// Best effort: this runs on the path where the campaign is already in trouble,
+/// and failing to rename is not a reason to refuse to open the tab. The
+/// timestamp keeps a second bad save from overwriting the first.
+fn set_aside(path: &Path) {
+    let stamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_or(0, |d| d.as_secs());
+    let _ = std::fs::rename(path, path.with_extension(format!("json.bad-{stamp}")));
 }
 
 pub fn store(app: &AppHandle, save: &Save) -> Result<(), String> {
@@ -206,6 +227,8 @@ pub async fn zks_galaxy_finish(
 
 /// Apply what a planet awards, once it has been captured.
 ///
+/// `levels` is the experience curve the campaign reader hands the screen.
+///
 /// Kept apart from `zks_galaxy_finish` because the reward is the planet's data
 /// and this module does not read the campaign - the screen has the planet in
 /// hand and passes the lists, which is also what makes this testable without an
@@ -218,6 +241,7 @@ pub async fn zks_galaxy_unlock(
     abilities: Vec<String>,
     codex: Vec<String>,
     experience: i64,
+    levels: Vec<i64>,
 ) -> Result<Save, String> {
     let mut save = load(&app);
     add_new(&mut save.units_unlocked, units);
@@ -225,8 +249,19 @@ pub async fn zks_galaxy_unlock(
     add_new(&mut save.abilities_unlocked, abilities);
     add_new(&mut save.codex_entries_unlocked, codex);
     save.commander_experience += experience.max(0);
+    save.commander_level = level_for(save.commander_experience, &levels).max(save.commander_level);
     store(&app, &save)?;
     Ok(save)
+}
+
+/// The level a commander with this much experience has reached.
+///
+/// `levels` is the campaign's own curve, level 1 first, straight out of
+/// `commConfig.lua` - see `campaignpack::read_level_requirements`. Levels start
+/// at 1 here and are written to a start script one lower, so an empty or
+/// unreadable curve simply leaves the commander at 1 rather than guessing.
+fn level_for(experience: i64, levels: &[i64]) -> i64 {
+    1 + levels.iter().take_while(|&&need| experience >= need).count() as i64
 }
 
 /// Mark a codex entry as read.
@@ -332,11 +367,26 @@ pub async fn zks_galaxy_play(
              Play it once in a skirmish to download it, then try again."
         )
     })?;
-    // Whichever Zero-K is here, by the name the engine indexes it under: a
-    // start script naming anything else stops at an unknown game.
-    let zk = installed
-        .resolve("Zero-K")
-        .ok_or("No Zero-K is installed for the engine to run.")?;
+    /* Whichever game this planet runs on, by the name the engine indexes it
+       under: a start script naming anything else stops at an unknown game.
+       Usually that is Zero-K, but a planet may name a mutator - and the name it
+       writes is the one a person would say, not the archive's, which carries a
+       version. Resolved here for the same reason and by the same rule as the
+       map above; unresolved, the engine failed at start with nothing in the
+       pre-flight to explain it. */
+    let wanted_game = planet
+        .pointer("/gameConfig/gameName")
+        .and_then(Json::as_str)
+        .unwrap_or("Zero-K");
+    let zk = installed.resolve(wanted_game).ok_or_else(|| {
+        if wanted_game.eq_ignore_ascii_case("Zero-K") {
+            "No Zero-K is installed for the engine to run.".to_string()
+        } else {
+            format!(
+                "This mission runs on {wanted_game}, which is not installed.                  It is a Zero-K mutator - play it once from the official lobby                  to download it, then try again."
+            )
+        }
+    })?;
 
     let context = Context {
         player_name: player.trim().to_string(),
@@ -362,6 +412,51 @@ pub async fn zks_galaxy_play(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn experience_raises_the_commander_level() {
+        /* The campaign's own curve, out of `commConfig.lua`. Nothing was
+           raising the level: `zks_galaxy_unlock` banked the experience and only
+           the loadout screen, which does not exist, ever wrote a level, so a
+           commander stayed at 1 through the whole campaign. */
+        let zk = [500, 1200, 2500, 5000, 8500, 12000];
+        assert_eq!(level_for(0, &zk), 1);
+        assert_eq!(level_for(499, &zk), 1, "one short is still level 1");
+        assert_eq!(level_for(500, &zk), 2, "the threshold itself counts");
+        assert_eq!(level_for(4999, &zk), 4);
+        assert_eq!(level_for(12000, &zk), 7);
+        assert_eq!(level_for(999_999, &zk), 7, "the curve ends");
+    }
+
+    #[test]
+    fn an_unreadable_curve_leaves_the_level_alone() {
+        // A package with no commConfig, rather than a guess at the numbers.
+        assert_eq!(level_for(50_000, &[]), 1);
+    }
+
+    #[test]
+    fn an_unreadable_save_is_moved_aside_rather_than_written_over() {
+        /* Every command is read, change, write. Left in place, a save that will
+           not parse was replaced by a default and then overwritten by the very
+           next difficulty change - the campaign gone with no copy anywhere. */
+        let dir = std::env::temp_dir().join("shiro-galaxy-bad");
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).expect("temp");
+        let path = dir.join("galaxy.json");
+        std::fs::write(&path, "{\"difficultySetting\": \"not a number\"}").expect("write");
+
+        set_aside(&path);
+
+        assert!(!path.exists(), "the bad save is still in the way of the next write");
+        let kept: Vec<_> = std::fs::read_dir(&dir)
+            .expect("read")
+            .filter_map(Result::ok)
+            .map(|e| e.file_name().to_string_lossy().into_owned())
+            .collect();
+        assert_eq!(kept.len(), 1, "{kept:?}");
+        assert!(kept[0].starts_with("galaxy.json.bad-"), "{kept:?}");
+        let _ = std::fs::remove_dir_all(&dir);
+    }
 
     #[test]
     fn a_new_campaign_starts_on_normal_with_nothing_unlocked() {

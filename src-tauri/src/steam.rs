@@ -155,6 +155,10 @@ pub fn zks_steam_ticket(app: tauri::AppHandle) -> Result<String, String> {
         }
         if waited >= TIMEOUT {
             let _ = child.kill();
+            /* Killing it only asks; without the wait the helper stays a zombie
+               in the process table until Shiro itself exits, and Shiro is meant
+               to be left running. */
+            let _ = child.wait();
             return Err("Steam did not answer in time.".into());
         }
         std::thread::sleep(step);

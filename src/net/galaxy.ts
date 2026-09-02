@@ -5,11 +5,11 @@ import { inTauri } from "./connection.ts";
 /**
  * Zero-K's galaxy campaign: 71 planets, read out of the player's own install.
  *
- * Nothing here ships with Shiro. The content lives in the `zkmenu` rapid
- * package the game downloads, and `src-tauri/src/campaignpack.rs` reads it at
- * runtime - so a machine with no Zero-K sees an empty campaign rather than one
- * Shiro brought with it. That is a licensing decision as much as a technical
- * one; the Rust module says why at length.
+ * The content is Zero-K's, not Shiro's. It normally comes from the `zkmenu`
+ * rapid package the game downloads, read at runtime by
+ * `src-tauri/src/campaignpack.rs`, so a player sees the version their own
+ * install has. A copy ships as a fallback for a machine with no Zero-K yet;
+ * the Rust module says why it is read rather than generated.
  *
  * The save is Shiro's own and lives beside its other data. A Chobby save and
  * this one are not interchangeable, even though the field names match.
@@ -75,6 +75,14 @@ export interface Campaign {
   /** Which planets a new campaign starts with reachable. */
   initialPlanets?: number[] | Record<string, unknown>;
   startingPlanetMaps?: unknown;
+  /**
+   * Experience needed for each commander level, level 1 first.
+   *
+   * Read out of the campaign's own `commConfig.lua` rather than written down,
+   * because another campaign may pace it differently. Absent when the package
+   * has no commander configuration, which leaves the commander where it is.
+   */
+  levelRequirement?: number[];
 }
 
 /** The 23 fields upstream keeps, as `src-tauri/src/galaxy.rs` writes them. */
@@ -131,13 +139,16 @@ export function finishPlanet(planetId: number, won: boolean, bonus: number[]): P
   return invoke<GalaxySave>("zks_galaxy_finish", { planetId, won, bonus });
 }
 
-export function applyReward(reward: CompletionReward | undefined): Promise<GalaxySave> {
+export function applyReward(
+  reward: CompletionReward | undefined, levels?: number[],
+): Promise<GalaxySave> {
   return invoke<GalaxySave>("zks_galaxy_unlock", {
     units: reward?.units ?? [],
     modules: reward?.modules ?? [],
     abilities: reward?.abilities ?? [],
     codex: reward?.codexEntries ?? [],
     experience: reward?.experience ?? 0,
+    levels: levels ?? [],
   });
 }
 

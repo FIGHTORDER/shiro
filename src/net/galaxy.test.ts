@@ -73,3 +73,53 @@ test("the briefing prefers the long text the way the game does", () => {
   assert.equal(briefing({ infoDisplay: { text: "short" } }), "short");
   assert.equal(briefing({}), "");
 });
+
+/**
+ * The campaign's progression commands have to be reachable from the interface.
+ *
+ * This exists because they were not. `finishPlanet`, `applyReward`, `readCodex`
+ * and `setLoadout` were all written, registered and tested on the Rust side,
+ * and nothing in `src/` ever called any of them - so winning a planet recorded
+ * nothing, `planetsCaptured` stayed empty, and every planet after the first
+ * stayed "Not reachable yet" forever. Every unit test passed the whole time,
+ * because each half worked; only the join was missing.
+ *
+ * Asserted by reading the screens, the way `publishSweep.test.ts` reads the
+ * workflow: what is being checked is that two files agree, and no amount of
+ * testing either one alone can see it.
+ */
+import { readFileSync, readdirSync } from "node:fs";
+
+function frontendSource(): string {
+  const parts = [readFileSync("src/App.jsx", "utf8")];
+  for (const name of readdirSync("src/screens")) {
+    if (name.endsWith(".jsx")) parts.push(readFileSync(`src/screens/${name}`, "utf8"));
+  }
+  return parts.join("\n");
+}
+
+test("winning a planet is recorded and rewarded by something the player can reach", () => {
+  const source = frontendSource();
+  for (const fn of ["finishPlanet", "applyReward"]) {
+    assert.ok(
+      source.includes(fn),
+      `${fn} has no caller in the interface, so campaign progress is never saved`,
+    );
+  }
+});
+
+test("the commands that are deliberately not wired are still only these", () => {
+  /* Not a wish list - a boundary. `readCodex` needs a codex screen and
+     `setLoadout` needs the commander loadout screen, and neither exists yet;
+     `commanderLevel` therefore never moves, which is only harmless while no
+     screen reads it. If one of these gains a caller, delete it from here. If
+     something *else* stops being called, the test above is the one that
+     should have caught it. */
+  const source = frontendSource();
+  const unwired = ["readCodex", "setLoadout"].filter(fn => !source.includes(fn));
+  assert.deepEqual(
+    unwired,
+    ["readCodex", "setLoadout"],
+    "a screen now uses one of these - update this list",
+  );
+});

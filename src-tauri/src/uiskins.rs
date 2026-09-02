@@ -295,12 +295,19 @@ pub fn zks_uiskin_remove(id: String, install_root: Option<String>) -> Result<(),
     Ok(())
 }
 
-/// Put the picker widget where Zero-K loads widgets from.
+/// Put the picker widget where Zero-K loads widgets from, and switch raw
+/// widgets on so that it loads at all.
+///
+/// Writing the file was the whole of this and it was not enough: Zero-K ignores
+/// `LuaUI/Widgets/` unless `ZK_data.lua` says otherwise, so a player who had
+/// never installed a widget got both skin directories, a picker on disk, a
+/// status of "installed", and no Shiro Skin option anywhere in the game.
 fn place_selector(root: &Path) -> Result<(), String> {
     let dir = zk_path(root, "LuaUI/Widgets");
     std::fs::create_dir_all(&dir).map_err(|e| format!("could not make {}: {e}", dir.display()))?;
     std::fs::write(dir.join(SELECTOR_NAME), SELECTOR)
-        .map_err(|e| format!("could not place the skin picker: {e}"))
+        .map_err(|e| format!("could not place the skin picker: {e}"))?;
+    crate::widgets::turn_on_local_widgets(root)
 }
 
 fn copy_dir(from: &Path, to: &Path) -> Result<(), String> {
@@ -358,6 +365,24 @@ fn unpack(bytes: &[u8], into: &Path) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn placing_the_picker_also_switches_raw_widgets_on() {
+        /* The picker is a raw widget, and Zero-K ignores LuaUI/Widgets unless
+           ZK_data.lua says otherwise. Writing the file alone left a skin that
+           reported "installed" with no option to select it in the game. */
+        let root = std::env::temp_dir().join("shiro-uiskin-enable");
+        let _ = std::fs::remove_dir_all(&root);
+        std::fs::create_dir_all(&root).expect("temp");
+
+        place_selector(&root).expect("places the picker");
+
+        assert!(zk_path(&root, "LuaUI/Widgets").join(SELECTOR_NAME).is_file());
+        let data = std::fs::read_to_string(zk_path(&root, "LuaUI/Config/ZK_data.lua"))
+            .expect("ZK_data.lua was never written");
+        assert!(data.contains("useLocalWidgets"), "{data}");
+        let _ = std::fs::remove_dir_all(&root);
+    }
 
     #[test]
     fn every_entry_that_can_be_installed_has_a_hash() {
