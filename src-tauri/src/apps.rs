@@ -128,14 +128,14 @@ pub const CATALOGUE: &[CatalogueApp] = &[
         description: "Scenario editor for the Spring and Recoil RTS engines",
         kind: AppKind::Executable,
         download: Some(
-            "https://github.com/FIGHTORDER/Splaunch/releases/download/dev/Splaunch_1.0.1_x64.zip",
+            "https://github.com/FIGHTORDER/Splaunch/releases/download/dev/Splaunch_1.1.0_x64.zip",
         ),
         // Checked twice, as Springen's is below: against the `.sha256` the
         // release publishes beside the asset, and against the bytes actually
         // fetched. A hash taken only from our own download proves the download
         // rather than the release.
-        sha256: Some("f3c7dfd2fa3ee8ef37c858db1251f0e4d6235fc3ce5bf345510be01027fe40c9"),
-        version: Some("1.0.1"),
+        sha256: Some("e52c023b8bd4f4ea638db81e7a0dc6cbd3107f449f685d3b06bcfb8ed80205f3"),
+        version: Some("1.1.0"),
         run: Some("Splaunch.exe"),
         unavailable: None,
         bundled: None,
