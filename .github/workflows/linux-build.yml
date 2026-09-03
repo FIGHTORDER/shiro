@@ -68,11 +68,36 @@ jobs:
       - name: Unit tests
         run: npm test
 
+      # Catches a platform config that drops a resource the base config ships.
+      # `tauri.linux.conf.json` names its own `resources` array, and Tauri
+      # REPLACES the base array rather than adding to it - which is how the
+      # Linux packages went out with none of Zero-K's campaign in them while
+      # every test here stayed green.
+      - name: Undefined identifiers, tokens and bundle resources
+        run: npm run check:names
+
+      # Linux ships the Steam helper, and `tauri-build` validates `externalBin`
+      # from a build script, so this has to come before any cargo invocation
+      # rather than before the bundle. Without it `cargo test` below fails on a
+      # missing `binaries/shiro-steam-x86_64-unknown-linux-gnu`.
+      - name: Build the Steam helper
+        run: npm run build:steam
+
       - name: Rust tests
         working-directory: src-tauri
         run: cargo test
 
       - name: Build packages
+        env:
+          # linuxdeploy resolves the dependencies of every ELF it is handed and
+          # refuses the whole bundle if one cannot be found. The Steam helper
+          # links `libsteam_api.so`, which lives on no system path, so the
+          # loader is pointed at the copy `build:steam` staged.
+          #
+          # Without this the AppImage fails at bundling with "Could not find
+          # dependency: libsteam_api.so" - the deb and rpm bundle fine, so the
+          # run dies most of the way through.
+          LD_LIBRARY_PATH: ${{ github.workspace }}/src-tauri/resources/steam
         run: npm run tauri -- build
 
       - name: Collect the packages
