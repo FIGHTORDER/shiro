@@ -561,7 +561,10 @@ pub const BUNDLED: &str = "resources/campaign";
 /// A failure to read an installed package is not swallowed - if their copy is
 /// broken, that is worth saying rather than quietly showing different content
 /// than the game will use.
-pub fn read_campaign_or_bundled(root: &Path, bundled: Option<&Path>) -> Result<Json, String> {
+pub fn read_campaign_or_bundled(
+    root: Option<&Path>,
+    bundled: Option<&Path>,
+) -> Result<Json, String> {
     read_campaign_from(campaign_source(root, bundled)?)
 }
 
@@ -572,9 +575,15 @@ pub fn read_campaign_or_bundled(root: &Path, bundled: Option<&Path>) -> Result<J
 /// with "no campaign package installed" on a machine where the screen had just
 /// finished drawing seventy-one planets out of the bundled copy. Two routes to
 /// the same content is one route too many.
-pub fn campaign_source(root: &Path, bundled: Option<&Path>) -> Result<Source, String> {
-    if let Some((_, index)) = rapid::newest_with(root, MARKER) {
-        return Ok(package_source(root, index));
+/// `root` is `None` when no Zero-K could be found. Reading the campaign does
+/// not need one - the bundled copy is a plain directory beside the binary - and
+/// tying the two together meant a machine where detection merely stumbled had
+/// no campaign at all, which is a detection bug wearing a campaign bug's face.
+pub fn campaign_source(root: Option<&Path>, bundled: Option<&Path>) -> Result<Source, String> {
+    if let Some(root) = root {
+        if let Some((_, index)) = rapid::newest_with(root, MARKER) {
+            return Ok(package_source(root, index));
+        }
     }
     match bundled.filter(|d| d.is_dir()) {
         Some(dir) => Ok(dir_source(dir)),
@@ -627,11 +636,40 @@ fn first_line(message: &str) -> String {
 /// `zkmenu`, which they cannot do without restarting into it - and a stale
 /// answer here would be a stale answer about content the running game is not
 /// using either.
-static CACHE: std::sync::OnceLock<std::sync::Mutex<Option<(std::path::PathBuf, Json)>>> =
-    std::sync::OnceLock::new();
+/// The campaign as last read, and the install it came out of.
+///
+/// The key is an `Option` because there may be no install: the bundled copy
+/// is read without one, and that answer is worth caching too.
+type Cached = Option<(Option<std::path::PathBuf>, Json)>;
 
-fn cache() -> &'static std::sync::Mutex<Option<(std::path::PathBuf, Json)>> {
+static CACHE: std::sync::OnceLock<std::sync::Mutex<Cached>> = std::sync::OnceLock::new();
+
+fn cache() -> &'static std::sync::Mutex<Cached> {
     CACHE.get_or_init(|| std::sync::Mutex::new(None))
+}
+
+/// Which install the campaign should be read out of, if any.
+///
+/// A missing install is not a missing campaign. This was `?` on the detector,
+/// so anything that stopped it - a Steam layout it did not recognise, a first
+/// run before anything is installed - emptied the galaxy too; and the nav item
+/// is hidden when the campaign reads as empty, so the whole feature vanished
+/// with no error on any screen. The bundled copy needs no install to read.
+///
+/// The detector's message is still the better one when there is nothing to fall
+/// back on: "no campaign package installed" is a poor answer when the real
+/// problem is no Zero-K, and the detector says where it looked.
+///
+/// Pure, so the decision can be tested without an install or an `AppHandle`.
+fn root_for_reading(
+    detected: Result<std::path::PathBuf, String>,
+    have_bundle: bool,
+) -> Result<Option<std::path::PathBuf>, String> {
+    match detected {
+        Ok(root) => Ok(Some(root)),
+        Err(_) if have_bundle => Ok(None),
+        Err(why) => Err(why),
+    }
 }
 
 /// Read the galaxy campaign out of the installed `zkmenu` package.
@@ -644,9 +682,14 @@ pub async fn zks_read_campaign(
     app: tauri::AppHandle,
     install_root: Option<String>,
 ) -> Result<Json, String> {
-    // The detector's own message says where it looked, which is a better
-    // answer than "no campaign" when the real problem is no Zero-K.
-    let root = install::detect_with(install_root.as_deref())?.root;
+    /* Resolved out here: `AppHandle` is not `Send` on every platform and the
+       blocking closure must not need one. */
+    let bundled = bundled_dir(&app);
+
+    let root = root_for_reading(
+        install::detect_with(install_root.as_deref()).map(|f| f.root),
+        bundled.is_some(),
+    )?;
 
     if let Ok(guard) = cache().lock() {
         if let Some((at, json)) = guard.as_ref() {
@@ -657,14 +700,21 @@ pub async fn zks_read_campaign(
     }
 
     let reading = root.clone();
-    /* Resolved out here: `AppHandle` is not `Send` on every platform and the
-       blocking closure must not need one. */
-    let bundled = bundled_dir(&app);
-    let json = tauri::async_runtime::spawn_blocking(move || {
-        read_campaign_or_bundled(&reading, bundled.as_deref())
+    let mut json = tauri::async_runtime::spawn_blocking(move || {
+        read_campaign_or_bundled(reading.as_deref(), bundled.as_deref())
     })
         .await
         .map_err(|e| format!("reading the campaign did not finish: {e}"))??;
+
+    /* The campaign reads without Zero-K, but no mission starts without it, and
+       a Play button that fails is a poor way to find that out. Said here rather
+       than asked for separately so the answer cannot disagree with the campaign
+       it came with. */
+    if root.is_none() {
+        if let Some(obj) = json.as_object_mut() {
+            obj.insert("noInstall".into(), Json::Bool(true));
+        }
+    }
 
     if let Ok(mut guard) = cache().lock() {
         *guard = Some((root, json.clone()));
@@ -856,6 +906,60 @@ mod tests {
     }
 
     #[test]
+    fn a_stumbling_detector_does_not_empty_the_galaxy() {
+        let some = std::path::PathBuf::from("/zk");
+        let no_zk = || Err("No Zero-K here. Looked in ...".to_string());
+
+        // An install is used when there is one, bundle or no bundle.
+        assert_eq!(root_for_reading(Ok(some.clone()), true), Ok(Some(some.clone())));
+        assert_eq!(root_for_reading(Ok(some), false), Ok(Some("/zk".into())));
+
+        /* No install but a bundle: read it. This is the case that was broken -
+           the detector's error was taken with `?` and the campaign went with
+           it, so a detection bug read as a missing campaign. */
+        assert_eq!(root_for_reading(no_zk(), true), Ok(None));
+
+        // Nothing anywhere: the detector's message, which says where it looked.
+        let err = root_for_reading(no_zk(), false).unwrap_err();
+        assert!(err.contains("No Zero-K"), "{err}");
+    }
+
+    #[test]
+    fn the_reader_leaves_the_no_install_flag_to_the_command() {
+        /* `noInstall` says the player has no Zero-K, which is the detector's
+           answer and not something a campaign file can claim. The command sets
+           it; a package that shipped its own would be believed otherwise. */
+        let bundled = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(BUNDLED);
+        let json = read_campaign_or_bundled(None, Some(&bundled)).expect("reads");
+        assert!(json["noInstall"].is_null(), "the reader set a flag that is not its to set");
+    }
+
+    #[test]
+    fn the_campaign_reads_with_no_install_at_all() {
+        /* The bundled copy is a directory beside the binary and needs no
+           Zero-K to read. `zks_read_campaign` used to take the detector's error
+           with `?` before it got here, so anything that stopped the detector -
+           a Steam layout it did not recognise, a first run before anything is
+           installed - emptied the galaxy as well. The nav item is hidden when
+           the campaign reads as empty, so the feature disappeared with no error
+           on any screen. */
+        let bundled = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(BUNDLED);
+
+        let source = campaign_source(None, Some(&bundled)).expect("no install is not no campaign");
+        assert!(source(ENTRY).is_some(), "the source cannot reach the campaign");
+
+        let json = read_campaign_or_bundled(None, Some(&bundled)).expect("reads");
+        let planets = json["planets"].as_array().expect("no planets");
+        assert!(planets.len() > 60, "only {} planets", planets.len());
+
+        // And with no install and no bundle there is genuinely nothing to read.
+        match campaign_source(None, None) {
+            Ok(_) => panic!("a campaign appeared from nowhere"),
+            Err(e) => assert!(e.contains("no campaign package"), "{e}"),
+        }
+    }
+
+    #[test]
     fn the_source_falls_back_to_the_bundle_for_every_caller() {
         /* Reading the campaign and launching a planet both need the files.
            Launching used to resolve them separately and refused with "no
@@ -866,13 +970,13 @@ mod tests {
         std::fs::create_dir_all(&empty).unwrap();
         let bundled = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(BUNDLED);
 
-        let source = campaign_source(&empty, Some(&bundled)).expect("the bundle answers");
+        let source = campaign_source(Some(&empty), Some(&bundled)).expect("the bundle answers");
         assert!(source(ENTRY).is_some(), "the source cannot reach the campaign");
 
         /* And with nothing anywhere, the message names the missing package.
            Matched rather than unwrapped: a `Source` is a boxed closure and has
            no `Debug`, which `unwrap_err` would require. */
-        match campaign_source(&empty, None) {
+        match campaign_source(Some(&empty), None) {
             Ok(_) => panic!("a campaign appeared from nowhere"),
             Err(e) => assert!(e.contains("no campaign package"), "{e}"),
         }
@@ -890,11 +994,11 @@ mod tests {
         let bundled = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(BUNDLED);
 
         // No package installed: the bundled copy answers.
-        let json = read_campaign_or_bundled(&empty, Some(&bundled)).expect("the bundle answers");
+        let json = read_campaign_or_bundled(Some(&empty), Some(&bundled)).expect("the bundle answers");
         assert!(json["planets"].as_array().unwrap().len() >= 70);
 
         // And with neither, the message is about the package rather than us.
-        let e = read_campaign_or_bundled(&empty, None).unwrap_err();
+        let e = read_campaign_or_bundled(Some(&empty), None).unwrap_err();
         assert!(e.contains("no campaign package"), "{e}");
         let _ = std::fs::remove_dir_all(&empty);
     }

@@ -83,6 +83,14 @@ export interface Campaign {
    * has no commander configuration, which leaves the commander where it is.
    */
   levelRequirement?: number[];
+  /**
+   * No Zero-K was found, so nothing here can be started.
+   *
+   * The campaign itself reads without an install - it is bundled - so the
+   * screen draws in full and only launching fails. Set by the command from the
+   * detector's answer, never by a campaign file.
+   */
+  noInstall?: boolean;
 }
 
 /** The 23 fields upstream keeps, as `src-tauri/src/galaxy.rs` writes them. */

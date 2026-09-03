@@ -286,6 +286,16 @@ export default function GalaxyScreen({
           <span style={{ ...label, marginLeft: "var(--sp-2)" }}>
             {captured.length}/{planets.length} captured
           </span>
+          {/* The campaign is bundled, so it draws with no Zero-K on the
+              machine - but no mission can start without one. Said here rather
+              than leaving the Play button to fail, which is a poor way to
+              learn it. */}
+          {campaign?.noInstall && (
+            <span style={{ ...label, marginLeft: "var(--sp-2)",
+              color: "var(--signal-warn)" }}>
+              No Zero-K found - browsing only
+            </span>
+          )}
         </div>
       </div>
 

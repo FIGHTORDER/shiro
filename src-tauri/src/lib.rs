@@ -71,6 +71,30 @@ pub fn run() {
             if let Ok(dir) = managed::root(app.handle()) {
                 install::set_managed_root(dir);
             }
+            /* Maximized here rather than in `tauri.conf.json`.
+             *
+             * A Wayland client does not get to choose the size of a maximized
+             * surface - the compositor does - so a window asked to start
+             * maximized is created before that negotiation has happened, and
+             * tao's handling of it is a standing bug (tauri-apps/tao#977: the
+             * maximized state reports 0x0 while the configured size says
+             * otherwise, and the surface mismatches). GNOME users report the
+             * window drawing normally and passing every click through to
+             * whatever is behind it, which is what an empty input region looks
+             * like from the outside (FIGHTORDER/shiro#19).
+             *
+             * Maximizing once the window exists lets the surface be made at a
+             * size both ends agree on and then resized, which is the ordinary
+             * path every other app takes. Windows and macOS reach the same end
+             * state either way.
+             *
+             * UNCONFIRMED against the reporter's setup: it is GNOME on Wayland,
+             * and WSLg's compositor is not Mutter, so this could not be
+             * reproduced here. The timing is what points at it - the config
+             * line landed in 9b1d068 on the same day the issue was filed. */
+            if let Some(w) = app.get_webview_window("main") {
+                let _ = w.maximize();
+            }
             managed::seed_loadscreen(app.handle());
             if let Err(e) = apps::seed_bundled(app.handle()) {
                 eprintln!("could not place the bundled apps: {e}");

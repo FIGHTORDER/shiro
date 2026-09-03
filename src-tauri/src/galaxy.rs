@@ -335,7 +335,10 @@ pub async fn zks_galaxy_play(
         /* The same source the screen read from. Building a package source here
            instead is what made a planet refuse to start with "no campaign
            package installed" on a machine whose galaxy had just drawn. */
-        let source = crate::campaignpack::campaign_source(&reading, bundled.as_deref())?;
+        /* `Some`, unlike the read path: starting a mission needs an engine and
+           a game whatever the campaign came from, so this function has already
+           refused without an install. */
+        let source = crate::campaignpack::campaign_source(Some(&reading), bundled.as_deref())?;
         let campaign = crate::campaignpack::read_campaign_from(source.clone())?;
         // A missing roster is not fatal: it costs the AI its restrictions, and
         // a mission with an unrestricted enemy is still a mission. Said out
