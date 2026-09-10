@@ -686,6 +686,40 @@ fn map_catalogue_blocking() -> Result<Vec<CatalogueMap>, String> {
     parse_catalogue(&text)
 }
 
+/// The name to write into `dir`, given what is already there.
+///
+/// Zero-K's content service serves a file under the author's own
+/// capitalisation - `StormSiege_v3.sd7` - while `pr-downloader` writes rapid's,
+/// which is lower case. On Windows and macOS those are one file and this never
+/// mattered. On Linux they are two, and a real install was found carrying both:
+///
+/// ```text
+/// Error: [AS::CheckCachedData] found a ".../maps/StormSiege_v3.sd7"
+///        already in ".../maps/stormsiege_v3.sd7", ignoring.
+/// ```
+///
+/// The engine ignores the duplicate, so nothing breaks - it just scans an
+/// archive it already has, every time it scans, forever.
+///
+/// So: if the directory already holds a name that differs only in case, write
+/// to *that* name and replace it rather than adding a second copy.
+///
+/// Case only, deliberately. A fold that also stripped separators would call
+/// `map_v1.sd7` and `mapv1.sd7` the same file, and overwriting two genuinely
+/// different archives is a worse failure than the duplicate this avoids.
+pub fn existing_case(dir: &Path, name: &str) -> String {
+    let Ok(entries) = std::fs::read_dir(dir) else { return name.to_string() };
+    for entry in entries.flatten() {
+        let found = entry.file_name();
+        let Some(found) = found.to_str() else { continue };
+        if found != name && found.eq_ignore_ascii_case(name) {
+            return found.to_string();
+        }
+    }
+    name.to_string()
+}
+
+
 pub fn file_name_for(url: &str) -> Result<String, String> {
     let path = url
         .split_once("://")
@@ -1396,5 +1430,69 @@ word".into()], "Map").is_err());
     #[test]
     fn a_container_that_is_not_there_is_empty_rather_than_an_error() {
         assert!(string_array("<other/>", "links").is_empty());
+    }
+}
+
+#[cfg(test)]
+mod case_tests {
+    use super::*;
+
+    fn dir(name: &str, files: &[&str]) -> PathBuf {
+        let dir = std::env::temp_dir().join(format!("shiro-zkcontent-case-{name}"));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        for f in files {
+            std::fs::write(dir.join(f), b"an archive as far as this is concerned").unwrap();
+        }
+        dir
+    }
+
+    #[test]
+    fn a_name_differing_only_in_case_is_written_over_rather_than_beside() {
+        /* The reported install carried both, and the engine logged
+           `CheckCachedData ... already in ... ignoring` on every scan. */
+        let d = dir("dupe", &["stormsiege_v3.sd7"]);
+        assert_eq!(existing_case(&d, "StormSiege_v3.sd7"), "stormsiege_v3.sd7");
+        let _ = std::fs::remove_dir_all(&d);
+    }
+
+    #[test]
+    fn it_works_in_the_other_direction_too() {
+        // Whichever arrived first is the one that stays.
+        let d = dir("dupe-rev", &["StormSiege_v3.sd7"]);
+        assert_eq!(existing_case(&d, "stormsiege_v3.sd7"), "StormSiege_v3.sd7");
+        let _ = std::fs::remove_dir_all(&d);
+    }
+
+    #[test]
+    fn an_exact_match_is_left_exactly_as_it_is() {
+        let d = dir("same", &["stormsiege_v3.sd7"]);
+        assert_eq!(existing_case(&d, "stormsiege_v3.sd7"), "stormsiege_v3.sd7");
+        let _ = std::fs::remove_dir_all(&d);
+    }
+
+    #[test]
+    fn a_different_map_keeps_its_own_name() {
+        let d = dir("other", &["comet_catcher_redux_v3.sd7"]);
+        assert_eq!(existing_case(&d, "StormSiege_v3.sd7"), "StormSiege_v3.sd7");
+        let _ = std::fs::remove_dir_all(&d);
+    }
+
+    #[test]
+    fn separators_are_not_folded_away() {
+        /* Case only. Stripping separators as well would call these one file and
+           overwrite two genuinely different archives, which is worse than the
+           duplicate this exists to avoid. */
+        let d = dir("seps", &["map_v1.sd7"]);
+        assert_eq!(existing_case(&d, "mapv1.sd7"), "mapv1.sd7");
+        let _ = std::fs::remove_dir_all(&d);
+    }
+
+    #[test]
+    fn a_directory_that_is_not_there_yet_is_not_an_error() {
+        // First download into a fresh install: nothing to match against.
+        let missing = std::env::temp_dir().join("shiro-zkcontent-case-nodir");
+        let _ = std::fs::remove_dir_all(&missing);
+        assert_eq!(existing_case(&missing, "StormSiege_v3.sd7"), "StormSiege_v3.sd7");
     }
 }

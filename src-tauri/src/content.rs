@@ -636,7 +636,13 @@ fn try_zk_content(
         Ok(n) => n,
         Err(e) => return Fallback::Failed(e),
     };
-    let dest = install.root.join(resolved.kind.directory()).join(&name);
+    /* Written under whatever capitalisation is already on disk, if any. The
+       content service keeps the author's; pr-downloader writes rapid's, which
+       is lower case. On Linux both survive, and the engine then scans an
+       archive it already has on every scan. See `zkcontent::existing_case`. */
+    let dir = install.root.join(resolved.kind.directory());
+    let name = zkcontent::existing_case(&dir, &name);
+    let dest = dir.join(&name);
 
     note(Level::Info, format!("Not in rapid or springfiles; trying zero-k.info for {}", item.name));
 

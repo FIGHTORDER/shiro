@@ -518,7 +518,12 @@ export default function App() {
   /* Content, as soon as you are in the room rather than at the whistle.
      BattleHeader carries the game and map minutes before ConnectSpring does, so
      the download runs while people are still picking teams. The launch still
-     runs its own preflight - this is a head start, not the gate. */
+     runs its own preflight - this is a head start, not the gate.
+
+     Downloading here and never starting the engine until a launch means
+     archives pile up unscanned, and the engine pays for all of them on the next
+     launch - with a server counting down. Measured at 201s once, which lost the
+     game. Known and accepted; see claudedoc/KNOWN-BEHAVIOUR.md. */
   React.useEffect(() => {
     if (!live || liveRoomID == null) return;
     const header = liveBattles[liveRoomID];
